@@ -1,0 +1,97 @@
+/* ...existing code... */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+@import "tailwindcss";
+
+@theme {
+  --color-primary-50: #eefdf5;
+  --color-primary-100: #d5fbe5;
+  --color-primary-200: #aef7d1;
+  --color-primary-300: #76efb7;
+  --color-primary-400: #38e197;
+  --color-primary-500: #10c878;
+  --color-primary-600: #05a761;
+  --color-primary-700: #078550;
+  --color-primary-800: #0a6942;
+  --color-primary-900: #0b5638;
+  --color-primary-950: #02301f;
+  
+  --color-whatsapp-light: #25D366;
+  --color-whatsapp-dark: #128C7E;
+}
+
+@plugin "@tailwindcss/forms";
+@plugin "@tailwindcss/typography";
+
+/* ===== BASE STYLES ===== */
+body {
+  font-family: 'Inter', sans-serif;
+  background-color: #f8fafc;
+  color: #111827;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.dark body {
+  background-color: #09090b; /* zinc-950: Deeper, richer dark */
+  color: #f4f4f5; /* zinc-100: Softer white for better contrast without eye strain */
+}
+
+@layer utilities {
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background-color: #cbd5e1;
+    border-radius: 9999px;
+  }
+
+  .dark .custom-scrollbar::-webkit-scrollbar-thumb {
+    background-color: #475569; 
+  }
+}
+
+
+/* Animation Utilities */
+.animate-in {
+  animation-duration: 0.5s;
+  animation-timing-function: ease-out;
+  animation-fill-mode: both;
+}
+
+.fade-in {
+  animation-name: fade-in;
+}
+
+.zoom-in-95 {
+  animation-name: scale-in;
+}
+
+.slide-in-from-bottom-2 {
+  animation-name: slide-up;
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes scale-in {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes slide-up {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes shimmer {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(200%); }
+}
