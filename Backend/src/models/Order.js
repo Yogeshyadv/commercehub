@@ -40,7 +40,7 @@ const orderSchema = new mongoose.Schema({
   },
   orderNumber: {
     type: String,
-    required: true
+    // required: true // Handled by pre-save hook
   },
   customer: {
     type: mongoose.Schema.Types.ObjectId,

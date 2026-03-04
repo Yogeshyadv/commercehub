@@ -11,8 +11,23 @@ export const aiService = {
     return response.data;
   },
 
+  generateSEO: async (productData) => {
+    const response = await api.post('/ai/seo', productData);
+    return response.data;
+  },
+
   applyToProduct: async (productId, options = {}) => {
     const response = await api.post(`/ai/apply/${productId}`, options);
     return response.data;
   },
+
+  getRecommendations: async () => {
+    const response = await api.get('/ai/recommendations');
+    return response.data;
+  },
+
+  getSimilarProducts: async (productId) => {
+    const response = await api.get(`/ai/similar/${productId}`);
+    return response.data;
+  }
 };

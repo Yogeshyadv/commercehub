@@ -19,8 +19,23 @@ export const formatNumber = (num) => {
 export const formatDate = (date) => {
   if (!date) return 'N/A';
   return new Date(date).toLocaleDateString('en-IN', {
-    year: 'numeric', month: 'short', day: 'numeric',
+    day: 'numeric', month: 'short', year: 'numeric'
   });
+};
+
+export const formatRelativeTime = (date) => {
+  if (!date) return '';
+  const diff = Date.now() - new Date(date).getTime();
+  const seconds = Math.floor(diff / 1000);
+  const minutes = Math.floor(seconds / 60);
+  const hours = Math.floor(minutes / 60);
+  const days = Math.floor(hours / 24);
+
+  if (seconds < 60) return 'Just now';
+  if (minutes < 60) return `${minutes}m ago`;
+  if (hours < 24) return `${hours}h ago`;
+  if (days < 7) return `${days}d ago`;
+  return formatDate(date);
 };
 
 export const formatDateTime = (date) => {
@@ -31,31 +46,18 @@ export const formatDateTime = (date) => {
   });
 };
 
-export const formatRelativeTime = (date) => {
-  if (!date) return 'N/A';
-  const now = new Date();
-  const past = new Date(date);
-  const diffMs = now - past;
-  const diffSec = Math.floor(diffMs / 1000);
-  const diffMin = Math.floor(diffSec / 60);
-  const diffHour = Math.floor(diffMin / 60);
-  const diffDay = Math.floor(diffHour / 24);
-
-  if (diffSec < 60) return 'Just now';
-  if (diffMin < 60) return `${diffMin}m ago`;
-  if (diffHour < 24) return `${diffHour}h ago`;
-  if (diffDay < 7) return `${diffDay}d ago`;
-  return formatDate(date);
+export const generateInitials = (name) => {
+  if (!name) return '??';
+  return name
+    .split(' ')
+    .map((n) => n[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2);
 };
 
 export const truncateText = (text, maxLength = 50) => {
   if (!text) return '';
   if (text.length <= maxLength) return text;
   return text.substring(0, maxLength) + '...';
-};
-
-export const generateInitials = (firstName, lastName) => {
-  const first = firstName ? firstName[0].toUpperCase() : '';
-  const last = lastName ? lastName[0].toUpperCase() : '';
-  return `${first}${last}` || '??';
 };

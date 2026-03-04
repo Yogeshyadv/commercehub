@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import {
   ShoppingBag, 
   Users, 
@@ -19,14 +19,17 @@ import {
 import StatsCard from '../components/dashboard/StatsCard';
 import RecentOrders from '../components/dashboard/RecentOrders';
 import LowStockAlert from '../components/dashboard/LowStockAlert';
+import RecentNotifications from '../components/dashboard/RecentNotifications';
 import Loader from '../components/common/Loader';
 import Badge from '../components/common/Badge';
 import { analyticsService } from '../services/analyticsService';
 import { orderService } from '../services/orderService';
 import { productService } from '../services/productService';
-import { formatCurrency } from '../utils/formatters';
+import { aiService } from '../services/aiService';
+import { formatCurrency, formatNumber } from '../utils/formatters';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
+import { useSocket } from '../context/SocketContext';
 import toast from 'react-hot-toast';
 
 const PIE_COLORS = ['#25D366', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
@@ -37,10 +40,29 @@ export default function Dashboard() {
   const [customerOrders, setCustomerOrders] = useState([]);
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [chartPeriod, setChartPeriod] = useState('30d');
   const { user } = useAuth();
+  const navigate = useNavigate();
+  const socket = useSocket();
   const { addItem } = useCart();
 
   const isVendor = user?.role === 'vendor' || user?.role === 'vendor_staff' || user?.role === 'super_admin';
+
+  useEffect(() => {
+    if (socket && isVendor) {
+      socket.on('new_order', (data) => {
+        // Increment order count locally or refresh data
+        setStats(prev => prev ? ({ ...prev, totalOrders: (prev.totalOrders || 0) + 1 }) : prev);
+        
+        // Optionally refresh recent orders if we had that function exposed or call fetch again
+        // For now, simpler to just update the aggregate stat
+      });
+
+      return () => {
+        socket.off('new_order');
+      };
+    }
+  }, [socket, isVendor]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -53,10 +75,10 @@ export default function Dashboard() {
           if (d.status === 'fulfilled') setStats(d.value.data);
           if (a.status === 'fulfilled') setSalesData(a.value.data?.salesData || []);
         } else {
-          // Fetch customer orders and products
+          // Fetch customer orders and recommended products
           const [ordersRes, productsRes] = await Promise.allSettled([
             orderService.getMyOrders(),
-            productService.getPublicProducts({ limit: 8 })
+            aiService.getRecommendations()
           ]);
           if (ordersRes.status === 'fulfilled') setCustomerOrders(ordersRes.value.data || []);
           if (productsRes.status === 'fulfilled') setProducts(productsRes.value.data || []);
@@ -264,10 +286,16 @@ export default function Dashboard() {
           <p className="text-gray-500 dark:text-gray-400 mt-1">Check your store's performance and analytics.</p>
         </div>
         <div className="flex gap-3">
-          <button className="px-4 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 rounded-xl text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
-            Export Report
+          <button 
+            onClick={() => navigate('/dashboard/analytics')}
+            className="px-4 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 rounded-xl text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+          >
+            View Reports
           </button>
-          <button className="px-4 py-2 bg-[#25D366] text-white rounded-xl text-sm font-bold shadow-lg shadow-[#25D366]/20 hover:bg-[#20bd5a] transition-all">
+          <button 
+            onClick={() => navigate('/dashboard/products/new')}
+            className="px-4 py-2 bg-[#25D366] text-white rounded-xl text-sm font-bold shadow-lg shadow-[#25D366]/20 hover:bg-[#20bd5a] transition-all"
+          >
             + Add Product
           </button>
         </div>
@@ -276,22 +304,24 @@ export default function Dashboard() {
       {/* Stats Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatsCard
-          title="Total Revenue"
-          value={formatCurrency(o.monthlyRevenue || 0)}
+          title="Total Lifetime Sales"
+          value={formatCurrency(o.totalRevenue || 0)}
           change={o.revenueGrowth}
           changeType={o.revenueGrowth >= 0 ? 'increase' : 'decrease'}
           icon={IndianRupee}
           color="green"
-          subtitle="Monthly earnings"
+          subtitle={`₹${formatNumber(o.monthlyRevenue || 0)} this month`}
+          to="/dashboard/analytics"
         />
         <StatsCard
           title="Total Orders"
-          value={o.monthlyOrders || 0}
+          value={o.totalOrders || 0}
           change={o.orderGrowth}
           changeType={o.orderGrowth >= 0 ? 'increase' : 'decrease'}
           icon={ShoppingBag}
           color="blue"
-          subtitle="Orders this month"
+          subtitle={`${o.monthlyOrders || 0} orders this month`}
+          to="/dashboard/orders"
         />
         <StatsCard
           title="Active Products"
@@ -299,6 +329,7 @@ export default function Dashboard() {
           subtitle={`out of ${o.totalProducts || 0} total`}
           icon={Package}
           color="purple"
+          to="/dashboard/products"
         />
         <StatsCard
           title="Total Customers"
@@ -306,6 +337,7 @@ export default function Dashboard() {
           icon={Users}
           color="yellow"
           subtitle="Lifetime customers"
+          to="/dashboard/customers"
         />
       </div>
 
@@ -314,11 +346,21 @@ export default function Dashboard() {
         {/* Revenue Chart */}
         <div className="lg:col-span-2 bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
           <div className="flex items-center justify-between mb-6">
-            <h3 className="text-lg font-bold text-gray-900 dark:text-white">Revenue Analytics</h3>
-            <select className="text-sm border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-700 rounded-lg text-gray-500 dark:text-gray-300 focus:ring-[#25D366] focus:border-[#25D366]">
-              <option>Last 30 Days</option>
-              <option>Last 7 Days</option>
-              <option>This Year</option>
+            <h3 className="text-lg font-bold text-gray-900 dark:text-white">Sales Analytics</h3>
+            <select 
+              value={chartPeriod}
+              onChange={(e) => {
+                setChartPeriod(e.target.value);
+                analyticsService.getSalesAnalytics({ period: e.target.value })
+                  .then(res => setSalesData(res.data?.salesData || []))
+                  .catch(() => toast.error('Failed to load chart data'));
+              }}
+              className="text-sm border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-700 rounded-lg text-gray-500 dark:text-gray-300 focus:ring-[#25D366] focus:border-[#25D366] px-3 py-1.5 cursor-pointer"
+            >
+              <option value="7d">Last 7 Days</option>
+              <option value="30d">Last 30 Days</option>
+              <option value="90d">Last 90 Days</option>
+              <option value="1y">This Year</option>
             </select>
           </div>
           <div className="h-80 w-full">
@@ -349,7 +391,7 @@ export default function Dashboard() {
                   <Tooltip 
                     contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', backgroundColor: 'rgba(255, 255, 255, 0.9)' }}
                     itemStyle={{ color: '#374151' }}
-                    formatter={v => [formatCurrency(v), 'Revenue']} 
+                    formatter={v => [formatCurrency(v), 'Sales']} 
                   />
                   <Area 
                     type="monotone" 
@@ -467,10 +509,16 @@ export default function Dashboard() {
        </div>
 
       {/* Lists Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <RecentOrders orders={stats?.recentOrders || []} />
-        <LowStockAlert products={stats?.lowStockProducts || []} />
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2 space-y-6">
+            <RecentOrders orders={stats?.recentOrders || []} />
+        </div>
+        <div className="space-y-6">
+            <RecentNotifications notifications={stats?.notifications || []} />
+            <LowStockAlert products={stats?.lowStockProducts || []} />
+        </div>
       </div>
+    
     </div>
   );
 }

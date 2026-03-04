@@ -51,6 +51,15 @@ export const productService = {
     });
     return response.data;
   },
+  
+  bulkUpload: async (file) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    const response = await api.post('/products/bulk-upload', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    return response.data;
+  },
 
   getCategories: async () => {
     const response = await api.get('/products/categories');

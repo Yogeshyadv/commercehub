@@ -41,11 +41,23 @@ const userSchema = new mongoose.Schema({
       default: 'https://res.cloudinary.com/demo/image/upload/v1/default-avatar.png'
     }
   },
+  addresses: [{
+    street: String,
+    city: String,
+    state: String,
+    postalCode: String,
+    country: { type: String, default: 'India' },
+    isDefault: { type: Boolean, default: false }
+  }],
   role: {
     type: String,
     enum: ['super_admin', 'vendor', 'vendor_staff', 'customer'],
     default: 'customer'
   },
+  wishlist: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Product'
+  }],
   tenant: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Tenant',

@@ -64,7 +64,7 @@ exports.register = async (req, res) => {
       password,
       phone,
       role: role || 'customer',
-      isEmailVerified: false,
+      isEmailVerified: process.env.NODE_ENV === 'development', // Auto-verify in development
       emailVerificationToken: hashedToken,
       emailVerificationExpire: Date.now() + 24 * 60 * 60 * 1000 // 24 hours
     });
@@ -177,7 +177,7 @@ exports.login = async (req, res) => {
     }
 
     // Check email verification
-    if (!user.isEmailVerified) {
+    if (!user.isEmailVerified && process.env.NODE_ENV !== 'development') {
       return res.status(401).json({
         success: false,
         message: 'Please verify your email address before logging in',
@@ -287,6 +287,7 @@ exports.updateProfile = async (req, res) => {
     if (req.body.firstName) fieldsToUpdate.firstName = req.body.firstName;
     if (req.body.lastName) fieldsToUpdate.lastName = req.body.lastName;
     if (req.body.phone) fieldsToUpdate.phone = req.body.phone;
+    if (req.body.addresses) fieldsToUpdate.addresses = req.body.addresses;
 
     const user = await User.findByIdAndUpdate(req.user._id, fieldsToUpdate, {
       new: true,

@@ -3,13 +3,14 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { 
   ArrowLeft, Save, Eye, Package, Image as ImageIcon, 
   List, Tag, DollarSign, Globe,
-  Check, X, AlertCircle
+  Check, X, AlertCircle, Sparkles, Loader2
 } from 'lucide-react';
 import Button from '../components/common/Button';
 import Input from '../components/common/Input';
 import ImageUpload from '../components/products/ImageUpload';
 import SpecificationsBuilder from '../components/products/SpecificationsBuilder';
 import { productService } from '../services/productService';
+import { aiService } from '../services/aiService';
 import toast from 'react-hot-toast';
 import { formatCurrency } from '../utils/formatters';
 
@@ -26,6 +27,7 @@ export default function ProductForm() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('basic');
   const [loading, setLoading] = useState(false);
+  const [aiLoading, setAiLoading] = useState({ desc: false, tags: false, seo: false });
   const [fetching, setFetching] = useState(!!id);
   
   // Form State
@@ -113,6 +115,90 @@ export default function ProductForm() {
       tags: prev.tags.filter(t => t !== tag)
     }));
   };
+  const handleGenerateDescription = async () => {
+    if (!formData.name || !formData.category) {
+      toast.error('Please enter Product Name and Category first');
+      return;
+    }
+    setAiLoading(prev => ({ ...prev, desc: true }));
+    try {
+      const res = await aiService.generateDescription({
+        name: formData.name,
+        category: formData.category,
+        brand: formData.brand,
+        price: formData.price,
+        tags: formData.tags
+      });
+      if (res.success) {
+        setFormData(prev => ({ 
+          ...prev, 
+          description: res.data.description,
+          shortDescription: res.data.shortDescription 
+        }));
+        toast.success('Description generated!');
+      }
+    } catch (err) {
+      toast.error('Failed to generate description');
+    } finally {
+      setAiLoading(prev => ({ ...prev, desc: false }));
+    }
+  };
+
+  const handleGenerateTags = async () => {
+    if (!formData.name || !formData.category) {
+      toast.error('Please enter Product Name and Category first');
+      return;
+    }
+    setAiLoading(prev => ({ ...prev, tags: true }));
+    try {
+      const res = await aiService.generateTags({
+        name: formData.name,
+        category: formData.category,
+        brand: formData.brand
+      });
+      if (res.success && res.data.tags) {
+        const newTags = res.data.tags.filter(t => !formData.tags.includes(t));
+        setFormData(prev => ({ 
+          ...prev, 
+          tags: [...prev.tags, ...newTags]
+        }));
+        toast.success(`Added ${newTags.length} tags!`);
+      }
+    } catch (err) {
+      toast.error('Failed to generate tags');
+    } finally {
+      setAiLoading(prev => ({ ...prev, tags: false }));
+    }
+  };
+
+  const handleGenerateSEO = async () => {
+    if (!formData.name || !formData.category) {
+      toast.error('Please enter Product Name and Category first');
+      return;
+    }
+    setAiLoading(prev => ({ ...prev, seo: true }));
+    try {
+      const res = await aiService.generateSEO({
+        name: formData.name,
+        category: formData.category,
+        description: formData.description
+      });
+      if (res.success) {
+        setFormData(prev => ({ 
+          ...prev, 
+          metaTitle: res.data.metaTitle,
+          metaDescription: res.data.metaDescription,
+          metaKeywords: res.data.metaKeywords
+        }));
+        toast.success('SEO data generated!');
+      }
+    } catch (err) {
+      toast.error('Failed to generate SEO data');
+    } finally {
+      setAiLoading(prev => ({ ...prev, seo: false }));
+    }
+  };
+
 
   const handleSubmit = async (e) => {
     if(e) e.preventDefault();
@@ -171,7 +257,7 @@ export default function ProductForm() {
 
   if (fetching) return (
       <div className="flex items-center justify-center min-h-screen bg-gray-50 dark:bg-zinc-950">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#25D366]"></div>
       </div>
   );
 
@@ -246,7 +332,7 @@ export default function ProductForm() {
                         onClick={() => setActiveTab(tab.id)}
                         className={`flex items-center gap-2 px-6 py-4 text-sm font-medium whitespace-nowrap border-b-2 transition-all ${
                         activeTab === tab.id
-                            ? 'border-blue-600 text-blue-600 dark:text-blue-400'
+                            ? 'border-[#25D366] text-[#25D366] dark:text-[#25D366]'
                             : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:border-gray-300'
                         }`}
                     >
@@ -300,7 +386,7 @@ export default function ProductForm() {
                                         value={formData.category}
                                         onChange={handleChange}
                                         list="category-options"
-                                        className="w-full px-4 py-2 bg-gray-50 dark:bg-zinc-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all text-gray-900 dark:text-white placeholder-gray-400"
+                                        className="w-full px-4 py-2 bg-gray-50 dark:bg-zinc-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-[#25D366] focus:border-transparent outline-none transition-all text-gray-900 dark:text-white placeholder-gray-400"
                                         placeholder="Select or type category..."
                                         required
                                     />
@@ -312,15 +398,26 @@ export default function ProductForm() {
                                 </div>
                         </div>
                         <div>
-                            <label className="block text-sm font-bold text-gray-900 dark:text-white mb-2">
-                                Description
-                            </label>
+                            <div className="flex items-center justify-between mb-2">
+                                <label className="block text-sm font-bold text-gray-900 dark:text-white">
+                                    Description
+                                </label>
+                                <button
+                                    type="button"
+                                    onClick={handleGenerateDescription}
+                                    disabled={aiLoading.desc || !formData.name}
+                                    className="text-xs flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-purple-500 to-indigo-600 text-white rounded-lg hover:opacity-90 transition-all font-medium disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
+                                >
+                                    {aiLoading.desc ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
+                                    Generate AI Description
+                                </button>
+                            </div>
                             <textarea
                                 name="description"
                                 value={formData.description}
                                 onChange={handleChange}
                                 rows={6}
-                                className="w-full px-4 py-3 bg-gray-50 dark:bg-zinc-800 border-none rounded-xl focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-white resize-y"
+                                className="w-full px-4 py-3 bg-gray-50 dark:bg-zinc-800 border-none rounded-xl focus:ring-2 focus:ring-[#25D366] text-gray-900 dark:text-white resize-y"
                                 placeholder="Describe your product..."
                             />
                         </div>
@@ -331,25 +428,36 @@ export default function ProductForm() {
                     <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Organization</h3>
                     <div className="space-y-4">
                         <div>
-                            <label className="block text-sm font-bold text-gray-900 dark:text-white mb-2">
-                                Tags
-                            </label>
+                            <div className="flex items-center justify-between mb-2">
+                                <label className="block text-sm font-bold text-gray-900 dark:text-white">
+                                    Tags
+                                </label>
+                                <button
+                                    type="button"
+                                    onClick={handleGenerateTags}
+                                    disabled={aiLoading.tags || !formData.name}
+                                    className="text-xs flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-purple-500 to-indigo-600 text-white rounded-lg hover:opacity-90 transition-all font-medium disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
+                                >
+                                    {aiLoading.tags ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
+                                    Suggest Tags
+                                </button>
+                            </div>
                             <div className="flex gap-2">
                                 <input
                                     type="text"
                                     value={tagInput}
                                     onChange={(e) => setTagInput(e.target.value)}
                                     onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addTag())}
-                                    className="flex-1 px-4 py-2 bg-gray-50 dark:bg-zinc-800 border-none rounded-xl focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-white"
+                                    className="flex-1 px-4 py-2 bg-gray-50 dark:bg-zinc-800 border-none rounded-xl focus:ring-2 focus:ring-[#25D366] text-gray-900 dark:text-white"
                                     placeholder="Add tag..."
                                 />
                                 <Button type="button" onClick={addTag} variant="secondary">Add</Button>
                             </div>
                             <div className="flex flex-wrap gap-2 mt-3">
                                 {formData.tags.map(tag => (
-                                    <span key={tag} className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">
+                                    <span key={tag} className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-[#25D366]/10 text-[#25D366] dark:bg-[#25D366]/20 dark:text-[#25D366]">
                                         {tag}
-                                        <button type="button" onClick={() => removeTag(tag)} className="ml-2 hover:text-blue-900 hover:dark:text-blue-300">
+                                        <button type="button" onClick={() => removeTag(tag)} className="ml-2 hover:text-green-700 hover:dark:text-green-300">
                                             <X className="w-3 h-3" />
                                         </button>
                                     </span>
@@ -445,7 +553,7 @@ export default function ProductForm() {
                          {/* Inventory Card */}
                          <div className="bg-white dark:bg-zinc-900 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 p-6">
                             <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-                                <Package className="w-5 h-5 text-blue-500" /> Inventory
+                                <Package className="w-5 h-5 text-[#25D366]" /> Inventory
                             </h3>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <Input
@@ -462,7 +570,7 @@ export default function ProductForm() {
                                             name="trackInventory"
                                             checked={formData.trackInventory}
                                             onChange={handleChange}
-                                            className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500 border-gray-300"
+                                            className="w-5 h-5 text-[#25D366] rounded focus:ring-[#25D366] border-gray-300"
                                         />
                                         <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Track Quantity</span>
                                     </label>
@@ -512,7 +620,18 @@ export default function ProductForm() {
                  {/* SEO Tab */}
                  {activeTab === 'seo' && (
                     <div className="bg-white dark:bg-zinc-900 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 p-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                        <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Search Engine Optimization</h3>
+                        <div className="flex items-center justify-between mb-4">
+                            <h3 className="text-lg font-bold text-gray-900 dark:text-white">Search Engine Optimization</h3>
+                            <button
+                                type="button"
+                                onClick={handleGenerateSEO}
+                                disabled={aiLoading.seo || !formData.name}
+                                className="text-xs flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-purple-500 to-indigo-600 text-white rounded-lg hover:opacity-90 transition-all font-medium disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
+                            >
+                                {aiLoading.seo ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
+                                Generate with AI
+                            </button>
+                        </div>
                         <div className="space-y-4">
                             <Input
                                 label="Page Title"
@@ -529,10 +648,18 @@ export default function ProductForm() {
                                     value={formData.metaDescription}
                                     onChange={handleChange}
                                     rows={3}
-                                    className="w-full px-4 py-3 bg-gray-50 dark:bg-zinc-800 border-none rounded-xl focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-white resize-none"
+                                    className="w-full px-4 py-3 bg-gray-50 dark:bg-zinc-800 border-none rounded-xl focus:ring-2 focus:ring-[#25D366] text-gray-900 dark:text-white resize-none"
                                 />
                                 <p className="text-xs text-gray-500 mt-1">Recommended 160 characters max</p>
                             </div>
+                            <Input
+                                label="Meta Keywords"
+                                name="metaKeywords"
+                                value={formData.metaKeywords}
+                                onChange={handleChange}
+                                placeholder="comma, separated, keywords"
+                                helpText="5-10 keywords recommended"
+                            />
                         </div>
                          <div className="flex justify-between items-center pt-6 mt-6 border-t border-gray-100 dark:border-gray-800">
                             <Button type="button" variant="secondary" onClick={() => setActiveTab('specifications')} size="lg">&larr; Back</Button>
@@ -554,7 +681,7 @@ export default function ProductForm() {
                             name="status"
                             value={formData.status}
                             onChange={handleChange}
-                            className="w-full px-4 py-3 bg-gray-50 dark:bg-zinc-800 border-none rounded-xl focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-white font-medium"
+                            className="w-full px-4 py-3 bg-gray-50 dark:bg-zinc-800 border-none rounded-xl focus:ring-2 focus:ring-[#25D366] text-gray-900 dark:text-white font-medium"
                         >
                             <option value="draft">Draft</option>
                             <option value="active">Active</option>
@@ -569,8 +696,8 @@ export default function ProductForm() {
                 </div>
 
                 {/* Quick Completion Guide */}
-                <div className="bg-blue-50 dark:bg-blue-900/10 rounded-2xl p-6 border border-blue-100 dark:border-blue-900/20">
-                    <h3 className="text-blue-900 dark:text-blue-100 font-bold mb-3 flex items-center gap-2">
+                <div className="bg-[#25D366]/5 dark:bg-[#25D366]/10 rounded-2xl p-6 border border-[#25D366]/20 dark:border-[#25D366]/20">
+                    <h3 className="text-green-900 dark:text-green-100 font-bold mb-3 flex items-center gap-2">
                         <AlertCircle className="w-5 h-5" />
                         Completion
                     </h3>
@@ -582,10 +709,10 @@ export default function ProductForm() {
                              ['Inventory', !!formData.sku || !formData.trackInventory]
                          ].map(([label, active]) => (
                              <div key={label} className="flex items-center gap-2 text-sm">
-                                 <div className={`w-5 h-5 rounded-full flex items-center justify-center ${active ? 'bg-blue-500 text-white' : 'bg-gray-200 dark:bg-gray-700 text-gray-500'}`}>
+                                 <div className={`w-5 h-5 rounded-full flex items-center justify-center ${active ? 'bg-[#25D366] text-white' : 'bg-gray-200 dark:bg-gray-700 text-gray-500'}`}>
                                      {active && <Check className="w-3 h-3" />}
                                  </div>
-                                 <span className={active ? 'text-blue-700 dark:text-blue-300 font-medium' : 'text-gray-500 dark:text-gray-400'}>{label}</span>
+                                 <span className={active ? 'text-green-700 dark:text-green-300 font-medium' : 'text-gray-500 dark:text-gray-400'}>{label}</span>
                              </div>
                          ))}
                     </div>

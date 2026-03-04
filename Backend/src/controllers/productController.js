@@ -3,6 +3,8 @@ const Inventory = require('../models/Inventory');
 const cloudinary = require('../config/cloudinary');
 const sharp = require('sharp');
 const { getPagination } = require('../utils/helpers');
+const { Readable } = require('stream');
+const csv = require('csv-parser');
 
 // @desc    Get public products (no auth required)
 exports.getPublicProducts = async (req, res) => {
@@ -97,6 +99,103 @@ exports.createProduct = async (req, res) => {
   }
 };
 
+// @desc    Bulk upload products from CSV
+exports.bulkUploadProducts = async (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({ success: false, message: 'Please upload a CSV file' });
+  }
+
+  const results = [];
+  const stream = Readable.from(req.file.buffer.toString());
+  
+  // Basic CSV validation
+  if (!req.file.originalname.match(/\.(csv)$/)) {
+    return res.status(400).json({ success: false, message: 'Only CSV files are supported for now' });
+  }
+
+  stream
+    .pipe(csv())
+    .on('data', (data) => results.push(data))
+    .on('end', async () => {
+      try {
+        const productsToCreate = [];
+        const inventoriesToCreate = [];
+        const errors = [];
+        const successCount = 0;
+
+        for (const [index, row] of results.entries()) {
+           try {
+             // Basic validation
+             if (!row.name || !row.price || !row.sku) {
+               errors.push(`Row ${index + 1}: Missing name, price, or SKU`);
+               continue;
+             }
+
+             const productData = {
+               tenant: req.tenantId,
+               createdBy: req.user._id,
+               name: row.name.trim(),
+               sku: row.sku.trim(),
+               price: parseFloat(row.price),
+               description: row.description || '',
+               shortDescription: row.shortDescription || '',
+               category: row.category || 'General',
+               brand: row.brand || '',
+               status: 'active'
+             };
+
+             // Check duplicate SKU in this batch? Or relies on DB constraint (which might not be unique globally but unique per tenant?)
+             // Assuming SKU logic is handled by Mongoose unique index if present.
+
+             // We'll Create one by one to handle errors per row
+             // Ideally use bulkWrite but then we lose individual error feedback easily
+             // For small batches (typical CSV), loop is fine.
+             
+             // Check if SKU exists for tenant
+             const existing = await Product.findOne({ tenant: req.tenantId, sku: productData.sku });
+             if (existing) {
+                // Update or Skip? Let's Skip for now or Update? Simple import usually implies create.
+                // Let's Skip and report error.
+                errors.push(`Row ${index + 1}: SKU ${productData.sku} already exists`);
+                continue;
+             }
+
+             const product = await Product.create(productData);
+             
+             await Inventory.create({
+                tenant: req.tenantId,
+                product: product._id,
+                quantity: parseInt(row.stock) || 0,
+                reorderLevel: parseInt(row.reorderLevel) || 10
+             });
+
+           } catch (err) {
+             errors.push(`Row ${index + 1}: ${err.message}`);
+           }
+        }
+
+        // Update tenant product count
+        const Tenant = require('../models/Tenant');
+        const success = results.length - errors.length;
+        if (success > 0) {
+            await Tenant.findByIdAndUpdate(req.tenantId, {
+                $inc: { 'metadata.totalProducts': success }
+            });
+        }
+
+        res.status(200).json({
+          success: true,
+          message: `Processed ${results.length} rows. ${success} created, ${errors.length} failed.`,
+          errors: errors.slice(0, 20) // Limit error reporting
+        });
+
+      } catch (error) {
+        console.error('BulkUpload error:', error);
+        res.status(500).json({ success: false, message: 'Server error processing CSV' });
+      }
+    });
+};
+
 // @desc    Get all products
 exports.getProducts = async (req, res) => {
   try {
@@ -106,6 +205,14 @@ exports.getProducts = async (req, res) => {
     if (req.query.search) query.$text = { $search: req.query.search };
     if (req.query.category) query.category = req.query.category;
     if (req.query.status) query.status = req.query.status;
+
+    // Handle stock status filtering
+    if (req.query.stockStatus === 'out_of_stock') {
+      query.stock = { $lte: 0 };
+    } else if (req.query.stockStatus === 'low_stock') {
+      query.stock = { $gt: 0, $lte: 10 };
+    }
+
     if (req.query.minPrice || req.query.maxPrice) {
       query.price = {};
       if (req.query.minPrice) query.price.$gte = parseFloat(req.query.minPrice);

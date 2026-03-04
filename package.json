@@ -1,11 +1,14 @@
 {
   "dependencies": {
     "cloudinary": "^2.9.0",
+    "dotenv": "^17.3.1",
     "express-rate-limit": "^8.2.1",
     "hpp": "^0.2.3",
+    "mongoose": "^9.2.3",
     "multer": "^2.0.2",
     "qrcode": "^1.5.4",
     "sharp": "^0.34.5",
+    "socket.io": "^4.8.3",
     "uuid": "^13.0.0"
   }
 }

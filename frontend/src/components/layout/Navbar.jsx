@@ -1,14 +1,17 @@
-import { Menu, Search, Bell, Settings, LogOut, Sun, Moon } from 'lucide-react';
+import { Menu, Search, Settings, LogOut, Sun, Moon } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 import { generateInitials } from '../../utils/formatters';
 import { useState, useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import Notifications from '../common/Notifications'; // Import Notifications component
 
 export default function Navbar({ onMenuClick }) {
   const { user, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const menuRef = useRef(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     function handleClickOutside(event) {
@@ -27,7 +30,7 @@ export default function Navbar({ onMenuClick }) {
         <div className="flex items-center gap-4 flex-1">
           <button 
             onClick={onMenuClick} 
-            className="lg:hidden p-2 text-gray-500 dark:text-zinc-400 hover:text-[#128C7E] dark:hover:text-[#25D366] hover:bg-[#25D366]/10 rounded-xl transition-all duration-300 hover:scale-105 active:scale-95"
+            className="lg:hidden p-2 text-gray-500 dark:text-zinc-400 hover:text-emerald-600 dark:hover:text-emerald-500 hover:bg-emerald-50 rounded-xl transition-all duration-300 hover:scale-105 active:scale-95"
           >
             <Menu className="h-6 w-6" />
           </button>
@@ -35,12 +38,12 @@ export default function Navbar({ onMenuClick }) {
           <div className="hidden md:flex items-center max-w-md w-full transition-all duration-300 focus-within:max-w-xl">
             <div className="relative w-full group">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Search className="h-5 w-5 text-gray-400 dark:text-zinc-500 group-focus-within:text-[#25D366] transition-colors duration-300" />
+                <Search className="h-5 w-5 text-gray-400 dark:text-zinc-500 group-focus-within:text-emerald-500 transition-colors duration-300" />
               </div>
               <input
                 type="text"
                 placeholder="Search anything..."
-                className="block w-full pl-10 pr-3 py-2.5 border border-gray-200 dark:border-zinc-800 rounded-xl leading-5 bg-gray-50/50 dark:bg-zinc-900/50 text-gray-900 dark:text-zinc-100 placeholder-gray-400 dark:placeholder-zinc-600 focus:outline-none focus:bg-white dark:focus:bg-zinc-900 focus:ring-2 focus:ring-[#25D366]/20 focus:border-[#25D366] sm:text-sm transition-all duration-300 shadow-sm hover:shadow-md focus:shadow-lg focus:shadow-[#25D366]/10"
+                className="block w-full pl-10 pr-3 py-2.5 border border-gray-200 dark:border-zinc-800 rounded-xl leading-5 bg-gray-50/50 dark:bg-zinc-900/50 text-gray-900 dark:text-zinc-100 placeholder-gray-400 dark:placeholder-zinc-600 focus:outline-none focus:bg-white dark:focus:bg-zinc-900 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 sm:text-sm transition-all duration-300 shadow-sm hover:shadow-md focus:shadow-lg focus:shadow-emerald-500/10"
               />
               <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
                 <span className="text-gray-400 dark:text-zinc-500 text-xs border border-gray-200 dark:border-zinc-700 rounded px-1.5 py-0.5 bg-gray-50 dark:bg-zinc-800">⌘K</span>
@@ -54,7 +57,7 @@ export default function Navbar({ onMenuClick }) {
           {/* Theme Toggle */}
           <button 
             onClick={toggleTheme}
-            className="p-2.5 text-gray-400 dark:text-gray-400 hover:text-[#128C7E] dark:hover:text-[#25D366] hover:bg-[#25D366]/10 rounded-xl transition-all duration-300 group hover:scale-105 active:scale-95"
+            className="p-2.5 text-gray-400 dark:text-gray-400 hover:text-emerald-600 dark:hover:text-emerald-500 hover:bg-emerald-50 rounded-xl transition-all duration-300 group hover:scale-105 active:scale-95"
             title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
           >
             {theme === 'dark' ? (
@@ -65,10 +68,7 @@ export default function Navbar({ onMenuClick }) {
           </button>
 
           {/* Notifications */}
-          <button className="relative p-2.5 text-gray-400 dark:text-gray-400 hover:text-[#128C7E] dark:hover:text-[#25D366] hover:bg-[#25D366]/10 rounded-xl transition-all duration-300 group hover:scale-105 active:scale-95">
-            <Bell className="h-6 w-6 group-hover:animate-swing origin-top" />
-            <span className="absolute top-2.5 right-3 block h-2 w-2 rounded-full ring-2 ring-white dark:ring-gray-900 bg-red-500 transform scale-100 group-hover:scale-125 transition-all duration-300 animate-pulse" />
-          </button>
+          <Notifications />
 
           <div className="h-8 w-px bg-gray-200/60 dark:bg-gray-700 hidden sm:block" />
 
@@ -79,16 +79,16 @@ export default function Navbar({ onMenuClick }) {
               className="flex items-center gap-3 pl-2 sm:pl-0 focus:outline-none group"
             >
               <div className="hidden sm:flex flex-col items-end">
-                <span className="text-sm font-bold text-gray-700 dark:text-gray-200 leading-none group-hover:text-[#128C7E] dark:group-hover:text-[#25D366] transition-colors">
+                <span className="text-sm font-bold text-gray-700 dark:text-gray-200 leading-none group-hover:text-emerald-600 dark:group-hover:text-emerald-500 transition-colors">
                   {user?.firstName}
                 </span>
-                <span className="text-[11px] font-medium text-[#128C7E] dark:text-[#25D366] uppercase tracking-wide mt-1">
+                <span className="text-[11px] font-medium text-emerald-600 dark:text-emerald-500 uppercase tracking-wide mt-1">
                   {user?.role?.replace(/_/g, ' ')}
                 </span>
               </div>
               
               <div className="relative">
-                <div className="h-10 w-10 bg-gradient-to-br from-[#25D366] to-[#128C7E] rounded-xl flex items-center justify-center text-white shadow-lg shadow-[#25D366]/20 ring-2 ring-transparent group-hover:ring-[#25D366]/30 transition-all duration-300 transform group-hover:scale-105 cursor-pointer">
+                <div className="h-10 w-10 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-emerald-500/20 ring-2 ring-transparent group-hover:ring-emerald-500/30 transition-all duration-300 transform group-hover:scale-105 cursor-pointer">
                   <span className="font-bold text-sm">
                     {generateInitials(user?.firstName, user?.lastName)}
                   </span>
@@ -106,8 +106,11 @@ export default function Navbar({ onMenuClick }) {
                 </div>
                 
                 <div className="p-2 space-y-1">
-                  <button className="w-full flex items-center gap-3 px-3 py-2 text-sm text-gray-600 dark:text-gray-300 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white transition-colors">
-                    <div className="p-1.5 bg-gray-100 dark:bg-gray-700 rounded-lg text-gray-500 dark:text-gray-400 group-hover:text-[#128C7E]">
+                  <button 
+                    onClick={() => { navigate('/dashboard/settings'); setShowProfileMenu(false); }}
+                    className="w-full flex items-center gap-3 px-3 py-2 text-sm text-gray-600 dark:text-gray-300 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white transition-colors"
+                  >
+                    <div className="p-1.5 bg-gray-100 dark:bg-gray-700 rounded-lg text-gray-500 dark:text-gray-400 group-hover:text-emerald-600">
                       <Settings className="h-4 w-4" />
                     </div>
                     Account Settings

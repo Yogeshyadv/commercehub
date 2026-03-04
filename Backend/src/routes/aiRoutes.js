@@ -1,17 +1,24 @@
 const express = require('express');
 const router = express.Router();
-const { generateDescription, generateTags, applyToProduct } = require('../controllers/aiController');
+const { generateDescription, generateTags, generateSEO, applyToProduct, getRecommendations, getSimilarProducts } = require('../controllers/aiController');
 const { protect } = require('../middleware/auth');
 const { authorize } = require('../middleware/rbac');
 const { resolveTenant, requireTenant } = require('../middleware/tenantResolver');
 
-router.use(protect);
 router.use(resolveTenant);
 router.use(requireTenant);
-router.use(authorize('vendor', 'vendor_staff', 'super_admin'));
 
-router.post('/description', generateDescription);
-router.post('/tags', generateTags);
-router.post('/apply/:productId', applyToProduct);
+// Public routes
+router.get('/similar/:productId', getSimilarProducts);
+
+// Protected routes
+router.use(protect);
+router.get('/recommendations', getRecommendations);
+
+// Vendor only routes
+router.post('/description', authorize('vendor', 'vendor_staff', 'super_admin'), generateDescription);
+router.post('/tags', authorize('vendor', 'vendor_staff', 'super_admin'), generateTags);
+router.post('/seo', authorize('vendor', 'vendor_staff', 'super_admin'), generateSEO);
+router.post('/apply/:productId', authorize('vendor', 'vendor_staff', 'super_admin'), applyToProduct);
 
 module.exports = router;

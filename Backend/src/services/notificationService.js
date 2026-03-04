@@ -20,7 +20,8 @@ const notificationService = {
         console.log('📧 Email (Dev Mode):', {
           to: options.to,
           subject: options.subject,
-          text: options.text
+          text: options.text,
+          attachments: options.attachments ? `[${options.attachments.length} attachments]` : 'None'
         });
         return { messageId: 'dev-' + Date.now() };
       }

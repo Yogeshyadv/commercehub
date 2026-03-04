@@ -2,6 +2,8 @@ const Order = require('../models/Order');
 const Product = require('../models/Product');
 const Inventory = require('../models/Inventory');
 const Customer = require('../models/Customer');
+const Tenant = require('../models/Tenant'); // Moved to top
+const Notification = require('../models/Notification'); // Import Notification model
 const { getPagination } = require('../utils/helpers');
 
 // @desc    Create customer order (from public store)
@@ -10,9 +12,13 @@ exports.createCustomerOrder = async (req, res) => {
     const { items, shippingAddress, billingAddress, paymentMethod, customerNotes } = req.body;
     if (!items || items.length === 0) return res.status(400).json({ success: false, message: 'Order must have items' });
 
+    // Validate request data
+    if (!shippingAddress) return res.status(400).json({ success: false, message: 'Shipping address is required' });
+    if (!paymentMethod) return res.status(400).json({ success: false, message: 'Payment method is required' });
+
     // Get tenant from first product
-    const firstProduct = await Product.findOne({ _id: items[0].product, status: 'active' });
-    if (!firstProduct) return res.status(404).json({ success: false, message: 'Product not found' });
+    const firstProduct = await Product.findOne({ _id: items[0].product, status: { $in: ['active', 'published'] } });
+    if (!firstProduct) return res.status(404).json({ success: false, message: 'One or more products not found or unavailable' });
     
     const tenantId = firstProduct.tenant;
 
@@ -20,8 +26,8 @@ exports.createCustomerOrder = async (req, res) => {
     const orderItems = [];
 
     for (const item of items) {
-      const product = await Product.findOne({ _id: item.product, status: 'active' });
-      if (!product) return res.status(404).json({ success: false, message: `Product ${item.product} not found` });
+      const product = await Product.findOne({ _id: item.product, status: { $in: ['active', 'published'] } });
+      if (!product) return res.status(404).json({ success: false, message: `Product ${item.product} not found or unavailable` });
       
       // Verify all products are from same tenant
       if (product.tenant.toString() !== tenantId.toString()) {
@@ -71,20 +77,81 @@ exports.createCustomerOrder = async (req, res) => {
     // Update inventory
     for (const item of orderItems) {
       await Product.findByIdAndUpdate(item.product, { $inc: { stock: -item.quantity, orderCount: 1 } });
-      await Inventory.findOneAndUpdate({ tenant: tenantId, product: item.product }, {
-        $inc: { quantity: -item.quantity },
-        $push: { movements: { type: 'out', quantity: item.quantity, reference: order.orderNumber, notes: 'Order placed', performedBy: req.user._id } }
-      });
+      try {
+        await Inventory.findOneAndUpdate({ tenant: tenantId, product: item.product }, {
+          $inc: { quantity: -item.quantity },
+          $push: { movements: { type: 'out', quantity: item.quantity, reference: order.orderNumber, notes: 'Order placed', performedBy: req.user._id } }
+        });
+      } catch (invError) {
+        console.warn('Inventory update failed but order placed:', invError.message);
+      }
     }
 
-    const Tenant = require('../models/Tenant');
     await Tenant.findByIdAndUpdate(tenantId, { $inc: { 'metadata.totalOrders': 1, 'metadata.totalRevenue': total } });
+    
+    // Notify Vendor (Tenant Owner)
+    try {
+        const tenant = await Tenant.findById(tenantId);
+        if (tenant && tenant.owner) {
+             const customerName = `${req.user.firstName} ${req.user.lastName}`;
+             const notif = await Notification.create({
+                recipient: tenant.owner,
+                sender: req.user._id,
+                type: 'NEW_ORDER',
+                title: 'New Order Received',
+                message: `You have a new order #${order._id.toString().slice(-8).toUpperCase()} from ${customerName} worth ₹${total}`,
+                relatedId: order._id
+             });
+             
+             // Emit Socket Event
+             const io = req.app.get('io');
+             if (io) {
+                 io.to(tenant.owner.toString()).emit('notification', notif);
+                 io.to(tenant._id.toString()).emit('new_order', {
+                     orderId: order._id,
+                     customer: customerName,
+                     amount: total,
+                     status: 'pending'
+                 });
+             }
+        }
+    } catch (notifErr) {
+        console.error('Failed to notify vendor', notifErr);
+    }
+    
+    // Sync Customer Record for Analytics
+    try {
+      const customerName = `${req.user.firstName} ${req.user.lastName}`;
+      await Customer.findOneAndUpdate(
+        { tenant: tenantId, user: req.user._id },
+        { 
+          $set: { 
+            name: customerName,
+            email: req.user.email,
+            phone: req.user.phone,
+            'stats.lastOrderDate': new Date()
+          },
+          $setOnInsert: { 
+            'stats.firstOrderDate': new Date(),
+            source: 'website'
+          },
+          $inc: { 
+            'stats.totalOrders': 1, 
+            'stats.totalSpent': total 
+          }
+        },
+        { upsert: true, new: true, setDefaultsOnInsert: true }
+      );
+    } catch (custErr) {
+      console.error('Failed to sync customer record', custErr);
+    }
 
     const populatedOrder = await Order.findById(order._id).populate('customer', 'firstName lastName email phone');
     res.status(201).json({ success: true, message: 'Order created successfully', data: populatedOrder });
   } catch (error) {
     console.error('CreateCustomerOrder error:', error);
-    return res.status(500).json({ success: false, message: 'Server error', error: error.message });
+    // Return specific error message to frontend
+    return res.status(500).json({ success: false, message: error.message || 'Failed to place order' });
   }
 };
 
@@ -172,6 +239,8 @@ exports.getMyOrders = async (req, res) => {
         .skip(skip)
         .limit(limit)
         .populate('items.product', 'name images')
+        .populate('customer', 'firstName lastName email') // Populate customer for UI
+        .populate('tenant', 'name') // Populate tenant name for UI
         .lean(),
       Order.countDocuments(query)
     ]);
@@ -189,10 +258,33 @@ exports.getMyOrders = async (req, res) => {
 
 exports.getOrder = async (req, res) => {
   try {
-    const query = { _id: req.params.id, tenant: req.tenantId };
-    if (req.user.role === 'customer') query.customer = req.user._id;
-    const order = await Order.findOne(query).populate('customer', 'firstName lastName email phone').populate('items.product', 'name images');
-    if (!order) return res.status(404).json({ success: false, message: 'Order not found' });
+    // If customer, find by ID and check access
+    // If vendor/admin (with tenantId), filter by tenant
+    
+    let query = { _id: req.params.id };
+    
+    // For customers, we don't enforce tenant check in query, we check ownership
+    if (req.user.role === 'customer') {
+      // Allow finding by ID, will check customer field ownership below
+    } else if (req.tenantId) {
+      // Vendor/Admin context with tenant header
+      query.tenant = req.tenantId;
+    }
+
+    const order = await Order.findOne(query)
+      .populate('customer', 'firstName lastName email phone')
+      .populate('items.product', 'name images')
+      .populate('tenant', 'name contactInfo');
+
+    if (!order) {
+      return res.status(404).json({ success: false, message: 'Order not found' });
+    }
+
+    // Authorization Check
+    if (req.user.role === 'customer' && order.customer._id.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ success: false, message: 'Not authorized to view this order' });
+    }
+
     res.status(200).json({ success: true, data: order });
   } catch (error) {
     console.error('GetOrder error:', error);
@@ -215,6 +307,26 @@ exports.updateOrderStatus = async (req, res) => {
     if (trackingUrl) order.trackingUrl = trackingUrl;
     if (status === 'delivered') order.deliveredAt = new Date();
 
+    // Create Notification
+    const notificationMessages = {
+      confirmed: 'Your order has been confirmed and is being prepared.',
+      processing: 'Your order is being packaged and processed.',
+      shipped: 'Your order has been packaged and shipped! It will be delivered in 3 days.',
+      delivered: 'Your order has been delivered successfully.',
+      cancelled: 'Your order has been cancelled.'
+    };
+
+    if (notificationMessages[status]) {
+      await Notification.create({
+        recipient: order.customer,
+        sender: req.user._id,
+        type: 'ORDER_UPDATE',
+        title: `Order ${status.charAt(0).toUpperCase() + status.slice(1)}`,
+        message: `${notificationMessages[status]} (Order #${order.orderNumber || order._id})`,
+        relatedId: order._id
+      });
+    }
+
     if (status === 'cancelled') {
       for (const item of order.items) {
         await Product.findByIdAndUpdate(item.product, { $inc: { stock: item.quantity } });
@@ -230,5 +342,78 @@ exports.updateOrderStatus = async (req, res) => {
   } catch (error) {
     console.error('UpdateOrderStatus error:', error);
     return res.status(500).json({ success: false, message: 'Server error' });
+  }
+};
+
+// @desc    Cancel order (customer)
+exports.cancelOrder = async (req, res) => {
+  try {
+    const order = await Order.findOne({
+      _id: req.params.id,
+      customer: req.user._id
+    });
+
+    if (!order) {
+      return res.status(404).json({ success: false, message: 'Order not found' });
+    }
+
+    if (order.status !== 'pending' && order.status !== 'confirmed') {
+      return res.status(400).json({ success: false, message: 'Order cannot be cancelled in its current state' });
+    }
+
+    order.status = 'cancelled';
+    order.statusHistory.push({ status: 'cancelled', note: 'Customer cancelled order', updatedBy: req.user._id });
+    
+    // Restock inventory
+    for (const item of order.items) {
+      await Product.findByIdAndUpdate(item.product, { $inc: { stock: item.quantity } });
+      try {
+        await Inventory.findOneAndUpdate({ tenant: order.tenant, product: item.product }, {
+          $inc: { quantity: item.quantity },
+          $push: { movements: { type: 'in', quantity: item.quantity, reference: order.orderNumber, notes: 'Order cancelled by customer', performedBy: req.user._id } }
+        });
+      } catch (invError) {
+        console.warn('Inventory update failed, ignoring', invError);
+      }
+    }
+
+    await order.save();
+
+    // Notify Vendor (Tenant Owner)
+    try {
+        const tenant = await Tenant.findById(order.tenant);
+        if (tenant && tenant.owner) {
+             const customerName = `${req.user.firstName} ${req.user.lastName}`;
+             await Notification.create({
+                recipient: tenant.owner,
+                sender: req.user._id,
+                type: 'ORDER_UPDATE',
+                title: 'Order Cancelled',
+                message: `Order #${order.orderNumber || order._id.toString().slice(-8).toUpperCase()} has been cancelled by the customer ${customerName}.`,
+                relatedId: order._id
+             });
+        }
+    } catch (notifErr) {
+        console.error('Failed to notify vendor about cancellation', notifErr);
+    }
+    
+    // Notify Customer (redundant as they did it, but good for record)
+    try { 
+      await Notification.create({
+        recipient: req.user._id,
+        sender: null,
+        type: 'ORDER_UPDATE',
+        title: 'Order Cancelled',
+        message: `You have successfully cancelled your order #${order._id.toString().slice(-8).toUpperCase()}.`,
+        relatedId: order._id
+      });
+    } catch(err) {
+      console.error('Failed to notify customer about cancellation', err);
+    }
+
+    res.status(200).json({ success: true, message: 'Order cancelled successfully', data: order });
+  } catch (error) {
+    console.error('Cancel order error:', error);
+    res.status(500).json({ success: false, message: 'Server error' });
   }
 };

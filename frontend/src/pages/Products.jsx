@@ -2,20 +2,32 @@ import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   Plus, Search, Filter, MoreVertical, Edit, Trash2, 
-  ShoppingBag, Package, TrendingUp, AlertCircle, 
+  ShoppingBag, Package, TrendingUp, TrendingDown, AlertCircle, 
   LayoutGrid, List as ListIcon, Check, X,
-  ChevronLeft, ChevronRight, ArrowUpDown, Eye
+  ChevronLeft, ChevronRight, ArrowUpDown, Eye, Upload,
+  Tags, Archive
 } from 'lucide-react';
 import { productService } from '../services/productService';
-import Button from '../components/common/Button';
 import Loader from '../components/common/Loader';
 import EmptyState from '../components/common/EmptyState';
 import Pagination from '../components/common/Pagination';
 import ConfirmDialog from '../components/common/ConfirmDialog';
+import Badge from '../components/common/Badge'; // Added Badge
 import { useDebounce } from '../hooks/useDebounce';
 import { formatCurrency } from '../utils/formatters';
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
+import BulkUploadModal from '../components/products/BulkUploadModal';
+import { analyticsService } from '../services/analyticsService';
+import StatsCard from '../components/dashboard/StatsCard';
+
+const TABS = [
+  { id: 'all', label: 'All Products' },
+  { id: 'active', label: 'Active' },
+  { id: 'draft', label: 'Drafts' },
+  { id: 'low_stock', label: 'Low Stock' },
+  { id: 'out_of_stock', label: 'Out of Stock' },
+];
 
 export default function Products() {
   const navigate = useNavigate();
@@ -23,20 +35,26 @@ export default function Products() {
   
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [viewMode, setViewMode] = useState('grid');
+  const [viewMode, setViewMode] = useState('list'); // Default to list for better management
   const [pagination, setPagination] = useState({ page: 1, limit: 12, total: 0, pages: 0 });
+  const [showBulkUpload, setShowBulkUpload] = useState(false);
   
   // Filter States
   const [search, setSearch] = useState('');
+  const [activeTab, setActiveTab] = useState('all');
   const [categoryFilter, setCategoryFilter] = useState('');
-  const [stockFilter, setStockFilter] = useState('');
-  const [statusFilter, setStatusFilter] = useState('');
   const [categories, setCategories] = useState([]);
   
   // Action States
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [deleting, setDeleting] = useState(false);
   const [activeMenu, setActiveMenu] = useState(null);
+
+  const [overview, setOverview] = useState(null);
+
+  useEffect(() => {
+    analyticsService.getDashboardStats().then(r => setOverview(r.data?.overview)).catch(() => {});
+  }, []);
 
   const debouncedSearch = useDebounce(search, 400);
 
@@ -46,15 +64,19 @@ export default function Products() {
       const params = { page, limit: viewMode === 'list' ? 20 : 12 };
       if (debouncedSearch) params.search = debouncedSearch;
       if (categoryFilter) params.category = categoryFilter;
-      if (statusFilter) params.status = statusFilter;
-      if (stockFilter) params.stockStatus = stockFilter; // Assuming backend supports this
+      
+      // Map tabs to API params
+      if (activeTab === 'active') params.status = 'active';
+      if (activeTab === 'draft') params.status = 'draft';
+      if (activeTab === 'out_of_stock') params.stockStatus = 'out_of_stock';
+      if (activeTab === 'low_stock') params.stockStatus = 'low_stock';
 
       const response = await productService.getProducts(params);
       setProducts(response.data || []);
       setPagination(response.pagination || { page: 1, limit: 12, total: 0, pages: 0 });
     } catch { toast.error('Failed to load products'); }
     finally { setLoading(false); }
-  }, [debouncedSearch, categoryFilter, statusFilter, stockFilter, viewMode]);
+  }, [debouncedSearch, categoryFilter, activeTab, viewMode]);
 
   useEffect(() => { fetchProducts(); }, [fetchProducts]);
 
@@ -136,8 +158,16 @@ export default function Products() {
           </div>
 
           <button 
+            onClick={() => setShowBulkUpload(true)}
+            className="hidden md:flex items-center gap-2 px-4 py-3 bg-white dark:bg-zinc-800 border-2 border-dashed border-gray-300 dark:border-zinc-600 text-gray-600 dark:text-gray-300 rounded-xl font-medium hover:bg-gray-50 dark:hover:bg-zinc-700 hover:border-gray-400 dark:hover:border-zinc-500 transition-all"
+          >
+            <Upload className="w-5 h-5" />
+            <span>Import</span>
+          </button>
+
+          <button 
             onClick={() => navigate('/dashboard/products/new')}
-            className="flex items-center gap-2 px-5 py-3 bg-[#2563EB] hover:bg-[#1d4ed8] text-white rounded-xl font-bold shadow-lg shadow-blue-500/20 transition-all transform hover:scale-105 active:scale-95"
+            className="flex items-center gap-2 px-5 py-3 bg-[#25D366] hover:bg-[#20bd5a] text-white rounded-xl font-bold shadow-lg shadow-[#25D366]/20 transition-all transform hover:scale-105 active:scale-95"
           >
             <Plus className="w-5 h-5" strokeWidth={2.5} />
             <span>Add Product</span>
@@ -145,62 +175,62 @@ export default function Products() {
         </div>
       </div>
 
-      {/* Stats Cards (Optional - nice for UX) */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="bg-white dark:bg-zinc-950 p-4 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm">
-          <div className="flex items-center gap-3 text-gray-500 dark:text-gray-400 mb-1">
-            <Package className="w-4 h-4" />
-            <span className="text-xs font-medium uppercase tracking-wider">Total Products</span>
-          </div>
-          <p className="text-2xl font-bold text-gray-900 dark:text-white">{pagination.total}</p>
-        </div>
-        <div className="bg-white dark:bg-zinc-950 p-4 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm">
-          <div className="flex items-center gap-3 text-gray-500 dark:text-gray-400 mb-1">
-            <AlertCircle className="w-4 h-4 text-red-500" />
-            <span className="text-xs font-medium uppercase tracking-wider">Low Stock</span>
-          </div>
-          <p className="text-2xl font-bold text-gray-900 dark:text-white">-</p> 
-        </div>
-        {/* Add more stats if data available */}
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
+        <StatsCard icon={Package} title="Total Products" value={overview?.totalProducts || pagination.total} color="blue" />
+        <StatsCard icon={Check} title="Active Listings" value={overview?.activeProducts || '-'} color="green" />
+        <StatsCard icon={AlertCircle} title="Out of Stock" value={(overview?.totalProducts || 0) - (overview?.activeProducts || 0)} color="red" />
+        <StatsCard icon={LayoutGrid} title="Categories" value={categories.length} color="purple" />
       </div>
 
-      {/* Filter Bar */}
-      <div className="flex flex-col xl:flex-row gap-4 bg-white dark:bg-zinc-950 p-2 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm">
-        <div className="relative flex-1">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-          <input
-            type="text"
-            placeholder="Search products by name, SKU..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-11 pr-4 py-3 bg-transparent border-none focus:ring-0 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none"
-          />
+      {/* Filters & Search Toolbar */}
+      <div className="flex flex-col space-y-4">
+        {/* Tabs */}
+        <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide no-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0">
+             {TABS.map(tab => (
+                <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`px-4 py-2 rounded-xl text-sm font-medium whitespace-nowrap transition-all border ${
+                        activeTab === tab.id
+                        ? 'bg-[#25D366] text-white border-transparent shadow-lg shadow-[#25D366]/20 transform scale-105'
+                        : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50 hover:border-gray-300 dark:bg-zinc-900 dark:text-gray-400 dark:border-zinc-800 dark:hover:bg-zinc-800'
+                    }`}
+                >
+                    {tab.label}
+                </button>
+             ))}
         </div>
-        <div className="h-px xl:h-auto xl:w-px bg-gray-100 dark:bg-gray-700 mx-2" />
-        <div className="flex overflow-x-auto gap-4 pb-2 xl:pb-0 no-scrollbar">
-            <div className="relative min-w-[160px]">
-                <Filter className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+
+        <div className="flex flex-col md:flex-row gap-4">
+            {/* Search Bar */}
+            <div className="relative flex-1">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <input 
+                    type="text" 
+                    placeholder="Search products by name, SKU, or tags..." 
+                    value={search}
+                    onChange={e => setSearch(e.target.value)}
+                    className="w-full pl-12 pr-4 py-3.5 bg-white dark:bg-zinc-900 rounded-2xl border border-gray-100 dark:border-zinc-800 focus:ring-2 focus:ring-[#25D366]/20 focus:border-gray-300 dark:focus:border-zinc-700 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none transition-all shadow-sm" 
+                />
+            </div>
+            
+            {/* Category Filter */}
+            <div className="relative min-w-[200px]">
+                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                    <Filter className="h-5 w-5 text-gray-400" />
+                </div>
                 <select
-                    className="w-full pl-10 pr-4 py-3 bg-transparent border-none focus:ring-0 text-gray-600 dark:text-gray-300 font-medium cursor-pointer appearance-none focus:outline-none"
+                    className="w-full pl-11 pr-10 py-3.5 bg-white dark:bg-zinc-900 rounded-2xl border border-gray-100 dark:border-zinc-800 focus:ring-2 focus:ring-[#25D366]/20 text-gray-700 dark:text-gray-300 font-medium appearance-none cursor-pointer focus:outline-none"
                     value={categoryFilter}
                     onChange={(e) => setCategoryFilter(e.target.value)}
                 >
                     <option value="">All Categories</option>
                     {categories.map(c => <option key={c} value={c}>{c}</option>)}
                 </select>
-            </div>
-            <div className="w-px bg-gray-100 dark:bg-gray-700" />
-            <div className="relative min-w-[140px]">
-                <select
-                    className="w-full px-4 py-3 bg-transparent border-none focus:ring-0 text-gray-600 dark:text-gray-300 font-medium cursor-pointer appearance-none focus:outline-none"
-                    value={stockFilter}
-                    onChange={(e) => setStockFilter(e.target.value)}
-                >
-                    <option value="">All Stock</option>
-                    <option value="in_stock">In Stock</option>
-                    <option value="low_stock">Low Stock</option>
-                    <option value="out_of_stock">Out of Stock</option>
-                </select>
+                <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
+                    <ChevronRight className="h-4 w-4 text-gray-400 rotate-90" />
+                </div>
             </div>
         </div>
       </div>
@@ -224,7 +254,9 @@ export default function Products() {
             /* GRID VIEW */
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {products.map((product) => {
-                const stockStatus = getStockStatus(product.stock);
+                const isOutOfStock = product.stock <= 0;
+                const isLowStock = product.stock > 0 && product.stock <= 10;
+                
                 return (
                   <div 
                     key={product._id} 
@@ -245,54 +277,61 @@ export default function Products() {
                         </div>
                       )}
                       
-                      {/* Stock Badge */}
+                      {/* Status Badge */}
                       <div className="absolute top-3 left-3">
-                         <span className={`px-2 py-1 rounded-full text-xs font-bold backdrop-blur-md ${stockStatus.color}`}>
-                           {stockStatus.label}
-                         </span>
+                         {isOutOfStock ? (
+                             <Badge color="red" className="shadow-lg backdrop-blur-md bg-white/90 dark:bg-black/90">Out of Stock</Badge>
+                         ) : isLowStock ? (
+                             <Badge color="yellow" className="shadow-lg backdrop-blur-md bg-white/90 dark:bg-black/90">Low Stock</Badge>
+                         ) : (
+                             <Badge color="green" className="shadow-lg backdrop-blur-md bg-white/90 dark:bg-black/90">In Stock</Badge>
+                         )}
                       </div>
 
                       {/* Quick Actions Actions */}
-                      <div className="absolute top-3 right-3 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 backdrop-blur-[2px]">
                          <button 
                           onClick={(e) => { e.stopPropagation(); navigate(`/product/${product._id}`); }}
-                          className="p-2 bg-white dark:bg-zinc-800 rounded-full shadow-lg text-gray-600 dark:text-gray-300 hover:text-primary-600 hover:scale-110 transition-all"
+                          className="p-3 bg-white dark:bg-zinc-800 rounded-full shadow-lg text-gray-600 dark:text-gray-300 hover:text-black dark:hover:text-white hover:scale-110 transition-all"
                           title="View Product Page"
                         >
-                          <Eye className="w-4 h-4" />
+                          <Eye className="w-5 h-5" />
                         </button>
                         <button 
                           onClick={(e) => { e.stopPropagation(); navigate(`/dashboard/products/edit/${product._id}`); }}
-                          className="p-2 bg-white dark:bg-zinc-800 rounded-full shadow-lg text-gray-600 dark:text-gray-300 hover:text-blue-600 hover:scale-110 transition-all"
+                          className="p-3 bg-white dark:bg-zinc-800 rounded-full shadow-lg text-gray-600 dark:text-gray-300 hover:text-blue-600 hover:scale-110 transition-all"
+                          title="Edit Product"
                         >
-                          <Edit className="w-4 h-4" />
+                          <Edit className="w-5 h-5" />
                         </button>
                         <button 
                           onClick={(e) => { e.stopPropagation(); setDeleteTarget(product); }}
-                          className="p-2 bg-white dark:bg-zinc-800 rounded-full shadow-lg text-gray-600 dark:text-gray-300 hover:text-red-500 hover:scale-110 transition-all"
+                          className="p-3 bg-white dark:bg-zinc-800 rounded-full shadow-lg text-gray-600 dark:text-gray-300 hover:text-red-500 hover:scale-110 transition-all"
+                          title="Delete Product"
                         >
-                          <Trash2 className="w-4 h-4" />
+                          <Trash2 className="w-5 h-5" />
                         </button>
                       </div>
                     </div>
 
                     {/* Content */}
-                    <div className="p-4 flex flex-col flex-1">
-                      <div className="flex justify-between items-start mb-1">
-                        <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                    <div className="p-5 flex flex-col flex-1">
+                      <div className="flex justify-between items-start mb-2">
+                        <span className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider bg-gray-100 dark:bg-zinc-900 px-2 py-0.5 rounded-md">
                           {product.category || 'Uncategorized'}
-                        </p>
-                        <div className="flex items-center gap-1 text-xs text-gray-400">
-                           <Package className="w-3 h-3" />
+                        </span>
+                        <div className={`flex items-center gap-1.5 text-xs font-medium ${isOutOfStock ? 'text-red-500' : isLowStock ? 'text-yellow-600' : 'text-green-600'}`}>
+                           <Package className="w-3.5 h-3.5" />
                            <span>{product.stock} units</span>
                         </div>
                       </div>
                       
-                      <h3 className="font-bold text-gray-900 dark:text-white truncate mb-2" title={product.name}>
+                      <h3 className="font-bold text-gray-900 dark:text-white truncate mb-1 text-lg group-hover:text-blue-600 transition-colors" title={product.name}>
                         {product.name}
                       </h3>
+                      <p className="text-sm text-gray-500 mb-4">{product.sku || 'No SKU'}</p>
                       
-                      <div className="mt-auto flex items-center justify-between">
+                      <div className="mt-auto flex items-center justify-between border-t border-gray-100 dark:border-gray-800 pt-4">
                         <div className="flex flex-col">
                            <span className="text-lg font-bold text-[#111827] dark:text-white">
                              {formatCurrency(product.price)}
@@ -306,14 +345,15 @@ export default function Products() {
                         
                         {/* Quick Stock Toggle */}
                         <div onClick={e => e.stopPropagation()}>
-                           <label className="flex items-center gap-2 cursor-pointer">
+                           <label className="flex items-center gap-2 cursor-pointer" title={isOutOfStock ? "Mark as In Stock" : "Mark as Out of Stock"}>
+                             <span className="text-xs font-medium text-gray-400 mr-2 hidden sm:inline">Active</span>
                              <input 
                                type="checkbox" 
                                checked={product.stock > 0} 
                                onChange={(e) => toggleStock(product, e)}
                                className="sr-only peer"
                              />
-                             <div className="w-9 h-5 bg-gray-200 dark:bg-zinc-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#2563EB] relative"></div>
+                             <div className="w-11 h-6 bg-gray-200 dark:bg-zinc-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#25D366] relative transition-colors"></div>
                            </label>
                         </div>
                       </div>
@@ -327,26 +367,26 @@ export default function Products() {
             <div className="bg-white dark:bg-zinc-950 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 overflow-hidden">
                <div className="overflow-x-auto">
                  <table className="w-full text-left">
-                   <thead className="bg-gray-50 dark:bg-zinc-900 border-b border-gray-100 dark:border-gray-800">
+                   <thead className="bg-gray-50/50 dark:bg-zinc-900/50 border-b border-gray-100 dark:border-gray-800">
                      <tr>
-                       <th className="px-6 py-4 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Product</th>
-                       <th className="px-6 py-4 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Category</th>
-                       <th className="px-6 py-4 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Stock</th>
-                       <th className="px-6 py-4 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Price</th>
-                       <th className="px-6 py-4 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Status</th>
-                       <th className="px-6 py-4 text-right text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Actions</th>
+                       <th className="px-6 py-4 text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider">Product</th>
+                       <th className="px-6 py-4 text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider">Category</th>
+                       <th className="px-6 py-4 text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider">Stock</th>
+                       <th className="px-6 py-4 text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider">Price</th>
+                       <th className="px-6 py-4 text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider">Status</th>
+                       <th className="px-6 py-4 text-right text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider">Actions</th>
                      </tr>
                    </thead>
-                   <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
+                   <tbody className="divide-y divide-gray-50/50 dark:divide-gray-800/50">
                      {products.map((product) => (
                        <tr 
                          key={product._id} 
                          onClick={() => navigate(`/dashboard/products/edit/${product._id}`)}
-                         className="hover:bg-gray-50 dark:hover:bg-zinc-900/50 transition-colors cursor-pointer group"
+                         className="hover:bg-blue-50/50 dark:hover:bg-blue-900/10 transition-colors cursor-pointer group"
                        >
                          <td className="px-6 py-4">
                            <div className="flex items-center gap-4">
-                             <div className="w-12 h-12 rounded-lg bg-gray-100 dark:bg-zinc-800 overflow-hidden flex-shrink-0">
+                             <div className="w-12 h-12 rounded-lg bg-gray-100 dark:bg-zinc-800 overflow-hidden flex-shrink-0 border border-gray-100 dark:border-zinc-700">
                                {product.images?.[0]?.url ? (
                                  <img src={product.images[0].url} alt="" className="w-full h-full object-cover" />
                                ) : (
@@ -356,50 +396,53 @@ export default function Products() {
                                )}
                              </div>
                              <div>
-                               <p className="font-medium text-gray-900 dark:text-white dark:group-hover:text-[#2563EB] transition-colors">{product.name}</p>
-                               <p className="text-xs text-gray-500">SKU: {product.sku || 'N/A'}</p>
+                               <p className="font-bold text-sm text-gray-900 dark:text-white group-hover:text-blue-600 transition-colors">{product.name}</p>
+                               <p className="text-xs text-gray-500 mt-0.5">SKU: {product.sku || 'N/A'}</p>
                              </div>
                            </div>
                          </td>
-                         <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-300">
-                           {product.category || '-'}
+                         <td className="px-6 py-4">
+                           <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-zinc-800 dark:text-gray-300">
+                             {product.category || 'Uncategorized'}
+                           </span>
                          </td>
                          <td className="px-6 py-4">
                             <div className="flex items-center gap-2">
-                              <span className={`w-2 h-2 rounded-full ${product.stock > 10 ? 'bg-green-500' : product.stock > 0 ? 'bg-yellow-500' : 'bg-red-500'}`} />
-                              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{product.stock}</span>
+                              {product.stock <= 0 ? (
+                                  <div className="flex items-center gap-1.5 text-red-600 dark:text-red-400">
+                                      <AlertCircle className="w-4 h-4" />
+                                      <span className="text-sm font-medium">Out of Stock</span>
+                                  </div>
+                              ) : product.stock <= 10 ? (
+                                  <div className="flex items-center gap-1.5 text-yellow-600 dark:text-yellow-400">
+                                      <TrendingDown className="w-4 h-4" />
+                                      <span className="text-sm font-medium">{product.stock} (Low)</span>
+                                  </div>
+                              ) : (
+                                  <span className="text-sm font-bold text-gray-700 dark:text-gray-300">{product.stock}</span>
+                              )}
                             </div>
                          </td>
                          <td className="px-6 py-4 text-sm font-bold text-gray-900 dark:text-white">
                            {formatCurrency(product.price)}
                          </td>
                          <td className="px-6 py-4">
-                            <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${
-                              product.status === 'active' || product.status === 'published' 
-                              ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' 
-                              : 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400'
-                            }`}>
-                              {product.status === 'active' || product.status === 'published' ? 'Active' : 'Draft'}
-                            </span>
+                            <Badge color={product.status === 'active' || product.status === 'published' ? 'green' : 'gray'}>
+                                {product.status === 'active' || product.status === 'published' ? 'Active' : 'Draft'}
+                            </Badge>
                          </td>
                          <td className="px-6 py-4 text-right">
                            <div className="flex items-center justify-end gap-2" onClick={e => e.stopPropagation()}>
-                             <button
-                                onClick={() => navigate(`/product/${product._id}`)}
-                                className="p-2 text-gray-400 hover:text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-lg transition-all"
-                                title="View Product Page"
-                             >
-                               <Eye className="w-4 h-4" />
-                             </button>
                              <button 
                                onClick={() => navigate(`/dashboard/products/edit/${product._id}`)}
-                               className="p-2 text-gray-400 hover:text-[#2563EB] hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-all"
+                               className="px-3 py-1.5 text-xs font-bold text-gray-700 dark:text-gray-200 bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-700 rounded-lg hover:bg-gray-50 dark:hover:bg-zinc-800 transition-colors shadow-sm"
                              >
-                               <Edit className="w-4 h-4" />
+                               Edit
                              </button>
                              <button 
                                onClick={() => setDeleteTarget(product)}
-                               className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all"
+                               className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all"
+                               title="Delete"
                              >
                                <Trash2 className="w-4 h-4" />
                              </button>
@@ -425,6 +468,12 @@ export default function Products() {
         </>
       )}
 
+      <BulkUploadModal 
+        isOpen={showBulkUpload} 
+        onClose={() => setShowBulkUpload(false)} 
+        onSuccess={() => fetchProducts(1)} 
+      />
+      
       {/* Delete Confirmation */}
       <ConfirmDialog 
         isOpen={!!deleteTarget} 

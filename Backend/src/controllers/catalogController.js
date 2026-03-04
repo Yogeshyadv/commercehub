@@ -3,6 +3,7 @@ const Product = require('../models/Product');
 const QRCode = require('qrcode');
 const { v4: uuidv4 } = require('uuid');
 const { getPagination } = require('../utils/helpers');
+const cloudinary = require('../config/cloudinary');
 
 exports.createCatalog = async (req, res) => {
   try {
@@ -31,7 +32,15 @@ exports.getCatalogs = async (req, res) => {
     const { page, limit, skip } = getPagination(req.query.page, req.query.limit);
     let query = { tenant: req.tenantId };
     if (req.query.status) query.status = req.query.status;
-    if (req.query.search) query.name = { $regex: req.query.search, $options: 'i' };
+    if (req.query.search) {
+      const regex = new RegExp(req.query.search, 'i');
+      query.$or = [
+        { name: regex },
+        { description: regex },
+        { tags: regex },
+        { categories: regex },
+      ];
+    }
 
     const [catalogs, total] = await Promise.all([
       Catalog.find(query).sort({ updatedAt: -1 }).skip(skip).limit(limit).populate('products.product', 'name price images status').lean(),
@@ -118,6 +127,30 @@ exports.addProducts = async (req, res) => {
   } catch (error) {
     console.error('AddProducts error:', error);
     return res.status(500).json({ success: false, message: 'Server error' });
+  }
+};
+
+exports.uploadCoverImage = async (req, res) => {
+  try {
+    const catalog = await Catalog.findOne({ _id: req.params.id, tenant: req.tenantId });
+    if (!catalog) return res.status(404).json({ success: false, message: 'Catalog not found' });
+    if (!req.file) return res.status(400).json({ success: false, message: 'Please upload an image' });
+
+    const result = await new Promise((resolve, reject) => {
+      const stream = cloudinary.uploader.upload_stream(
+        { folder: `nextgen-saas/${req.tenantId}/catalogs`, resource_type: 'image' },
+        (error, r) => { if (error) reject(error); else resolve(r); }
+      );
+      stream.end(req.file.buffer);
+    });
+
+    catalog.coverImage = { public_id: result.public_id, url: result.secure_url };
+    await catalog.save();
+    res.status(200).json({ success: true, message: 'Cover image uploaded', data: catalog.coverImage });
+  } catch (error) {
+    console.error('UploadCoverImage error:', error);
+    const message = error?.message || 'Failed to upload cover image';
+    return res.status(500).json({ success: false, message });
   }
 };
 

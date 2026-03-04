@@ -69,7 +69,7 @@ export default function Login() {
           className="absolute top-[-10%] right-[-5%] w-[500px] h-[500px] bg-gradient-to-br from-[#25D366]/30 to-[#1DB954]/20 rounded-full blur-3xl animate-pulse"
         />
         <div
-          className="absolute bottom-[-10%] left-[-5%] w-[600px] h-[600px] bg-gradient-to-tr from-[#128C7E]/30 to-blue-100/30 rounded-full blur-3xl animate-pulse delay-1000"
+          className="absolute bottom-[-10%] left-[-5%] w-[600px] h-[600px] bg-gradient-to-tr from-[#128C7E]/30 to-green-100/30 rounded-full blur-3xl animate-pulse delay-1000"
         />
       </div>
 

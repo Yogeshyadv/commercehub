@@ -1,13 +1,13 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
-  Plus, Search, Filter, MoreVertical, Share2, Eye, Copy, Trash2, 
+  Plus, Search, Filter, MoreVertical, Share2, Eye, Copy, Trash2,
   Image as ImageIcon, ShoppingBag, ExternalLink,
-  Edit, QrCode
+  Edit, QrCode, Upload, X, Package, CheckSquare
 } from 'lucide-react';
 import { catalogService } from '../services/catalogService';
-import Button from '../components/common/Button';
+import { productService } from '../services/productService';
 import Modal from '../components/common/Modal';
-import Input from '../components/common/Input';
 import Loader from '../components/common/Loader';
 import EmptyState from '../components/common/EmptyState';
 import Pagination from '../components/common/Pagination';
@@ -19,6 +19,7 @@ import toast from 'react-hot-toast';
 const templates = ['grid', 'list', 'magazine', 'minimal', 'luxury', 'modern', 'classic'];
 
 export default function Catalogs() {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const isVendor = user?.role === 'vendor' || user?.role === 'vendor_staff' || user?.role === 'super_admin';
 
@@ -34,11 +35,21 @@ export default function Catalogs() {
   const [shareModal, setShareModal] = useState(null);
   const [activeMenu, setActiveMenu] = useState(null);
 
-  const [form, setForm] = useState({
+  const EMPTY_FORM = {
     name: '', description: '', template: 'grid', status: 'draft',
-    isPublic: true,
-    design: { backgroundColor: '#FFFFFF', textColor: '#000000', accentColor: '#3B82F6', showPrices: true, showDescription: true, productsPerRow: 3 },
-  });
+    isPublic: true, tagsInput: '', categoriesInput: '',
+    design: { backgroundColor: '#FFFFFF', textColor: '#000000', accentColor: '#25D366', showPrices: true, showDescription: true, productsPerRow: 3 },
+  };
+
+  const [form, setForm] = useState(EMPTY_FORM);
+  const [step, setStep] = useState(1);
+  const [coverImageFile, setCoverImageFile] = useState(null);
+  const [coverImagePreview, setCoverImagePreview] = useState('');
+  const [selectedProductIds, setSelectedProductIds] = useState([]);
+  const [productSearch, setProductSearch] = useState('');
+  const [productsList, setProductsList] = useState([]);
+  const [loadingProducts, setLoadingProducts] = useState(false);
+  const coverInputRef = useRef(null);
 
   const ds = useDebounce(search, 400);
 
@@ -64,17 +75,62 @@ export default function Catalogs() {
     return () => document.removeEventListener('click', handleClickOutside);
   }, []);
 
-  const handleCreate = async (e) => {
-    e.preventDefault();
-    if (!form.name) { toast.error('Catalog name is required'); return; }
+  const handleModalClose = () => {
+    setShowModal(false);
+    setStep(1);
+    setCoverImageFile(null);
+    setCoverImagePreview('');
+    setSelectedProductIds([]);
+    setProductSearch('');
+    setProductsList([]);
+    setForm(EMPTY_FORM);
+  };
+
+  const fetchProductsPicker = async (search = '') => {
+    setLoadingProducts(true);
+    try {
+      const r = await productService.getProducts({ limit: 100, ...(search ? { search } : {}) });
+      setProductsList(r.data || []);
+    } catch {}
+    finally { setLoadingProducts(false); }
+  };
+
+  const handleCoverFile = (file) => {
+    if (!file || !file.type.startsWith('image/')) { toast.error('Please select an image file'); return; }
+    setCoverImageFile(file);
+    const reader = new FileReader();
+    reader.onload = e => setCoverImagePreview(e.target.result);
+    reader.readAsDataURL(file);
+  };
+
+  const handleCreate = async () => {
+    if (!form.name.trim()) { toast.error('Catalog name is required'); return; }
     setCreating(true);
     try {
-      await catalogService.createCatalog(form);
-      toast.success('Catalog created!');
-      setShowModal(false);
-      setForm({ name: '', description: '', template: 'grid', status: 'draft', isPublic: true, design: { backgroundColor: '#FFFFFF', textColor: '#000000', accentColor: '#3B82F6', showPrices: true, showDescription: true, productsPerRow: 3 } });
+      const submitData = {
+        ...form,
+        tags: form.tagsInput ? form.tagsInput.split(',').map(t => t.trim()).filter(Boolean) : [],
+        categories: form.categoriesInput ? form.categoriesInput.split(',').map(c => c.trim()).filter(Boolean) : [],
+      };
+      delete submitData.tagsInput;
+      delete submitData.categoriesInput;
+
+      const res = await catalogService.createCatalog(submitData);
+      const catalogId = res.data._id;
+
+      if (coverImageFile) {
+        try { await catalogService.uploadCoverImage(catalogId, coverImageFile); }
+        catch { toast.error('Catalog created but cover image upload failed'); }
+      }
+      if (selectedProductIds.length > 0) {
+        try { await catalogService.addProducts(catalogId, selectedProductIds); }
+        catch { toast.error('Catalog created but some products could not be added'); }
+      }
+
+      toast.success(`Catalog created${selectedProductIds.length > 0 ? ` with ${selectedProductIds.length} product${selectedProductIds.length > 1 ? 's' : ''}` : ''}!`);
+      handleModalClose();
       fetchCatalogs();
-    } catch (err) { toast.error(err.response?.data?.message || 'Failed'); }
+    } catch (err) { toast.error(err.response?.data?.message || 'Failed to create catalog'); }
     finally { setCreating(false); }
   };
 
@@ -112,6 +168,11 @@ export default function Catalogs() {
 
   const f = (k, v) => setForm(p => ({ ...p, [k]: v }));
 
+  const totalCatalogs = catalogs.length;
+  const publishedCatalogs = catalogs.filter(c => c.status === 'published').length;
+  const totalProducts = catalogs.reduce((sum, c) => sum + (c.products?.length || 0), 0);
+  const totalViews = catalogs.reduce((sum, c) => sum + (c.analytics?.viewCount || 0), 0);
+
   return (
     <div className="space-y-8 animate-in fade-in duration-500 pb-20">
       {/* Header Section */}
@@ -133,6 +194,40 @@ export default function Catalogs() {
           </button>
         )}
       </div>
+
+      {/* Catalog Overview Stats */}
+      {!loading && catalogs.length > 0 && (
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="bg-white dark:bg-zinc-950 p-4 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm">
+            <div className="flex items-center justify-between mb-1.5">
+              <span className="text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">Total Catalogs</span>
+              <ShoppingBag className="w-4 h-4 text-[#25D366]" />
+            </div>
+            <p className="text-2xl font-bold text-gray-900 dark:text-white">{totalCatalogs}</p>
+          </div>
+          <div className="bg-white dark:bg-zinc-950 p-4 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm">
+            <div className="flex items-center justify-between mb-1.5">
+              <span className="text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">Published</span>
+              <CheckSquare className="w-4 h-4 text-[#25D366]" />
+            </div>
+            <p className="text-2xl font-bold text-gray-900 dark:text-white">{publishedCatalogs}</p>
+          </div>
+          <div className="bg-white dark:bg-zinc-950 p-4 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm">
+            <div className="flex items-center justify-between mb-1.5">
+              <span className="text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">Products in Catalogs</span>
+              <Package className="w-4 h-4 text-[#25D366]" />
+            </div>
+            <p className="text-2xl font-bold text-gray-900 dark:text-white">{totalProducts}</p>
+          </div>
+          <div className="bg-white dark:bg-zinc-950 p-4 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm">
+            <div className="flex items-center justify-between mb-1.5">
+              <span className="text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">Total Views</span>
+              <Eye className="w-4 h-4 text-[#25D366]" />
+            </div>
+            <p className="text-2xl font-bold text-gray-900 dark:text-white">{totalViews}</p>
+          </div>
+        </div>
+      )}
 
       {/* Search & Filter Bar */}
       <div className="flex flex-col sm:flex-row gap-4 bg-white dark:bg-zinc-950 p-2 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm">
@@ -202,9 +297,9 @@ export default function Catalogs() {
               >
                 {/* Cover Image Area */}
                 <div className="relative aspect-[4/3] overflow-hidden bg-gray-100 dark:bg-zinc-900 group">
-                  {catalog.coverImage?.url || catalog.products?.[0]?.images?.[0]?.url ? (
+                  {catalog.coverImage?.url ? (
                     <img 
-                      src={catalog.coverImage?.url || catalog.products?.[0]?.images?.[0]?.url} 
+                      src={catalog.coverImage.url} 
                       alt={catalog.name} 
                       className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                     />
@@ -221,7 +316,7 @@ export default function Catalogs() {
                   {/* Top Badges */}
                   <div className="absolute top-3 left-3 flex gap-2">
                     <span className={`px-2.5 py-1 rounded-lg text-xs font-bold text-white backdrop-blur-md ${
-                      catalog.status === 'published' ? 'bg-[#25D366]/90' : 'bg-yellow-500/90'
+                      catalog.status === 'published' ? 'bg-[#25D366]/90' : 'bg-[#25D366]/50'
                     }`}>
                       {catalog.status === 'published' ? 'Published' : 'Draft'}
                     </span>
@@ -310,18 +405,28 @@ export default function Catalogs() {
                       </div>
                     </div>
 
-                    {/* Simple Toggle Switch */}
-                    <button 
-                      onClick={() => toggleStatus(catalog)}
-                      className={`relative w-10 h-6 rounded-full transition-colors duration-200 flex items-center cursor-pointer ${
-                        catalog.status === 'published' ? 'bg-[#25D366]' : 'bg-gray-300 dark:bg-gray-600'
-                      }`}
-                      title={catalog.status === 'published' ? 'Deactivate' : 'Activate'}
-                    >
-                      <span className={`absolute left-0.5 w-5 h-5 bg-white rounded-full shadow-sm transform transition-transform duration-200 ${
-                        catalog.status === 'published' ? 'translate-x-4' : 'translate-x-0'
-                      }`} />
-                    </button>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={(e) => { e.stopPropagation(); navigate(`/dashboard/catalogs/${catalog._id}`); }}
+                        className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-full bg-gray-100 dark:bg-zinc-800 text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-zinc-700 transition-colors"
+                      >
+                        <Edit className="w-3 h-3" />
+                        <span>Manage</span>
+                      </button>
+
+                      {/* Simple Toggle Switch */}
+                      <button 
+                        onClick={(e) => { e.stopPropagation(); toggleStatus(catalog); }}
+                        className={`relative w-10 h-6 rounded-full transition-colors duration-200 flex items-center cursor-pointer ${
+                          catalog.status === 'published' ? 'bg-[#25D366]' : 'bg-gray-300 dark:bg-gray-600'
+                        }`}
+                        title={catalog.status === 'published' ? 'Deactivate' : 'Activate'}
+                      >
+                        <span className={`absolute left-0.5 w-5 h-5 bg-white rounded-full shadow-sm transform transition-transform duration-200 ${
+                          catalog.status === 'published' ? 'translate-x-4' : 'translate-x-0'
+                        }`} />
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -333,63 +438,268 @@ export default function Catalogs() {
       )}
 
       {/* Create Modal */}
-      <Modal isOpen={showModal} onClose={() => setShowModal(false)} title="Create New Catalog" size="lg">
-        <form onSubmit={handleCreate} className="space-y-6">
-          <Input label="Catalog Name" required value={form.name} onChange={e => f('name', e.target.value)} placeholder="e.g. Summer Collection 2026" />
-
-          <div>
-            <label className="block text-sm font-bold text-gray-900 dark:text-white mb-2">Description</label>
-            <textarea 
-              className="w-full px-4 py-3 border border-gray-200 dark:border-gray-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#25D366] bg-gray-50 dark:bg-zinc-800 text-gray-900 dark:text-white transition-all resize-none"
-              rows="4" 
-              value={form.description} 
-              onChange={e => f('description', e.target.value)} 
-              placeholder="Describe what's in this catalog..." 
-            />
-          </div>
-
-          <div className="grid grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-bold text-gray-900 dark:text-white mb-2">Template</label>
-              <select 
-                className="w-full px-4 py-3 border border-gray-200 dark:border-gray-700 rounded-xl bg-gray-50 dark:bg-zinc-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#25D366]"
-                value={form.template} 
-                onChange={e => f('template', e.target.value)}
-              >
-                {templates.map(t => <option key={t} value={t}>{t.charAt(0).toUpperCase() + t.slice(1)}</option>)}
-              </select>
+      <Modal isOpen={showModal} onClose={handleModalClose} title="" size="xl">
+        <div className="space-y-0 -mt-3">
+          {/* Step header */}
+          <div className="mb-6">
+            <div className="flex items-center justify-between mb-3">
+              <div>
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+                  {step === 1 ? 'Basic Information' : step === 2 ? 'Cover & Design' : 'Add Products'}
+                </h2>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
+                  {step === 1 ? 'Name and describe your catalog' : step === 2 ? 'Customize appearance and add a cover image' : 'Choose products to include in this catalog'}
+                </p>
+              </div>
+              <span className="text-xs font-bold text-gray-400 bg-gray-100 dark:bg-zinc-800 px-3 py-1.5 rounded-full">Step {step} of 3</span>
             </div>
-            <div>
-              <label className="block text-sm font-bold text-gray-900 dark:text-white mb-2">Initial Status</label>
-              <select 
-                className="w-full px-4 py-3 border border-gray-200 dark:border-gray-700 rounded-xl bg-gray-50 dark:bg-zinc-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#25D366]"
-                value={form.status} 
-                onChange={e => f('status', e.target.value)}
-              >
-                <option value="draft">Draft (Hidden)</option>
-                <option value="published">Published (Visible)</option>
-              </select>
+            <div className="flex gap-1.5">
+              {[1,2,3].map(s => (
+                <div key={s} className={`h-1.5 flex-1 rounded-full transition-all duration-300 ${s <= step ? 'bg-[#25D366]' : 'bg-gray-200 dark:bg-gray-700'}`} />
+              ))}
             </div>
           </div>
 
-          <label className="flex items-center gap-3 p-4 border border-gray-200 dark:border-gray-700 rounded-xl bg-gray-50 dark:bg-zinc-800 cursor-pointer hover:border-[#25D366] transition-colors">
-            <input 
-              type="checkbox" 
-              checked={form.isPublic} 
-              onChange={e => f('isPublic', e.target.checked)}
-              className="w-5 h-5 text-[#25D366] rounded focus:ring-[#25D366] border-gray-300" 
-            />
-            <div className="flex-1">
-              <span className="block text-sm font-bold text-gray-900 dark:text-white">Public Access</span>
-              <span className="block text-xs text-gray-500">Anyone with the link can view this catalog</span>
+          {/* Step 1: Basics */}
+          {step === 1 && (
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-bold text-gray-900 dark:text-white mb-1.5">Catalog Name <span className="text-red-500">*</span></label>
+                <input
+                  type="text"
+                  value={form.name}
+                  onChange={e => f('name', e.target.value)}
+                  placeholder="e.g. Summer Collection 2026"
+                  autoFocus
+                  className="w-full px-4 py-3 border border-gray-200 dark:border-gray-700 rounded-xl bg-gray-50 dark:bg-zinc-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#25D366] transition-all"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-bold text-gray-900 dark:text-white mb-1.5">Description</label>
+                <textarea
+                  rows={3}
+                  value={form.description}
+                  onChange={e => f('description', e.target.value)}
+                  placeholder="Describe what's in this catalog..."
+                  className="w-full px-4 py-3 border border-gray-200 dark:border-gray-700 rounded-xl bg-gray-50 dark:bg-zinc-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#25D366] resize-none"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-bold text-gray-900 dark:text-white mb-1.5">Template</label>
+                  <select value={form.template} onChange={e => f('template', e.target.value)}
+                    className="w-full px-4 py-3 border border-gray-200 dark:border-gray-700 rounded-xl bg-gray-50 dark:bg-zinc-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#25D366]">
+                    {templates.map(t => <option key={t} value={t}>{t.charAt(0).toUpperCase() + t.slice(1)}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-gray-900 dark:text-white mb-1.5">Status</label>
+                  <select value={form.status} onChange={e => f('status', e.target.value)}
+                    className="w-full px-4 py-3 border border-gray-200 dark:border-gray-700 rounded-xl bg-gray-50 dark:bg-zinc-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#25D366]">
+                    <option value="draft">Draft (Hidden)</option>
+                    <option value="published">Published (Visible)</option>
+                  </select>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-bold text-gray-900 dark:text-white mb-1.5">Tags <span className="text-xs font-normal text-gray-400">(comma-separated)</span></label>
+                  <input type="text" value={form.tagsInput} onChange={e => f('tagsInput', e.target.value)}
+                    placeholder="summer, sale, new"
+                    className="w-full px-4 py-3 border border-gray-200 dark:border-gray-700 rounded-xl bg-gray-50 dark:bg-zinc-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#25D366] text-sm" />
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-gray-900 dark:text-white mb-1.5">Categories <span className="text-xs font-normal text-gray-400">(comma-separated)</span></label>
+                  <input type="text" value={form.categoriesInput} onChange={e => f('categoriesInput', e.target.value)}
+                    placeholder="clothing, accessories"
+                    className="w-full px-4 py-3 border border-gray-200 dark:border-gray-700 rounded-xl bg-gray-50 dark:bg-zinc-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#25D366] text-sm" />
+                </div>
+              </div>
+              <label className="flex items-center gap-3 p-4 border border-gray-200 dark:border-gray-700 rounded-xl bg-gray-50 dark:bg-zinc-800 cursor-pointer hover:border-[#25D366] transition-colors">
+                <input type="checkbox" checked={form.isPublic} onChange={e => f('isPublic', e.target.checked)}
+                  className="w-5 h-5 text-[#25D366] rounded focus:ring-[#25D366] border-gray-300" />
+                <div>
+                  <span className="block text-sm font-bold text-gray-900 dark:text-white">Public Access</span>
+                  <span className="block text-xs text-gray-500">Anyone with the link can view this catalog</span>
+                </div>
+              </label>
             </div>
-          </label>
+          )}
 
-          <div className="flex justify-end gap-3 pt-4">
-            <Button variant="secondary" onClick={() => setShowModal(false)} type="button">Cancel</Button>
-            <Button type="submit" loading={creating}>Create Catalog</Button>
+          {/* Step 2: Cover & Design */}
+          {step === 2 && (
+            <div className="space-y-5">
+              <div>
+                <label className="block text-sm font-bold text-gray-900 dark:text-white mb-2">Cover Image</label>
+                {coverImagePreview ? (
+                  <div className="relative rounded-2xl overflow-hidden h-44 bg-gray-100 dark:bg-zinc-800 group">
+                    <img src={coverImagePreview} alt="Cover" className="w-full h-full object-cover" />
+                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
+                      <button type="button" onClick={() => coverInputRef.current?.click()}
+                        className="px-4 py-2 bg-white text-gray-900 rounded-xl font-bold text-sm flex items-center gap-1.5">
+                        <Upload className="w-4 h-4" /> Change
+                      </button>
+                      <button type="button" onClick={() => { setCoverImageFile(null); setCoverImagePreview(''); }}
+                        className="px-4 py-2 bg-red-500 text-white rounded-xl font-bold text-sm flex items-center gap-1.5">
+                        <X className="w-4 h-4" /> Remove
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div
+                    onClick={() => coverInputRef.current?.click()}
+                    onDragOver={e => e.preventDefault()}
+                    onDrop={e => { e.preventDefault(); handleCoverFile(e.dataTransfer.files[0]); }}
+                    className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-2xl h-44 flex flex-col items-center justify-center gap-2 cursor-pointer hover:border-[#25D366] hover:bg-[#25D366]/5 transition-all"
+                  >
+                    <div className="w-14 h-14 bg-gray-100 dark:bg-zinc-800 rounded-2xl flex items-center justify-center">
+                      <ImageIcon className="w-7 h-7 text-gray-400" />
+                    </div>
+                    <div className="text-center">
+                      <p className="text-sm font-bold text-gray-700 dark:text-gray-300">Drop an image or click to upload</p>
+                      <p className="text-xs text-gray-400 mt-0.5">JPEG, PNG, WebP · Max 10MB</p>
+                    </div>
+                  </div>
+                )}
+                <input ref={coverInputRef} type="file" accept="image/*" className="hidden" onChange={e => { if (e.target.files[0]) handleCoverFile(e.target.files[0]); }} />
+              </div>
+
+              <div>
+                <label className="block text-sm font-bold text-gray-900 dark:text-white mb-2">Brand Colors</label>
+                <div className="grid grid-cols-3 gap-3">
+                  {[
+                    { key: 'backgroundColor', label: 'Background' },
+                    { key: 'textColor', label: 'Text' },
+                    { key: 'accentColor', label: 'Accent' },
+                  ].map(c => (
+                    <div key={c.key} className="flex items-center gap-2.5 p-3 border border-gray-200 dark:border-gray-700 rounded-xl bg-gray-50 dark:bg-zinc-800">
+                      <input type="color" value={form.design[c.key]}
+                        onChange={e => setForm(p => ({ ...p, design: { ...p.design, [c.key]: e.target.value } }))}
+                        className="h-9 w-9 rounded-lg border-0 cursor-pointer p-0.5 bg-transparent" />
+                      <div>
+                        <p className="text-xs font-bold text-gray-700 dark:text-gray-300">{c.label}</p>
+                        <p className="text-xs text-gray-400 font-mono">{form.design[c.key]}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-5">
+                <div>
+                  <label className="block text-sm font-bold text-gray-900 dark:text-white mb-1.5">Products Per Row</label>
+                  <select value={form.design.productsPerRow}
+                    onChange={e => setForm(p => ({ ...p, design: { ...p.design, productsPerRow: +e.target.value } }))}
+                    className="w-full px-4 py-3 border border-gray-200 dark:border-gray-700 rounded-xl bg-gray-50 dark:bg-zinc-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#25D366]">
+                    {[1,2,3,4,5,6].map(n => <option key={n} value={n}>{n} column{n > 1 ? 's' : ''}</option>)}
+                  </select>
+                </div>
+                <div className="space-y-3 pt-7">
+                  <label className="flex items-center gap-2.5 cursor-pointer">
+                    <input type="checkbox" checked={form.design.showPrices}
+                      onChange={e => setForm(p => ({ ...p, design: { ...p.design, showPrices: e.target.checked } }))}
+                      className="w-4 h-4 text-[#25D366] rounded" />
+                    <span className="text-sm text-gray-700 dark:text-gray-300">Show prices</span>
+                  </label>
+                  <label className="flex items-center gap-2.5 cursor-pointer">
+                    <input type="checkbox" checked={form.design.showDescription}
+                      onChange={e => setForm(p => ({ ...p, design: { ...p.design, showDescription: e.target.checked } }))}
+                      className="w-4 h-4 text-[#25D366] rounded" />
+                    <span className="text-sm text-gray-700 dark:text-gray-300">Show descriptions</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Step 3: Products */}
+          {step === 3 && (
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  {selectedProductIds.length > 0
+                    ? <span className="text-[#25D366] font-bold">{selectedProductIds.length} product{selectedProductIds.length > 1 ? 's' : ''} selected</span>
+                    : 'Select products to include (you can also add them later)'}
+                </p>
+                {selectedProductIds.length > 0 && (
+                  <button type="button" onClick={() => setSelectedProductIds([])} className="text-xs text-red-500 hover:text-red-600 font-bold">Clear all</button>
+                )}
+              </div>
+
+              <div className="relative">
+                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <input type="text" placeholder="Search products..."
+                  value={productSearch} onChange={e => setProductSearch(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl bg-gray-50 dark:bg-zinc-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#25D366] text-sm" />
+              </div>
+
+              <div className="h-72 overflow-y-auto space-y-1.5 pr-1">
+                {loadingProducts ? (
+                  <div className="flex items-center justify-center h-full text-gray-400 text-sm">Loading products...</div>
+                ) : (() => {
+                  const filtered = productsList.filter(p => !productSearch || p.name?.toLowerCase().includes(productSearch.toLowerCase()));
+                  return filtered.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center h-full text-gray-400">
+                      <Package className="w-10 h-10 mb-2 opacity-30" />
+                      <p className="text-sm">{productSearch ? 'No products match your search' : 'No products yet'}</p>
+                    </div>
+                  ) : filtered.map(product => {
+                    const selected = selectedProductIds.includes(product._id);
+                    return (
+                      <div key={product._id}
+                        onClick={() => setSelectedProductIds(prev => selected ? prev.filter(id => id !== product._id) : [...prev, product._id])}
+                        className={`flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-all border ${
+                          selected
+                            ? 'border-[#25D366] bg-[#25D366]/5 dark:bg-[#25D366]/10'
+                            : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 bg-white dark:bg-zinc-900'
+                        }`}>
+                        <div className="w-10 h-10 rounded-lg bg-gray-100 dark:bg-zinc-800 overflow-hidden shrink-0">
+                          {product.images?.[0]?.url
+                            ? <img src={product.images[0].url} alt={product.name} className="w-full h-full object-cover" />
+                            : <div className="w-full h-full flex items-center justify-center"><Package className="w-5 h-5 text-gray-300" /></div>}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">{product.name}</p>
+                          <p className="text-xs text-gray-400">₹{Number(product.price || 0).toLocaleString('en-IN')} · {product.category || 'Uncategorized'}</p>
+                        </div>
+                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-all ${
+                          selected ? 'bg-[#25D366] border-[#25D366]' : 'border-gray-300 dark:border-gray-600'
+                        }`}>
+                          {selected && <CheckSquare className="w-3 h-3 text-white" />}
+                        </div>
+                      </div>
+                    );
+                  });
+                })()}
+              </div>
+            </div>
+          )}
+
+          {/* Navigation */}
+          <div className="flex justify-between items-center pt-5 mt-5 border-t border-gray-100 dark:border-gray-800">
+            <button type="button"
+              onClick={step === 1 ? handleModalClose : () => setStep(s => s - 1)}
+              className="px-5 py-2.5 text-sm font-bold text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-zinc-800 hover:bg-gray-200 dark:hover:bg-zinc-700 rounded-xl transition-colors">
+              {step === 1 ? 'Cancel' : '← Back'}
+            </button>
+            {step < 3 ? (
+              <button type="button"
+                onClick={() => {
+                  if (step === 1 && !form.name.trim()) { toast.error('Catalog name is required'); return; }
+                  if (step === 2) fetchProductsPicker();
+                  setStep(s => s + 1);
+                }}
+                className="px-6 py-2.5 bg-[#25D366] hover:bg-[#20bd5a] text-white font-bold rounded-xl shadow-lg shadow-[#25D366]/20 transition-all active:scale-95">
+                Next →
+              </button>
+            ) : (
+              <button type="button" onClick={handleCreate} disabled={creating}
+                className="flex items-center gap-2 px-6 py-2.5 bg-[#25D366] hover:bg-[#20bd5a] disabled:opacity-50 text-white font-bold rounded-xl shadow-lg shadow-[#25D366]/20 transition-all active:scale-95">
+                {creating ? 'Creating...' : '✓ Create Catalog'}
+              </button>
+            )}
           </div>
-        </form>
+        </div>
       </Modal>
 
       {/* Share Modal */}

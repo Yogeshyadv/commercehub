@@ -40,4 +40,13 @@ export const catalogService = {
     const response = await api.delete(`/catalogs/${id}`);
     return response.data;
   },
+
+  uploadCoverImage: async (id, file) => {
+    const formData = new FormData();
+    formData.append('coverImage', file);
+    const response = await api.post(`/catalogs/${id}/cover`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    return response.data;
+  },
 };

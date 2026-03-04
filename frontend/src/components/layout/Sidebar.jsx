@@ -10,9 +10,7 @@ import {
   Settings, 
   LogOut, 
   X,
-  Store,
-  MessageSquare,
-  Heart
+  MessageSquare
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { generateInitials } from '../../utils/formatters';
@@ -28,20 +26,18 @@ export default function Sidebar({ isOpen, onClose }) {
     { name: 'Inventory', path: '/dashboard/inventory', icon: Box },
     { name: 'Customers', path: '/dashboard/customers', icon: Users },
     { name: 'Analytics', path: '/dashboard/analytics', icon: BarChart2 },
-    { name: 'Settings', path: '/dashboard/settings', icon: Settings },
+    { name: 'My Account', path: '/dashboard/account', icon: Users },
   ];
 
   const customerNav = [
     { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard, end: true },
-    { name: 'Browse Catalogs', path: '/dashboard/catalogs', icon: BookOpen },
-    { name: 'My Orders', path: '/dashboard/orders', icon: ShoppingBag },
-    { name: 'Wishlist', path: '/dashboard/wishlist', icon: Heart },
-    { name: 'Settings', path: '/dashboard/settings', icon: Settings },
+    { name: 'Browse Store', path: '/store', icon: BookOpen },
+    { name: 'My Orders', path: '/my-orders', icon: ShoppingBag },
+    { name: 'My Account', path: '/dashboard/account', icon: Users },
   ];
 
   const superAdminNav = [
     ...vendorNav,
-    { name: 'All Tenants', path: '/dashboard/tenants', icon: Store },
   ];
 
   const getNavItems = () => {

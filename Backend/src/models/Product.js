@@ -108,7 +108,21 @@ const productSchema = new mongoose.Schema({
   viewCount: {
     type: Number,
     default: 0
-  }
+  },
+  rating: {
+    type: Number,
+    default: 0,
+    min: 0,
+    max: 5
+  },
+  numReviews: {
+    type: Number,
+    default: 0
+  },
+  reviews: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Review'
+  }]
 }, {
   timestamps: true
 });
