@@ -64,7 +64,7 @@ exports.register = async (req, res) => {
       password,
       phone,
       role: role || 'customer',
-      isEmailVerified: process.env.NODE_ENV === 'development', // Auto-verify in development
+      isEmailVerified: process.env.NODE_ENV === 'development' || process.env.SKIP_EMAIL_VERIFICATION === 'true', // Auto-verify in development or if explicitly skipped
       emailVerificationToken: hashedToken,
       emailVerificationExpire: Date.now() + 24 * 60 * 60 * 1000 // 24 hours
     });
