@@ -1,7 +1,8 @@
 const Product = require('../models/Product');
 const Inventory = require('../models/Inventory');
 const cloudinary = require('../config/cloudinary');
-const sharp = require('sharp');
+let sharp;
+try { sharp = require('sharp'); } catch (e) { console.warn('sharp not available, skipping image optimization'); }
 const { getPagination } = require('../utils/helpers');
 const { Readable } = require('stream');
 const csv = require('csv-parser');
@@ -320,7 +321,9 @@ exports.uploadImages = async (req, res) => {
     if (!req.files || req.files.length === 0) return res.status(400).json({ success: false, message: 'Please upload at least one image' });
 
     const uploadPromises = req.files.map(async (file) => {
-      const optimizedBuffer = await sharp(file.buffer).resize(1200, 1200, { fit: 'inside', withoutEnlargement: true }).jpeg({ quality: 85 }).toBuffer();
+      const optimizedBuffer = sharp
+        ? await sharp(file.buffer).resize(1200, 1200, { fit: 'inside', withoutEnlargement: true }).jpeg({ quality: 85 }).toBuffer()
+        : file.buffer;
       return new Promise((resolve, reject) => {
         const uploadStream = cloudinary.uploader.upload_stream(
           { folder: `nextgen-saas/${req.tenantId}/products`, resource_type: 'image' },
