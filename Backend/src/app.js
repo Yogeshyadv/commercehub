@@ -14,6 +14,9 @@ const routes = require('./routes');
 
 const app = express();
 
+// Trust proxy (required for Render/Heroku/Vercel deployments behind a load balancer)
+app.set('trust proxy', 1);
+
 // Security Middleware
 app.use(helmet());
 
