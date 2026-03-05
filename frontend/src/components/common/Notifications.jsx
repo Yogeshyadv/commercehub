@@ -3,6 +3,7 @@ import { Bell, Check, X } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import api from '../../services/api';
 import toast from 'react-hot-toast';
+import { useSocket } from '../../context/SocketContext';
 
 export default function Notifications() {
   const [notifications, setNotifications] = useState([]);
@@ -10,6 +11,7 @@ export default function Notifications() {
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const menuRef = useRef(null);
+  const socket = useSocket();
 
   const fetchNotifications = async () => {
     try {
@@ -29,6 +31,23 @@ export default function Notifications() {
     const interval = setInterval(fetchNotifications, 60000);
     return () => clearInterval(interval);
   }, []);
+
+  // Listen for socket events to update the list immediately
+  useEffect(() => {
+    if (!socket) return;
+    
+    const handleNewNotification = () => {
+      fetchNotifications();
+    };
+
+    socket.on('notification', handleNewNotification);
+    socket.on('new_order', handleNewNotification);
+
+    return () => {
+      socket.off('notification', handleNewNotification);
+      socket.off('new_order', handleNewNotification);
+    };
+  }, [socket]);
 
   useEffect(() => {
     function handleClickOutside(event) {
@@ -61,6 +80,17 @@ export default function Notifications() {
     }
   };
 
+  const handleClearAll = async () => {
+    try {
+      await api.delete('/notifications/clear-all');
+      setNotifications([]);
+      setUnreadCount(0);
+      toast.success('All notifications cleared');
+    } catch (error) {
+      toast.error('Failed to clear notifications');
+    }
+  };
+
   return (
     <div className="relative" ref={menuRef}>
       <button 
@@ -77,14 +107,24 @@ export default function Notifications() {
         <div className="absolute right-0 mt-4 w-80 sm:w-96 bg-white dark:bg-[#111b21] rounded-2xl shadow-xl ring-1 ring-black/5 dark:ring-white/10 z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-200 origin-top-right">
           <div className="p-4 border-b border-gray-100 dark:border-zinc-800 flex items-center justify-between">
             <h3 className="font-semibold text-gray-900 dark:text-white">Notifications</h3>
-            {unreadCount > 0 && (
-              <button 
-                onClick={handleMarkAllRead}
-                className="text-xs font-medium text-[#128C7E] dark:text-[#25D366] hover:underline"
-              >
-                Mark all read
-              </button>
-            )}
+            <div className="flex gap-3">
+              {unreadCount > 0 && (
+                <button 
+                  onClick={handleMarkAllRead}
+                  className="text-xs font-medium text-[#128C7E] dark:text-[#25D366] hover:underline"
+                >
+                  Mark all read
+                </button>
+              )}
+              {notifications.length > 0 && (
+                <button 
+                  onClick={handleClearAll}
+                  className="text-xs font-medium text-red-500 hover:text-red-600 hover:underline"
+                >
+                  Clear all
+                </button>
+              )}
+            </div>
           </div>
 
           <div className="max-h-[400px] overflow-y-auto custom-scrollbar">

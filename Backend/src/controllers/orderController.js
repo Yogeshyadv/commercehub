@@ -317,7 +317,7 @@ exports.updateOrderStatus = async (req, res) => {
     };
 
     if (notificationMessages[status]) {
-      await Notification.create({
+      const notif = await Notification.create({
         recipient: order.customer,
         sender: req.user._id,
         type: 'ORDER_UPDATE',
@@ -325,6 +325,11 @@ exports.updateOrderStatus = async (req, res) => {
         message: `${notificationMessages[status]} (Order #${order.orderNumber || order._id})`,
         relatedId: order._id
       });
+      // Emit Socket Event to customer
+      const io = req.app.get('io');
+      if (io) {
+        io.to(order.customer.toString()).emit('notification', notif);
+      }
     }
 
     if (status === 'cancelled') {

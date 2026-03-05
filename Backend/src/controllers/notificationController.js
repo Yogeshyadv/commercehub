@@ -56,6 +56,16 @@ exports.markAllRead = async (req, res) => {
   }
 };
 
+exports.clearAll = async (req, res) => {
+  try {
+    await Notification.deleteMany({ recipient: req.user._id });
+    res.status(200).json({ success: true, message: 'All notifications cleared' });
+  } catch (error) {
+    console.error('Clear All Error:', error);
+    res.status(500).json({ success: false, message: 'Server Error' });
+  }
+};
+
 // Internal helper for usage in other controllers
 exports.createNotificationInternal = async ({ recipient, title, message, type, relatedId, sender }) => {
   try {
