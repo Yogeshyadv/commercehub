@@ -35,41 +35,43 @@ const notificationService = {
       const verificationUrl = `${process.env.CLIENT_URL}/verify-email/${token}`;
       
       const mailOptions = {
-        from: process.env.EMAIL_FROM || 'NextGen B2B <noreply@nextgen.com>',
+        from: process.env.EMAIL_FROM || 'CommerceHub <noreply@commercehub.com>',
         to: email,
-        subject: 'Verify Your Email - NextGen B2B',
+        subject: 'Verify Your Email - CommerceHub',
         html: `
-          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-            <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center;">
-              <h1 style="color: white; margin: 0;">Welcome to NextGen B2B!</h1>
+          <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 24px rgba(0,0,0,0.06); border: 1px solid #e5e7eb;">
+            <div style="background: linear-gradient(135deg, #25D366 0%, #1DB954 100%); padding: 40px 30px; text-align: center;">
+              <h1 style="color: white; margin: 0; font-size: 28px; font-weight: 800; letter-spacing: -0.5px;">CommerceHub</h1>
             </div>
-            <div style="padding: 40px 30px; background: #f9fafb;">
-              <h2 style="color: #1f2937; margin-top: 0;">Hi ${name},</h2>
+            <div style="padding: 40px 30px; background: #ffffff;">
+              <h2 style="color: #111827; margin-top: 0; font-size: 20px;">Hi ${name},</h2>
               <p style="color: #4b5563; font-size: 16px; line-height: 1.6;">
-                Thank you for registering with NextGen B2B! To complete your registration and start managing your business, please verify your email address.
+                Welcome to CommerceHub! To complete your registration and start exploring the platform, please verify your email address by clicking the button below.
               </p>
-              <div style="text-align: center; margin: 30px 0;">
-                <a href="${verificationUrl}" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 14px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">
+              <div style="text-align: center; margin: 35px 0;">
+                <a href="${verificationUrl}" style="background: linear-gradient(135deg, #25D366 0%, #1DB954 100%); color: white; padding: 14px 32px; text-decoration: none; border-radius: 9999px; font-weight: 600; font-size: 16px; display: inline-block; box-shadow: 0 4px 12px rgba(37, 211, 102, 0.25);">
                   Verify Email Address
                 </a>
               </div>
               <p style="color: #6b7280; font-size: 14px;">
-                Or copy and paste this link in your browser:<br>
-                <a href="${verificationUrl}" style="color: #667eea; word-break: break-all;">${verificationUrl}</a>
+                Or copy and paste this link into your browser:<br>
+                <a href="${verificationUrl}" style="color: #25D366; word-break: break-all; margin-top: 8px; display: inline-block;">${verificationUrl}</a>
               </p>
-              <p style="color: #6b7280; font-size: 14px; margin-top: 30px;">
+              <p style="color: #6b7280; font-size: 14px; margin-top: 24px;">
                 This link will expire in 24 hours.
               </p>
-              <p style="color: #9ca3af; font-size: 12px; margin-top: 30px;">
-                If you didn't create an account with NextGen B2B, please ignore this email.
-              </p>
+              <div style="margin-top: 32px; padding-top: 24px; border-top: 1px solid #f3f4f6;">
+                <p style="color: #9ca3af; font-size: 12px; margin: 0;">
+                  If you didn't create an account with CommerceHub, you can safely ignore this email.
+                </p>
+              </div>
             </div>
-            <div style="background: #1f2937; padding: 20px; text-align: center; color: #9ca3af; font-size: 12px;">
-              <p style="margin: 0;">© ${new Date().getFullYear()} NextGen B2B. All rights reserved.</p>
+            <div style="background: #f9fafb; padding: 20px; text-align: center; color: #6b7280; font-size: 13px; border-top: 1px solid #e5e7eb;">
+              <p style="margin: 0;">© ${new Date().getFullYear()} CommerceHub. All rights reserved.</p>
             </div>
           </div>
         `,
-        text: `Hi ${name},\n\nThank you for registering with NextGen B2B! Please verify your email by clicking the link below:\n\n${verificationUrl}\n\nThis link will expire in 24 hours.\n\nIf you didn't create an account, please ignore this email.`
+        text: `Hi ${name},\n\nWelcome to CommerceHub! Please verify your email by clicking the link below:\n\n${verificationUrl}\n\nThis link will expire in 24 hours.\n\nIf you didn't create an account, please ignore this email.`
       };
 
       const result = await transporter.sendMail(mailOptions);
@@ -81,6 +83,54 @@ const notificationService = {
     }
   },
 
+  // Send password reset email
+  sendPasswordResetEmail: async (email, token, name) => {
+    try {
+      const transporter = notificationService.getEmailTransporter();
+      const resetUrl = `${process.env.CLIENT_URL}/reset-password/${token}`;
+
+      const mailOptions = {
+        from: process.env.EMAIL_FROM || 'CommerceHub <noreply@commercehub.com>',
+        to: email,
+        subject: 'Reset Your Password - CommerceHub',
+        html: `
+          <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 24px rgba(0,0,0,0.06); border: 1px solid #e5e7eb;">
+            <div style="background: linear-gradient(135deg, #111827 0%, #374151 100%); padding: 40px 30px; text-align: center;">
+              <h1 style="color: white; margin: 0; font-size: 28px; font-weight: 800; letter-spacing: -0.5px;">CommerceHub</h1>
+            </div>
+            <div style="padding: 40px 30px; background: #ffffff;">
+              <h2 style="color: #111827; margin-top: 0; font-size: 20px;">Hi ${name},</h2>
+              <p style="color: #4b5563; font-size: 16px; line-height: 1.6;">
+                You recently requested to reset your password for your CommerceHub account. Click the button below to proceed.
+              </p>
+              <div style="text-align: center; margin: 35px 0;">
+                <a href="${resetUrl}" style="background: #111827; color: white; padding: 14px 32px; text-decoration: none; border-radius: 9999px; font-weight: 600; font-size: 16px; display: inline-block; box-shadow: 0 4px 12px rgba(17, 24, 39, 0.25);">
+                  Reset Password
+                </a>
+              </div>
+              <p style="color: #6b7280; font-size: 14px;">
+                Or copy and paste this link into your browser:<br>
+                <a href="${resetUrl}" style="color: #111827; word-break: break-all; margin-top: 8px; display: inline-block;">${resetUrl}</a>
+              </p>
+              <p style="color: #ef4444; font-size: 14px; margin-top: 24px;">
+                This password reset link will expire in 10 minutes.
+              </p>
+              <div style="margin-top: 32px; padding-top: 24px; border-top: 1px solid #f3f4f6;">
+                <p style="color: #9ca3af; font-size: 12px; margin: 0;">
+                  If you did not request a password reset, please ignore this email or contact support if you have concerns.
+                </p>
+              </div>
+            </div>
+            <div style="background: #f9fafb; padding: 20px; text-align: center; color: #6b7280; font-size: 13px; border-top: 1px solid #e5e7eb;">
+              <p style="margin: 0;">© ${new Date().getFullYear()} CommerceHub. All rights reserved.</p>
+            </div>
+          </div>
+        `,
+        text: `Hi ${name},\n\nYou requested a password reset. Click the link below to reset your password:\n\n${resetUrl}\n\nThis link will expire in 10 minutes.\n\nIf you did not request this, please ignore this email.`
+      };
+
+      const result = await transporter.sendMail(mailOptions);
+      console.log('✅ Password reset email sent:', result.messageId);
   // Send WhatsApp message (using Twilio or direct API)
   sendWhatsApp: async (phone, message) => {
     // If Twilio is configured

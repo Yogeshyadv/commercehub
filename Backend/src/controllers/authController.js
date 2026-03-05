@@ -360,12 +360,12 @@ exports.forgotPassword = async (req, res) => {
     const resetToken = user.getResetPasswordToken();
     await user.save({ validateBeforeSave: false });
 
-    const resetUrl = `${process.env.CLIENT_URL}/reset-password/${resetToken}`;
+    // Send the password reset email
+    await notificationService.sendPasswordResetEmail(user.email, resetToken, user.firstName);
 
     res.status(200).json({
       success: true,
-      message: 'Password reset email sent',
-      ...(process.env.NODE_ENV === 'development' && { resetUrl })
+      message: 'Password reset email sent'
     });
   } catch (error) {
     console.error('ForgotPassword error:', error);

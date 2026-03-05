@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { authService } from '../services/authService';
 import toast from 'react-hot-toast';
-import { HiCheckCircle, HiXCircle } from 'react-icons/hi';
+import { CheckCircleIcon, XCircleIcon } from 'lucide-react';
 
 export default function EmailVerification() {
   const { token } = useParams();
@@ -22,11 +22,10 @@ export default function EmailVerification() {
         const response = await authService.verifyEmail(token);
         setStatus('success');
         setMessage(response.message || 'Email verified successfully!');
-        toast.success('Email verified! Redirecting to dashboard...');
-        
-        // Redirect to dashboard after 2 seconds
+        toast.success('Email verified! Redirecting to login...');
+
         setTimeout(() => {
-          navigate('/dashboard');
+          navigate('/login');
         }, 2000);
       } catch (error) {
         setStatus('error');
@@ -39,20 +38,27 @@ export default function EmailVerification() {
   }, [token, navigate]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-purple-50 py-12 px-4">
-      <div className="max-w-md w-full">
-        <div className="bg-white rounded-2xl shadow-xl p-8 text-center animate-fadeIn">
-          {/* Logo */}
-          <Link to="/" className="inline-flex items-center gap-2 mb-6">
-            <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-xl">N</span>
-            </div>
-          </Link>
+    <div className="min-h-screen w-full bg-gradient-to-br from-white via-[#E8FFF3]/30 to-white overflow-hidden relative flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+      {/* Decorative Background Blobs */}
+      <div className="fixed top-0 left-0 w-full h-full overflow-hidden pointer-events-none z-0">
+        <div className="absolute top-[-10%] right-[-5%] w-[500px] h-[500px] bg-gradient-to-br from-[#25D366]/30 to-[#1DB954]/20 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute bottom-[-10%] left-[-5%] w-[600px] h-[600px] bg-gradient-to-tr from-[#128C7E]/30 to-green-100/30 rounded-full blur-3xl animate-pulse delay-1000" />
+      </div>
 
+      <div className="relative z-10 w-full max-w-md animate-in slide-in-from-bottom-5 fade-in duration-500">
+        <div className="text-center mb-8">
+          <Link to="/" className="inline-flex items-center text-[#1a1a2e] hover:text-[#25D366] transition-all duration-200 mb-4 group">
+            <span className="font-bold text-2xl tracking-tight">
+              Commerce<span className="text-transparent bg-clip-text bg-gradient-to-r from-[#25D366] to-[#1DB954]">Hub</span>
+            </span>
+          </Link>
+        </div>
+
+        <div className="bg-white/80 backdrop-blur-2xl border border-white/60 rounded-3xl shadow-[0_8px_32px_0_rgba(37,211,102,0.12),0_2px_8px_0_rgba(0,0,0,0.04)] p-8 sm:p-10 text-center">
           {status === 'verifying' && (
             <>
-              <div className="inline-flex items-center justify-center w-20 h-20 bg-blue-100 rounded-full mb-6">
-                <svg className="animate-spin h-10 w-10 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <div className="inline-flex items-center justify-center w-20 h-20 bg-green-50 rounded-full mb-6 relative">
+                <svg className="animate-spin h-10 w-10 text-[#25D366]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                 </svg>
@@ -60,7 +66,7 @@ export default function EmailVerification() {
               <h1 className="text-2xl font-bold text-gray-900 mb-2">
                 Verifying your email...
               </h1>
-              <p className="text-gray-600">
+              <p className="text-gray-500 text-sm">
                 Please wait while we verify your email address.
               </p>
             </>
@@ -69,20 +75,20 @@ export default function EmailVerification() {
           {status === 'success' && (
             <>
               <div className="inline-flex items-center justify-center w-20 h-20 bg-green-100 rounded-full mb-6">
-                <HiCheckCircle className="h-12 w-12 text-green-600" />
+                <CheckCircleIcon className="h-10 w-10 text-[#25D366]" />
               </div>
-              <h1 className="text-2xl font-bold text-gray-900 mb-2">
+              <h1 className="text-2xl font-extrabold text-gray-900 mb-2">
                 Email Verified!
               </h1>
-              <p className="text-gray-600 mb-6">
+              <p className="text-gray-500 text-sm mb-6">
                 {message}
               </p>
-              <div className="inline-flex items-center gap-2 text-sm text-blue-600">
+              <div className="inline-flex items-center gap-2 text-sm font-semibold text-[#1DB954]">
                 <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                 </svg>
-                <span>Redirecting to dashboard...</span>
+                <span>Redirecting to login...</span>
               </div>
             </>
           )}
@@ -90,28 +96,24 @@ export default function EmailVerification() {
           {status === 'error' && (
             <>
               <div className="inline-flex items-center justify-center w-20 h-20 bg-red-100 rounded-full mb-6">
-                <HiXCircle className="h-12 w-12 text-red-600" />
+                <XCircleIcon className="h-10 w-10 text-red-500" />
               </div>
-              <h1 className="text-2xl font-bold text-gray-900 mb-2">
+              <h1 className="text-2xl font-extrabold text-gray-900 mb-2">
                 Verification Failed
               </h1>
-              <p className="text-gray-600 mb-6">
+              <p className="text-gray-500 text-sm mb-6">
                 {message}
               </p>
               <div className="space-y-3">
                 <Link
                   to="/login"
-                  className="block w-full py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-semibold text-white bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 transition-all"
+                  className="block w-full text-center bg-gradient-to-r from-[#25D366] to-[#1DB954] hover:from-[#128C7E] hover:to-[#25D366] text-white py-3.5 px-4 rounded-xl font-bold text-sm shadow-lg shadow-[#25D366]/30 transition-all duration-300"
                 >
                   Go to Login
                 </Link>
                 <Link
                   to="/register"
-                  className="block w-full py-3 px-4 border border-gray-300 rounded-lg shadow-sm text-sm font-semibold text-gray-700 bg-white hover:bg-gray-50 transition-all"
-                >
-                  Register Again
-                </Link>
-              </div>
+                  className="block w-full py-3.5 px-4 rounded-xl font-bold text-sm text-gray-700 bg-gray-50 hover:bg-gray-100 transition-all border border-gray-200"
             </>
           )}
         </div>
