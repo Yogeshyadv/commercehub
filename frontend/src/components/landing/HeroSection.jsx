@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { ArrowRightIcon, PlayIcon, CheckCircleIcon } from 'lucide-react';
+import { ArrowRightIcon, PlayIcon, CheckCircleIcon, ShoppingBagIcon } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export function HeroSection() {
