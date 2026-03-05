@@ -78,7 +78,11 @@ function AppRoutes() {
       <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
       <Route path="/register" element={<PublicRoute><Register /></PublicRoute>} />
       <Route path="/forgot-password" element={<PublicRoute><ForgotPassword /></PublicRoute>} />
-        <Route path="/reset-password/:token" element={<PublicRoute><ResetPassword /></PublicRoute>} />
+      <Route path="/reset-password/:token" element={<PublicRoute><ResetPassword /></PublicRoute>} />
+      <Route path="/verify-email/:token" element={<EmailVerification />} />
+
+      {/* Protected dashboard routes */}
+      <Route path="/dashboard" element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
         <Route index element={<Dashboard />} />
         <Route path="account" element={<MyAccount />} />
         <Route path="products" element={<VendorOnly><Products /></VendorOnly>} />

@@ -113,7 +113,11 @@ export default function EmailVerification() {
                 </Link>
                 <Link
                   to="/register"
-                  className="block w-full py-3.5 px-4 rounded-xl font-bold text-sm text-gray-700 bg-gray-50 hover:bg-gray-100 transition-all border border-gray-200"
+                  className="block w-full text-center py-3.5 px-4 rounded-xl font-bold text-sm text-gray-700 bg-gray-50 hover:bg-gray-100 transition-all border border-gray-200"
+                >
+                  Create New Account
+                </Link>
+              </div>
             </>
           )}
         </div>

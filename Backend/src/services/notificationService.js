@@ -131,6 +131,13 @@ const notificationService = {
 
       const result = await transporter.sendMail(mailOptions);
       console.log('✅ Password reset email sent:', result.messageId);
+      return { success: true, messageId: result.messageId };
+    } catch (error) {
+      console.error('❌ Password reset email send error:', error.message);
+      return { success: false, error: error.message };
+    }
+  },
+
   // Send WhatsApp message (using Twilio or direct API)
   sendWhatsApp: async (phone, message) => {
     // If Twilio is configured

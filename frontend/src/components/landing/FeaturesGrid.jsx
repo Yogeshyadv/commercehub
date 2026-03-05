@@ -1,200 +1,136 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import {
-  MessageSquareIcon,
-  ShoppingCartIcon,
-  CreditCardIcon,
-  BarChart3Icon,
-  UsersIcon,
-  SendIcon,
-} from 'lucide-react';
 
 export function FeaturesGrid() {
-  const container = {
-    hidden: { opacity: 0 },
-    show: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1,
-      },
-    },
-  };
+  const b2bFeatures = [
+    { title: 'Fast order booking', icon: '⚡' },
+    { title: 'MOA, MOQ and Sets', icon: '📦' },
+    { title: 'Private cataloguing', icon: '🔒' },
+    { title: 'B2B pricing', icon: '💰' }
+  ];
 
-  const item = {
-    hidden: { opacity: 0, y: 40 },
-    show: {
-      opacity: 1,
-      y: 0,
-      transition: {
-        type: 'spring',
-        stiffness: 50,
-      },
-    },
-  };
+  const waFeatures = [
+    { title: 'Catalogue brochure', icon: '📄' },
+    { title: 'Quick WhatsApp Chat from Catalogue', icon: '💬' },
+    { title: 'Automated WhatsApp order receipts', icon: '🧾' },
+    { title: 'Create catalogue from WA chat', icon: '🤖' }
+  ];
 
   return (
-    <section className="py-12 md:py-20 px-4 relative z-10">
-      <div className="max-w-7xl mx-auto">
-        <div className="text-center mb-10 md:mb-16">
-          <motion.h2
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="text-3xl md:text-4xl font-bold text-[#1a1a2e] mb-4"
-          >
-            Everything you need to sell on WhatsApp
-          </motion.h2>
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.1 }}
-            className="text-lg text-gray-600 max-w-2xl mx-auto"
-          >
-            Powerful tools to convert conversations into customers with our
-            comprehensive commerce suite.
-          </motion.p>
+    <section className="py-20 bg-gray-50 dark:bg-[#0a0a0a] relative z-10">
+      <div className="max-w-7xl mx-auto px-4 md:px-8 space-y-32">
+        
+        {/* Catalogue E-commerce Section */}
+        <div className="flex flex-col lg:flex-row items-center gap-16">
+          <div className="lg:w-1/2">
+            <motion.img 
+              initial={{ opacity: 0, x: -30 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              src="https://dwtqm09zovi8z.cloudfront.net/assets/catalogue_e_commerce.webp" 
+              alt="Catalogue E-Commerce" 
+              className="w-full h-auto drop-shadow-2xl rounded-2xl"
+            />
+          </div>
+          <div className="lg:w-1/2 space-y-6">
+            <motion.h2 
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="text-3xl md:text-4xl font-extrabold text-gray-900 dark:text-white"
+            >
+              Catalogue e-commerce
+            </motion.h2>
+            <motion.p 
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.1 }}
+              className="text-lg text-gray-600 dark:text-gray-400 font-medium"
+            >
+              Get started with an easy to use and powerful catalogue and allow customers to place an order easily
+            </motion.p>
+            <div className="grid grid-cols-2 gap-4 pt-6">
+              {['Curated cataloguing', 'E-commerce website', 'Custom layout', 'Themes', '3 product layouts', 'Powerful search', '2 click checkout', 'Tags'].map((feat, i) => (
+                <div key={i} className="flex items-center text-gray-800 dark:text-gray-300 font-semibold text-sm">
+                  <span className="w-5 h-5 rounded-full bg-[#25D366]/20 text-[#25D366] flex items-center justify-center mr-3 text-xs flex-shrink-0">✓</span>
+                  {feat}
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
 
-        <motion.div
-          variants={container}
-          initial="hidden"
-          whileInView="show"
-          viewport={{ once: true, margin: '-100px' }}
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 md:gap-8"
-        >
-          {/* Feature 1 */}
-          <motion.div
-            variants={item}
-            whileHover={{
-              scale: 1.03,
-              boxShadow:
-                '0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)',
-            }}
-            className="bg-white/40 backdrop-blur-xl border border-white/40 rounded-2xl p-5 sm:p-6 md:p-8 shadow-lg transition-all duration-300"
-          >
-            <div className="w-12 h-12 md:w-14 md:h-14 bg-green-100 rounded-2xl flex items-center justify-center mb-4 md:mb-6 text-[#25D366]">
-              <MessageSquareIcon className="w-6 h-6 md:w-7 md:h-7" />
+        {/* Scale Business on WhatsApp Section */}
+        <div className="flex flex-col-reverse lg:flex-row items-center gap-16">
+          <div className="lg:w-1/2 space-y-6">
+            <motion.h2 
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="text-3xl md:text-4xl font-extrabold text-gray-900 dark:text-white"
+            >
+              Scale your business on WhatsApp
+            </motion.h2>
+            <motion.p 
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.1 }}
+              className="text-lg text-gray-600 dark:text-gray-400 font-medium"
+            >
+              Take your WhatsApp Commerce to the next level with powerful features to boost your conversion rate on WhatsApp
+            </motion.p>
+            <div className="space-y-4 pt-6">
+              {waFeatures.map((feat, i) => (
+                <motion.div 
+                  initial={{ opacity: 0, x: -20 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: i * 0.1 }}
+                  key={i} className="flex items-center p-4 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700"
+                >
+                  <span className="text-2xl mr-4">{feat.icon}</span>
+                  <span className="font-bold text-gray-800 dark:text-gray-200">{feat.title}</span>
+                </motion.div>
+              ))}
             </div>
-            <h3 className="text-lg md:text-xl font-bold text-[#1a1a2e] mb-2 md:mb-3">
-              Smart Catalog Sharing
-            </h3>
-            <p className="text-sm md:text-base text-gray-600 leading-relaxed">
-              Instantly share your products in WhatsApp conversations with
-              beautiful, interactive catalog cards.
-            </p>
-          </motion.div>
+          </div>
+          <div className="lg:w-1/2">
+            <motion.img 
+              initial={{ opacity: 0, x: 30 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              src="https://dwtqm09zovi8z.cloudfront.net/assets/whatsapp_ordering.webp" 
+              alt="WhatsApp Scale" 
+              className="w-full h-auto drop-shadow-2xl rounded-2xl"
+            />
+          </div>
+        </div>
 
-          {/* Feature 2 */}
-          <motion.div
-            variants={item}
-            whileHover={{
-              scale: 1.03,
-              boxShadow:
-                '0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)',
-            }}
-            className="bg-white/40 backdrop-blur-xl border border-white/40 rounded-2xl p-5 sm:p-6 md:p-8 shadow-lg transition-all duration-300"
-          >
-            <div className="w-12 h-12 md:w-14 md:h-14 bg-green-100 rounded-2xl flex items-center justify-center mb-4 md:mb-6 text-[#25D366]">
-              <SendIcon className="w-6 h-6 md:w-7 md:h-7" />
-            </div>
-            <h3 className="text-lg md:text-xl font-bold text-[#1a1a2e] mb-2 md:mb-3">
-              Automated Follow-ups
-            </h3>
-            <p className="text-sm md:text-base text-gray-600 leading-relaxed">
-              Recover abandoned carts and re-engage customers with intelligent
-              automated message sequences.
-            </p>
-          </motion.div>
+        {/* Powerful features for B2B business */}
+        <div className="text-center pt-8 border-t border-gray-200 dark:border-gray-800">
+          <h2 className="text-3xl md:text-4xl font-extrabold text-gray-900 dark:text-white mb-6">Powerful features for B2B business</h2>
+          <p className="text-lg text-gray-600 dark:text-gray-400 font-medium mb-12 max-w-2xl mx-auto">
+            CommerceHub is built from the ground up for B2B businesses needs
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {b2bFeatures.map((f, i) => (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.1 }}
+                key={i}
+                className="bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-sm hover:shadow-xl transition-shadow border border-gray-100 dark:border-gray-700"
+              >
+                <div className="text-4xl mb-4">{f.icon}</div>
+                <h4 className="font-bold text-lg text-gray-900 dark:text-white">{f.title}</h4>
+              </motion.div>
+            ))}
+          </div>
+        </div>
 
-          {/* Feature 3 */}
-          <motion.div
-            variants={item}
-            whileHover={{
-              scale: 1.03,
-              boxShadow:
-                '0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)',
-            }}
-            className="bg-white/40 backdrop-blur-xl border border-white/40 rounded-2xl p-5 sm:p-6 md:p-8 shadow-lg transition-all duration-300"
-          >
-            <div className="w-12 h-12 md:w-14 md:h-14 bg-green-100 rounded-2xl flex items-center justify-center mb-4 md:mb-6 text-[#25D366]">
-              <CreditCardIcon className="w-6 h-6 md:w-7 md:h-7" />
-            </div>
-            <h3 className="text-lg md:text-xl font-bold text-[#1a1a2e] mb-2 md:mb-3">
-              Payment Links
-            </h3>
-            <p className="text-sm md:text-base text-gray-600 leading-relaxed">
-              Generate and send secure payment links directly within the chat to
-              close sales instantly.
-            </p>
-          </motion.div>
-
-          {/* Feature 4 */}
-          <motion.div
-            variants={item}
-            whileHover={{
-              scale: 1.03,
-              boxShadow:
-                '0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)',
-            }}
-            className="bg-white/40 backdrop-blur-xl border border-white/40 rounded-2xl p-5 sm:p-6 md:p-8 shadow-lg transition-all duration-300"
-          >
-            <div className="w-12 h-12 md:w-14 md:h-14 bg-green-100 rounded-2xl flex items-center justify-center mb-4 md:mb-6 text-[#25D366]">
-              <BarChart3Icon className="w-6 h-6 md:w-7 md:h-7" />
-            </div>
-            <h3 className="text-lg md:text-xl font-bold text-[#1a1a2e] mb-2 md:mb-3">
-              Real-time Analytics
-            </h3>
-            <p className="text-sm md:text-base text-gray-600 leading-relaxed">
-              Track conversions, response rates, and revenue with our
-              comprehensive analytics dashboard.
-            </p>
-          </motion.div>
-
-          {/* Feature 5 */}
-          <motion.div
-            variants={item}
-            whileHover={{
-              scale: 1.03,
-              boxShadow:
-                '0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)',
-            }}
-            className="bg-white/40 backdrop-blur-xl border border-white/40 rounded-2xl p-5 sm:p-6 md:p-8 shadow-lg transition-all duration-300"
-          >
-            <div className="w-12 h-12 md:w-14 md:h-14 bg-green-100 rounded-2xl flex items-center justify-center mb-4 md:mb-6 text-[#25D366]">
-              <UsersIcon className="w-6 h-6 md:w-7 md:h-7" />
-            </div>
-            <h3 className="text-lg md:text-xl font-bold text-[#1a1a2e] mb-2 md:mb-3">
-              Multi-Agent Support
-            </h3>
-            <p className="text-sm md:text-base text-gray-600 leading-relaxed">
-              Enable your entire sales team to manage customer conversations
-              from a shared inbox.
-            </p>
-          </motion.div>
-
-          {/* Feature 6 */}
-          <motion.div
-            variants={item}
-            whileHover={{
-              scale: 1.03,
-              boxShadow:
-                '0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)',
-            }}
-            className="bg-white/40 backdrop-blur-xl border border-white/40 rounded-2xl p-5 sm:p-6 md:p-8 shadow-lg transition-all duration-300"
-          >
-            <div className="w-12 h-12 md:w-14 md:h-14 bg-green-100 rounded-2xl flex items-center justify-center mb-4 md:mb-6 text-[#25D366]">
-              <ShoppingCartIcon className="w-6 h-6 md:w-7 md:h-7" />
-            </div>
-            <h3 className="text-lg md:text-xl font-bold text-[#1a1a2e] mb-2 md:mb-3">
-              Broadcast Campaigns
-            </h3>
-            <p className="text-sm md:text-base text-gray-600 leading-relaxed">
-              Send personalized bulk messages to your customer base without
-              getting blocked.
-            </p>
-          </motion.div>
-        </motion.div>
       </div>
     </section>
   );

@@ -1,84 +1,46 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import brandLogos from '../common/BrandLogos';
 
 export function TrustBar() {
-  // Duplicate logos for seamless loop
-  const logos = [...brandLogos, ...brandLogos];
+  const logos = [
+    { name: 'Pantaloons', url: 'https://dwtqm09zovi8z.cloudfront.net/assets/partner_logos/pantaloons.webp' },
+    { name: 'Peter England', url: 'https://dwtqm09zovi8z.cloudfront.net/assets/partner_logos/peter_england.webp' },
+    { name: 'Sabyasachi', url: 'https://dwtqm09zovi8z.cloudfront.net/assets/partner_logos/sabyasachi.webp' },
+    { name: 'Gini & Jony', url: 'https://dwtqm09zovi8z.cloudfront.net/assets/partner_logos/gini_and_jony.webp' },
+    { name: 'Tupperware', url: 'https://dwtqm09zovi8z.cloudfront.net/assets/partner_logos/tupperware.webp' },
+    { name: 'Hamleys', url: 'https://dwtqm09zovi8z.cloudfront.net/assets/partner_logos/hamleys.webp' },
+    { name: 'Miniso', url: 'https://dwtqm09zovi8z.cloudfront.net/assets/partner_logos/miniso.webp' }
+  ];
 
   return (
-    <section className="py-8 md:py-12 px-4 overflow-hidden">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true }}
-        transition={{ duration: 0.6 }}
-        className="max-w-7xl mx-auto"
-      >
-        <div className="bg-white/40 backdrop-blur-xl border border-white/50 shadow-sm py-8 md:py-12 rounded-2xl overflow-hidden">
-          <p className="text-center text-xs sm:text-sm font-bold text-gray-500 uppercase tracking-widest mb-8 md:mb-10">
+    <section className="py-12 border-y border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/50 overflow-hidden relative z-10">
+      <div className="max-w-7xl mx-auto px-4 md:px-8">
+        <motion.div 
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true }}
+          className="text-center mb-8"
+        >
+          <h2 className="text-xl md:text-2xl font-bold text-gray-800 dark:text-white">
             Trusted by millions of businesses from 100+ countries
-          </p>
-
-          <div className="relative w-full overflow-hidden mask-linear-gradient flex">
-            <motion.div
-              className="flex items-center gap-12 sm:gap-16 md:gap-24 px-4 min-w-full justify-around shrink-0"
-              animate={{
-                x: ["0%", "-100%"],
-              }}
-              transition={{
-                x: {
-                  repeat: Infinity,
-                  repeatType: 'loop',
-                  duration: 40,
-                  ease: 'linear',
-                },
-              }}
-            >
-              {logos.map((logo, index) => {
-                const LogoComponent = logo.component;
-                return (
-                  <div 
-                    key={`${logo.name}-${index}`} 
-                    className="flex items-center justify-center h-20 w-40 opacity-100 hover:opacity-100 transition-all duration-300 transform hover:scale-110 cursor-pointer"
-                    title={logo.name}
-                  >
-                    <LogoComponent className="h-12 md:h-14 w-auto max-w-full drop-shadow-sm" />
-                  </div>
-                );
-              })}
-            </motion.div>
-            
-            <motion.div
-              className="flex items-center gap-12 sm:gap-16 md:gap-24 px-4 min-w-full justify-around shrink-0"
-              animate={{
-                x: ["0%", "-100%"],
-              }}
-              transition={{
-                x: {
-                  repeat: Infinity,
-                  repeatType: 'loop',
-                  duration: 40,
-                  ease: 'linear',
-                },
-              }}
-            >
-              {logos.map((logo, index) => {
-                const LogoComponent = logo.component;
-                return (
-                  <div 
-                    key={`${logo.name}-duplicate-${index}`} 
-                    className="flex items-center justify-center h-20 w-40 opacity-100 hover:opacity-100 transition-all duration-300 transform hover:scale-110 cursor-pointer"
-                    title={logo.name}
-                  >
-                    <LogoComponent className="h-12 md:h-14 w-auto max-w-full drop-shadow-sm" />
-                  </div>
-                );
-              })}
-            </motion.div>
-          </div>
+          </h2>
+        </motion.div>
+        
+        <div className="flex flex-wrap justify-center items-center gap-8 md:gap-16 opacity-70 grayscale hover:grayscale-0 transition-all duration-300">
+          {logos.map((logo, idx) => (
+            <motion.img
+              key={idx}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: idx * 0.1 }}
+              src={logo.url}
+              alt={logo.name}
+              className="h-8 md:h-12 object-contain"
+            />
+          ))}
         </div>
-      </motion.div>
+      </div>
     </section>
   );
 }
