@@ -114,6 +114,20 @@ exports.createCustomerOrder = async (req, res) => {
                      status: 'pending'
                  });
              }
+             // Check for low stock on each ordered item
+             for (const item of orderItems) {
+               const updatedProd = await Product.findById(item.product, 'name stock trackInventory');
+               if (updatedProd?.trackInventory && updatedProd.stock <= 5) {
+                 const lowNotif = await Notification.create({
+                   recipient: tenant.owner,
+                   type: 'LOW_STOCK',
+                   title: 'Low Stock Alert',
+                   message: `"${updatedProd.name}" has only ${updatedProd.stock} unit${updatedProd.stock !== 1 ? 's' : ''} left after a recent order.`,
+                   relatedId: updatedProd._id
+                 });
+                 if (io) io.to(tenant.owner.toString()).emit('notification', lowNotif);
+               }
+             }
         }
     } catch (notifErr) {
         console.error('Failed to notify vendor', notifErr);

@@ -37,18 +37,19 @@ export function CustomerReviews() {
   ];
 
   return (
-    <section className="py-20 bg-white dark:bg-gray-900 border-t border-gray-100 dark:border-gray-800 relative z-10 overflow-hidden">
-      <div className="max-w-7xl mx-auto px-4 md:px-8">
-        <div className="text-center mb-16">
-          <motion.h2 
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="text-3xl md:text-5xl font-extrabold text-gray-900 dark:text-white tracking-tight"
-          >
-            Playstore reviews
-          </motion.h2>
-        </div>
+    <section className="py-24 bg-[#f5f5f5] relative z-10 overflow-hidden">
+      <div className="max-w-7xl mx-auto px-6">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="mb-16"
+        >
+          <p className="text-[#DC2626] text-xs font-black uppercase tracking-[0.25em] mb-4">Customer stories</p>
+          <h2 className="text-4xl md:text-5xl font-black text-gray-900 tracking-tight">
+            Loved by businesses<br className="hidden md:block" /> worldwide
+          </h2>
+        </motion.div>
 
         {/* Marquee effect for reviews */}
         <div className="relative w-full flex overflow-x-hidden group pb-8">
@@ -61,18 +62,18 @@ export function CustomerReviews() {
             {/* Double the array for seamless scrolling */}
             {[...reviews, ...reviews, ...reviews].map((review, idx) => (
               <div 
-                key={idx} 
-                className="w-[350px] inline-flex flex-col bg-gray-50 dark:bg-gray-800 p-8 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 whitespace-normal flex-shrink-0"
-              >
+              key={idx} 
+              className="w-[350px] inline-flex flex-col bg-white p-8 rounded-3xl shadow-sm border border-gray-100 whitespace-normal flex-shrink-0"
+            >
                 <div className="flex text-[#FFB800] mb-4">
                   {[...Array(5)].map((_, i) => (
                     <StarIcon key={i} className="w-5 h-5 fill-current" />
                   ))}
                 </div>
-                <p className="text-gray-600 dark:text-gray-300 text-sm leading-relaxed mb-6 flex-1 italic">
+                <p className="text-gray-600 text-sm leading-relaxed mb-6 flex-1 italic">
                   "{review.text}"
                 </p>
-                <div className="flex items-center gap-2 mt-auto font-semibold text-gray-900 dark:text-white">
+                <div className="flex items-center gap-2 mt-auto font-bold text-gray-900">
                   <span className="text-2xl">{review.flag}</span>
                   {review.country}
                 </div>

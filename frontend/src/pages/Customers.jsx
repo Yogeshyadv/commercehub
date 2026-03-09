@@ -21,7 +21,7 @@ const GROUP_CONFIG = {
   regular: { label: 'Regular', color: 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300' },
   vip: { label: 'VIP', color: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400' },
   wholesale: { label: 'Wholesale', color: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' },
-  new: { label: 'New', color: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' },
+  new: { label: 'New', color: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' },
 };
 
 export default function Customers() {
@@ -110,7 +110,7 @@ export default function Customers() {
         
         <button 
           onClick={() => { setSelectedCustomer(null); setIsModalOpen(true); }}
-          className="flex items-center gap-2 px-5 py-3 bg-[#25D366] hover:bg-[#20bd5a] text-white rounded-xl font-bold shadow-lg shadow-[#25D366]/20 transition-all transform hover:scale-105 active:scale-95"
+          className="flex items-center gap-2 px-5 py-3 bg-[#DC2626] hover:bg-[#B91C1C] text-white rounded-xl font-bold shadow-lg shadow-[#DC2626]/20 transition-all transform hover:scale-105 active:scale-95"
         >
           <Plus className="w-5 h-5" strokeWidth={2.5} />
           <span>Add Customer</span>
@@ -134,7 +134,7 @@ export default function Customers() {
             value={search}
             onChange={e => setSearch(e.target.value)}
             placeholder="Search customers by name, email, phone..."
-            className="w-full pl-11 pr-4 py-3 bg-transparent border-none focus:ring-2 focus:ring-[#25D366]/20 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none rounded-xl"
+            className="w-full pl-11 pr-4 py-3 bg-transparent border-none focus:ring-2 focus:ring-[#DC2626]/20 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none rounded-xl"
           />
         </div>
         <div className="h-px xl:h-auto xl:w-px bg-gray-100 dark:bg-gray-700 mx-2" />
@@ -145,7 +145,7 @@ export default function Customers() {
               onClick={() => setGroupFilter(tab.key)}
               className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all whitespace-nowrap border ${
                 groupFilter === tab.key
-                  ? 'bg-[#25D366] text-white border-transparent shadow-lg shadow-[#25D366]/20'
+                  ? 'bg-[#DC2626] text-white border-transparent shadow-lg shadow-[#DC2626]/20'
                   : 'bg-transparent border-transparent hover:bg-gray-50 dark:hover:bg-zinc-800 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
               }`}
             >
@@ -194,11 +194,11 @@ export default function Customers() {
                     >
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
-                          <div className="h-10 w-10 rounded-xl bg-[#25D366]/10 dark:bg-[#25D366]/20 flex items-center justify-center shrink-0 text-[#128C7E] dark:text-[#25D366] font-bold text-sm">
+                          <div className="h-10 w-10 rounded-xl bg-[#DC2626]/10 dark:bg-[#DC2626]/20 flex items-center justify-center shrink-0 text-[#128C7E] dark:text-[#DC2626] font-bold text-sm">
                             {initials}
                           </div>
                           <div>
-                            <p className="font-bold text-sm text-gray-900 dark:text-white group-hover:text-[#25D366] transition-colors">{c.name}</p>
+                            <p className="font-bold text-sm text-gray-900 dark:text-white group-hover:text-[#DC2626] transition-colors">{c.name}</p>
                             {c.company && <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">{c.company}</p>}
                           </div>
                         </div>

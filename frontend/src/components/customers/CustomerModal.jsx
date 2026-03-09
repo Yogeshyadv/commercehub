@@ -91,7 +91,7 @@ export default function CustomerModal({ isOpen, onClose, customer, onSuccess }) 
               value={formData.name}
               onChange={handleChange}
               placeholder="e.g. John Doe"
-              className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-[#25D366] focus:border-transparent transition-all outline-none"
+              className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-[#DC2626] focus:border-transparent transition-all outline-none"
               autoFocus
             />
           </div>
@@ -105,7 +105,7 @@ export default function CustomerModal({ isOpen, onClose, customer, onSuccess }) 
                 value={formData.email}
                 onChange={handleChange}
                 placeholder="john@example.com"
-                className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-[#25D366] focus:border-transparent transition-all outline-none"
+                className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-[#DC2626] focus:border-transparent transition-all outline-none"
               />
             </div>
             <div>
@@ -116,7 +116,7 @@ export default function CustomerModal({ isOpen, onClose, customer, onSuccess }) 
                 value={formData.phone}
                 onChange={handleChange}
                 placeholder="+91 98765 43210"
-                className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-[#25D366] focus:border-transparent transition-all outline-none"
+                className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-[#DC2626] focus:border-transparent transition-all outline-none"
               />
             </div>
           </div>
@@ -130,7 +130,7 @@ export default function CustomerModal({ isOpen, onClose, customer, onSuccess }) 
                 value={formData.company}
                 onChange={handleChange}
                 placeholder="Acme Corp"
-                className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-[#25D366] focus:border-transparent transition-all outline-none"
+                className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-[#DC2626] focus:border-transparent transition-all outline-none"
               />
             </div>
             <div>
@@ -139,7 +139,7 @@ export default function CustomerModal({ isOpen, onClose, customer, onSuccess }) 
                 name="group"
                 value={formData.group}
                 onChange={handleChange}
-                className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-[#25D366] focus:border-transparent transition-all outline-none appearance-none cursor-pointer"
+                className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-[#DC2626] focus:border-transparent transition-all outline-none appearance-none cursor-pointer"
               >
                 <option value="regular">Regular</option>
                 <option value="vip">VIP</option>
@@ -160,7 +160,7 @@ export default function CustomerModal({ isOpen, onClose, customer, onSuccess }) 
             <button
               type="submit"
               disabled={loading}
-              className="flex items-center gap-2 px-6 py-2 bg-[#25D366] hover:bg-[#20bd5a] text-white text-sm font-bold rounded-xl shadow-lg shadow-[#25D366]/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed transform active:scale-95"
+              className="flex items-center gap-2 px-6 py-2 bg-[#DC2626] hover:bg-[#B91C1C] text-white text-sm font-bold rounded-xl shadow-lg shadow-[#DC2626]/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed transform active:scale-95"
             >
               {loading ? (
                 <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />

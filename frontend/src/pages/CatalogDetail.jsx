@@ -1,11 +1,11 @@
-﻿import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   ArrowLeft, Plus, Search, Trash2, ExternalLink,
   Check, X, Image as ImageIcon, Package,
-  Share2, Copy, Edit3, Save, Eye,
-  Palette, Upload, AlertCircle, Layers
-} from 'lucide-react';
+  Share2, Copy, Edit3, Save, Eye, Layout,
+  Palette, Upload, AlertCircle, Layers, Wand2, Sparkles } from 'lucide-react';
+import { aiService } from '../services/aiService';
 import { catalogService } from '../services/catalogService';
 import { productService } from '../services/productService';
 import Loader from '../components/common/Loader';
@@ -34,6 +34,38 @@ export default function CatalogDetail() {
 
   const [editOpen, setEditOpen] = useState(false);
   const [editForm, setEditForm] = useState({});
+  const [aiPrompt, setAiPrompt] = useState('');
+  const [isGeneratingTheme, setIsGeneratingTheme] = useState(false);
+
+  const handleGenerateTheme = async () => {
+    if (!aiPrompt) {
+      toast.error('Please describe your desired theme');
+      return;
+    }
+    setIsGeneratingTheme(true);
+    try {
+      const { data } = await aiService.generateTheme(aiPrompt);
+      if (data && data.design) {
+        setEditForm(prev => ({
+          ...prev,
+          template: data.template || prev.template,
+          design: {
+            ...prev.design,
+            backgroundColor: data.design.backgroundColor || prev.design.backgroundColor,
+            textColor: data.design.textColor || prev.design.textColor,
+            accentColor: data.design.accentColor || prev.design.accentColor,
+            fontFamily: data.design.fontFamily || prev.design.fontFamily,
+          }
+        }));
+        toast.success(data.message || 'Theme generated successfully!');
+        setAiPrompt('');
+      }
+    } catch (error) {
+      toast.error('Failed to generate theme');
+    } finally {
+      setIsGeneratingTheme(false);
+    }
+  };
   const [saving, setSaving] = useState(false);
   const [coverFile, setCoverFile] = useState(null);
   const [coverPreview, setCoverPreview] = useState('');
@@ -220,10 +252,10 @@ export default function CatalogDetail() {
 
         <span className={`absolute top-4 right-4 px-3 py-1.5 rounded-xl text-xs font-bold backdrop-blur-md border ${
           catalog.status === 'published'
-            ? 'bg-[#25D366]/80 text-white border-[#25D366]/40'
+            ? 'bg-[#DC2626]/80 text-white border-[#DC2626]/40'
             : 'bg-amber-500/80 text-white border-amber-400/40'
         }`}>
-          {catalog.status === 'published' ? '● Live' : '○ Draft'}
+          {catalog.status === 'published' ? '? Live' : '? Draft'}
         </span>
 
         <div className="absolute bottom-0 left-0 right-0 p-6">
@@ -240,7 +272,7 @@ export default function CatalogDetail() {
           {[
             { icon: Package, label: `${products.length} Products`, color: 'text-blue-500', bg: 'bg-blue-50 dark:bg-blue-900/20' },
             { icon: Eye, label: `${catalog.analytics?.viewCount || 0} Views`, color: 'text-purple-500', bg: 'bg-purple-50 dark:bg-purple-900/20' },
-            { icon: Layers, label: catalog.template || 'grid', color: 'text-emerald-500', bg: 'bg-emerald-50 dark:bg-emerald-900/20' },
+            { icon: Layers, label: catalog.template || 'grid', color: 'text-red-500', bg: 'bg-red-50 dark:bg-red-900/20' },
           ].map(s => (
             <div key={s.label} className={`flex items-center gap-2 px-3 py-2 rounded-xl ${s.bg} text-sm font-semibold ${s.color}`}>
               <s.icon className="w-4 h-4" />
@@ -256,13 +288,15 @@ export default function CatalogDetail() {
           <button onClick={() => window.open(`/catalog/${catalog.sharing?.shareableLink}`, '_blank')}
             className="flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-700 text-gray-700 dark:text-gray-300 rounded-xl text-sm font-medium hover:bg-gray-50 dark:hover:bg-zinc-800 transition-colors shadow-sm">
             <ExternalLink className="w-4 h-4" /> Preview
-          </button>
-          <button onClick={() => setEditOpen(true)}
+          </button>            <button onClick={() => navigate(`/dashboard/catalogs/${catalog._id}/theme`)}
+              className="flex items-center gap-2 px-4 py-2.5 bg-indigo-50 dark:bg-indigo-900/30 border border-indigo-200 dark:border-indigo-800 text-indigo-700 dark:text-indigo-400 rounded-xl text-sm font-bold hover:bg-indigo-100 dark:hover:bg-indigo-900/50 transition-colors shadow-sm">
+              <Layout className="w-4 h-4" /> Theme Editor
+            </button>          <button onClick={() => setEditOpen(true)}
             className="flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-700 text-gray-700 dark:text-gray-300 rounded-xl text-sm font-medium hover:bg-gray-50 dark:hover:bg-zinc-800 transition-colors shadow-sm">
             <Edit3 className="w-4 h-4" /> Edit Catalog
           </button>
           <button onClick={() => setShowPicker(true)}
-            className="flex items-center gap-2 px-5 py-2.5 bg-[#25D366] hover:bg-[#20bd5a] text-white rounded-xl font-bold shadow-lg shadow-[#25D366]/20 transition-all active:scale-95">
+            className="flex items-center gap-2 px-5 py-2.5 bg-[#DC2626] hover:bg-[#B91C1C] text-white rounded-xl font-bold shadow-lg shadow-[#DC2626]/20 transition-all active:scale-95">
             <Plus className="w-4 h-4" /> Add Products
           </button>
         </div>
@@ -284,7 +318,7 @@ export default function CatalogDetail() {
           <h3 className="text-xl font-bold text-gray-900 dark:text-white">No products yet</h3>
           <p className="text-gray-400 max-w-xs mt-2 mb-6 text-sm">Add products to build your catalog for customers.</p>
           <button onClick={() => setShowPicker(true)}
-            className="flex items-center gap-2 px-6 py-3 bg-[#25D366] hover:bg-[#20bd5a] text-white rounded-2xl font-bold shadow-lg shadow-[#25D366]/20 transition-all active:scale-95">
+            className="flex items-center gap-2 px-6 py-3 bg-[#DC2626] hover:bg-[#B91C1C] text-white rounded-2xl font-bold shadow-lg shadow-[#DC2626]/20 transition-all active:scale-95">
             <Plus className="w-5 h-5" /> Add Your First Products
           </button>
         </div>
@@ -310,7 +344,7 @@ export default function CatalogDetail() {
               </div>
               <div className="p-3">
                 <h4 className="font-bold text-sm text-gray-900 dark:text-white truncate">{product.name}</h4>
-                <p className="text-[#25D366] font-bold text-sm mt-0.5">{formatCurrency(product.price)}</p>
+                <p className="text-[#DC2626] font-bold text-sm mt-0.5">{formatCurrency(product.price)}</p>
                 {product.category && (
                   <span className="inline-block mt-1.5 px-2 py-0.5 bg-gray-100 dark:bg-zinc-800 text-gray-500 dark:text-gray-400 text-xs rounded-md">
                     {product.category}
@@ -321,11 +355,11 @@ export default function CatalogDetail() {
           ))}
 
           <button onClick={() => setShowPicker(true)}
-            className="group flex flex-col items-center justify-center bg-gray-50/80 dark:bg-zinc-900/50 border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-2xl hover:border-[#25D366] hover:bg-[#25D366]/5 transition-all cursor-pointer min-h-[180px]">
+            className="group flex flex-col items-center justify-center bg-gray-50/80 dark:bg-zinc-900/50 border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-2xl hover:border-[#DC2626] hover:bg-[#DC2626]/5 transition-all cursor-pointer min-h-[180px]">
             <div className="w-12 h-12 rounded-xl bg-white dark:bg-zinc-800 flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform mb-2">
-              <Plus className="w-6 h-6 text-gray-400 group-hover:text-[#25D366] transition-colors" />
+              <Plus className="w-6 h-6 text-gray-400 group-hover:text-[#DC2626] transition-colors" />
             </div>
-            <span className="text-sm font-bold text-gray-400 group-hover:text-[#25D366] transition-colors">Add More</span>
+            <span className="text-sm font-bold text-gray-400 group-hover:text-[#DC2626] transition-colors">Add More</span>
           </button>
         </div>
       )}
@@ -361,7 +395,7 @@ export default function CatalogDetail() {
                       </button>
                       {coverPreview && (
                         <button type="button" onClick={handleCoverUpload} disabled={uploadingCover}
-                          className="px-3 py-1.5 bg-[#25D366] text-white rounded-xl text-xs font-bold flex items-center gap-1 disabled:opacity-50">
+                          className="px-3 py-1.5 bg-[#DC2626] text-white rounded-xl text-xs font-bold flex items-center gap-1 disabled:opacity-50">
                           <Save className="w-3.5 h-3.5" /> {uploadingCover ? 'Uploading...' : 'Save Cover'}
                         </button>
                       )}
@@ -369,7 +403,7 @@ export default function CatalogDetail() {
                   </div>
                 ) : (
                   <div onClick={() => coverRef.current?.click()}
-                    className="h-36 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-2xl flex flex-col items-center justify-center gap-2 cursor-pointer hover:border-[#25D366] hover:bg-[#25D366]/5 transition-all">
+                    className="h-36 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-2xl flex flex-col items-center justify-center gap-2 cursor-pointer hover:border-[#DC2626] hover:bg-[#DC2626]/5 transition-all">
                     <ImageIcon className="w-8 h-8 text-gray-300" />
                     <span className="text-xs font-bold text-gray-400">Click to upload cover</span>
                   </div>
@@ -378,7 +412,7 @@ export default function CatalogDetail() {
                   onChange={e => { if (e.target.files[0]) handleCoverFile(e.target.files[0]); }} />
                 {coverPreview && !uploadingCover && (
                   <button onClick={handleCoverUpload}
-                    className="mt-2 w-full py-2 bg-[#25D366] hover:bg-[#20bd5a] text-white rounded-xl text-sm font-bold transition-colors flex items-center justify-center gap-2">
+                    className="mt-2 w-full py-2 bg-[#DC2626] hover:bg-[#B91C1C] text-white rounded-xl text-sm font-bold transition-colors flex items-center justify-center gap-2">
                     <Upload className="w-4 h-4" /> Upload Cover Image
                   </button>
                 )}
@@ -388,25 +422,25 @@ export default function CatalogDetail() {
 
               <FIELD label="Catalog Name">
                 <input type="text" value={editForm.name || ''} onChange={e => ef('name', e.target.value)} placeholder="Catalog name"
-                  className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#25D366] transition-colors" />
+                  className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#DC2626] transition-colors" />
               </FIELD>
 
               <FIELD label="Description">
                 <textarea value={editForm.description || ''} onChange={e => ef('description', e.target.value)} rows={3}
                   placeholder="Describe your catalog..."
-                  className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#25D366] resize-none transition-colors" />
+                  className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#DC2626] resize-none transition-colors" />
               </FIELD>
 
               <div className="grid grid-cols-2 gap-3">
                 <FIELD label="Template">
                   <select value={editForm.template || 'grid'} onChange={e => ef('template', e.target.value)}
-                    className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#25D366]">
+                    className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#DC2626]">
                     {templates.map(t => <option key={t} value={t}>{t.charAt(0).toUpperCase() + t.slice(1)}</option>)}
                   </select>
                 </FIELD>
                 <FIELD label="Status">
                   <select value={editForm.status || 'draft'} onChange={e => ef('status', e.target.value)}
-                    className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#25D366]">
+                    className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#DC2626]">
                     <option value="draft">Draft</option>
                     <option value="published">Published</option>
                     <option value="archived">Archived</option>
@@ -416,22 +450,50 @@ export default function CatalogDetail() {
 
               <FIELD label="Tags" hint="Comma-separated">
                 <input type="text" value={editForm.tagsInput || ''} onChange={e => ef('tagsInput', e.target.value)} placeholder="summer, sale, trending"
-                  className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#25D366]" />
+                  className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#DC2626]" />
               </FIELD>
 
-              <label className="flex items-center justify-between p-3.5 rounded-xl border border-gray-200 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-900 cursor-pointer hover:border-[#25D366] transition-colors">
+              <label className="flex items-center justify-between p-3.5 rounded-xl border border-gray-200 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-900 cursor-pointer hover:border-[#DC2626] transition-colors">
                 <div>
                   <span className="text-sm font-bold text-gray-900 dark:text-white block">Public Access</span>
                   <span className="text-xs text-gray-400">Anyone with the link can view</span>
                 </div>
                 <button type="button" onClick={() => ef('isPublic', !editForm.isPublic)}
-                  className={`relative w-11 h-6 rounded-full transition-colors shrink-0 ${editForm.isPublic ? 'bg-[#25D366]' : 'bg-gray-300 dark:bg-gray-600'}`}>
+                  className={`relative w-11 h-6 rounded-full transition-colors shrink-0 ${editForm.isPublic ? 'bg-[#DC2626]' : 'bg-gray-300 dark:bg-gray-600'}`}>
                   <span className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${editForm.isPublic ? 'translate-x-5' : 'translate-x-0.5'}`} />
                 </button>
               </label>
 
               <div className="h-px bg-gray-100 dark:bg-gray-800" />
-
+                {/* AI Design Magic Wand */}
+                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 p-4 rounded-xl border border-blue-100 dark:border-blue-800/30 mb-6 mt-6">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Sparkles className="w-5 h-5 text-blue-500" />
+                    <span className="text-sm font-bold text-blue-900 dark:text-blue-100">Design with AI</span>
+                  </div>
+                  <p className="text-xs text-blue-700 dark:text-blue-300 mb-3">
+                    Describe your brand vibe, and AI will generate a color palette and layout for you.
+                  </p>
+                  <div className="flex gap-2">
+                    <input 
+                      type="text" 
+                      placeholder="e.g. Minimalist luxury watches..." 
+                      value={aiPrompt}
+                      onChange={(e) => setAiPrompt(e.target.value)}
+                      className="flex-1 px-3 py-2 rounded-lg border border-blue-200 dark:border-blue-800/50 bg-white dark:bg-zinc-900 text-sm outline-none focus:border-blue-400"
+                      disabled={isGeneratingTheme}
+                    />
+                    <button 
+                      type="button"
+                      onClick={handleGenerateTheme}
+                      disabled={isGeneratingTheme || !aiPrompt}
+                      className="px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-colors disabled:opacity-50 flex items-center gap-1"
+                    >
+                       {isGeneratingTheme ? <Loader size="sm" /> : <Wand2 className="w-4 h-4" />}
+                      Generate
+                    </button>
+                  </div>
+                </div>
               <div>
                 <div className="flex items-center gap-2 mb-3">
                   <Palette className="w-4 h-4 text-gray-400" />
@@ -455,17 +517,17 @@ export default function CatalogDetail() {
                 <div className="grid grid-cols-2 gap-3">
                   <FIELD label="Products / Row">
                     <select value={editForm.design?.productsPerRow || 3} onChange={e => ed('productsPerRow', +e.target.value)}
-                      className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#25D366]">
+                      className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#DC2626]">
                       {[1,2,3,4,5,6].map(n => <option key={n} value={n}>{n}</option>)}
                     </select>
                   </FIELD>
                   <div className="pt-5 space-y-2">
                     <label className="flex items-center gap-2 cursor-pointer">
-                      <input type="checkbox" checked={!!editForm.design?.showPrices} onChange={e => ed('showPrices', e.target.checked)} className="w-4 h-4 text-[#25D366] rounded" />
+                      <input type="checkbox" checked={!!editForm.design?.showPrices} onChange={e => ed('showPrices', e.target.checked)} className="w-4 h-4 text-[#DC2626] rounded" />
                       <span className="text-xs text-gray-700 dark:text-gray-300 font-medium">Show prices</span>
                     </label>
                     <label className="flex items-center gap-2 cursor-pointer">
-                      <input type="checkbox" checked={!!editForm.design?.showDescription} onChange={e => ed('showDescription', e.target.checked)} className="w-4 h-4 text-[#25D366] rounded" />
+                      <input type="checkbox" checked={!!editForm.design?.showDescription} onChange={e => ed('showDescription', e.target.checked)} className="w-4 h-4 text-[#DC2626] rounded" />
                       <span className="text-xs text-gray-700 dark:text-gray-300 font-medium">Show descriptions</span>
                     </label>
                   </div>
@@ -496,7 +558,7 @@ export default function CatalogDetail() {
                 Cancel
               </button>
               <button onClick={handleSave} disabled={saving}
-                className="flex-1 flex items-center justify-center gap-2 py-3 bg-[#25D366] hover:bg-[#20bd5a] disabled:opacity-50 text-white rounded-xl font-bold text-sm shadow-lg shadow-[#25D366]/20 transition-all active:scale-95">
+                className="flex-1 flex items-center justify-center gap-2 py-3 bg-[#DC2626] hover:bg-[#B91C1C] disabled:opacity-50 text-white rounded-xl font-bold text-sm shadow-lg shadow-[#DC2626]/20 transition-all active:scale-95">
                 <Save className="w-4 h-4" />
                 {saving ? 'Saving...' : 'Save Changes'}
               </button>
@@ -514,7 +576,7 @@ export default function CatalogDetail() {
                 <h3 className="text-lg font-bold text-gray-900 dark:text-white">Add Products</h3>
                 <p className="text-sm text-gray-400 mt-0.5">
                   {selectedProductIds.length > 0
-                    ? <span className="text-[#25D366] font-bold">{selectedProductIds.length} selected</span>
+                    ? <span className="text-[#DC2626] font-bold">{selectedProductIds.length} selected</span>
                     : 'Click products to select them'}
                 </p>
               </div>
@@ -529,7 +591,7 @@ export default function CatalogDetail() {
                 <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                 <input type="text" placeholder="Search products..." value={pickerSearch}
                   onChange={e => setPickerSearch(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 bg-gray-50 dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 rounded-xl text-sm focus:ring-2 focus:ring-[#25D366] focus:border-transparent outline-none text-gray-900 dark:text-white" />
+                  className="w-full pl-10 pr-4 py-2.5 bg-gray-50 dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 rounded-xl text-sm focus:ring-2 focus:ring-[#DC2626] focus:border-transparent outline-none text-gray-900 dark:text-white" />
               </div>
             </div>
 
@@ -549,7 +611,7 @@ export default function CatalogDetail() {
                       <div key={product._id}
                         onClick={() => setSelectedProductIds(prev => isSelected ? prev.filter(i => i !== product._id) : [...prev, product._id])}
                         className={`relative rounded-xl border-2 cursor-pointer transition-all overflow-hidden group ${
-                          isSelected ? 'border-[#25D366] shadow-md shadow-[#25D366]/10' : 'border-gray-200 dark:border-zinc-700 hover:border-gray-300 dark:hover:border-zinc-600'
+                          isSelected ? 'border-[#DC2626] shadow-md shadow-[#DC2626]/10' : 'border-gray-200 dark:border-zinc-700 hover:border-gray-300 dark:hover:border-zinc-600'
                         }`}>
                         <div className="aspect-square bg-gray-50 dark:bg-zinc-800">
                           {product.images?.[0]?.url
@@ -558,14 +620,14 @@ export default function CatalogDetail() {
                         </div>
                         <div className="p-2.5">
                           <p className="text-xs font-bold text-gray-900 dark:text-white truncate">{product.name}</p>
-                          <p className="text-xs font-bold text-[#25D366] mt-0.5">{formatCurrency(product.price)}</p>
+                          <p className="text-xs font-bold text-[#DC2626] mt-0.5">{formatCurrency(product.price)}</p>
                         </div>
                         {isSelected && (
-                          <div className="absolute top-2 right-2 w-6 h-6 bg-[#25D366] rounded-full flex items-center justify-center shadow-lg">
+                          <div className="absolute top-2 right-2 w-6 h-6 bg-[#DC2626] rounded-full flex items-center justify-center shadow-lg">
                             <Check className="w-3.5 h-3.5 text-white" strokeWidth={3} />
                           </div>
                         )}
-                        {isSelected && <div className="absolute inset-0 ring-2 ring-[#25D366] ring-inset rounded-xl pointer-events-none" />}
+                        {isSelected && <div className="absolute inset-0 ring-2 ring-[#DC2626] ring-inset rounded-xl pointer-events-none" />}
                       </div>
                     );
                   })}
@@ -576,7 +638,7 @@ export default function CatalogDetail() {
             <div className="p-5 border-t border-gray-100 dark:border-gray-800 flex justify-between items-center shrink-0 bg-gray-50 dark:bg-zinc-900/50 rounded-b-2xl">
               <span className="text-sm text-gray-500">
                 {selectedProductIds.length > 0
-                  ? <><span className="font-bold text-[#25D366]">{selectedProductIds.length}</span> selected</>
+                  ? <><span className="font-bold text-[#DC2626]">{selectedProductIds.length}</span> selected</>
                   : 'None selected'}
               </span>
               <div className="flex gap-3">
@@ -585,7 +647,7 @@ export default function CatalogDetail() {
                   Cancel
                 </button>
                 <button onClick={handleAddProducts} disabled={selectedProductIds.length === 0 || addingProducts}
-                  className="px-5 py-2.5 bg-[#25D366] hover:bg-[#20bd5a] disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-xl font-bold text-sm shadow-lg shadow-[#25D366]/20 transition-all active:scale-95">
+                  className="px-5 py-2.5 bg-[#DC2626] hover:bg-[#B91C1C] disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-xl font-bold text-sm shadow-lg shadow-[#DC2626]/20 transition-all active:scale-95">
                   {addingProducts ? 'Adding...' : `Add ${selectedProductIds.length > 0 ? selectedProductIds.length + ' ' : ''}Product${selectedProductIds.length !== 1 ? 's' : ''}`}
                 </button>
               </div>
@@ -606,3 +668,6 @@ export default function CatalogDetail() {
     </div>
   );
 }
+
+
+

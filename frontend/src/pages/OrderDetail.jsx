@@ -130,7 +130,7 @@ export default function OrderDetail() {
                           className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-sm font-semibold text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all shadow-sm disabled:opacity-70 disabled:cursor-not-allowed"
                        >
                           {downloading ? (
-                             <div className="w-4 h-4 border-2 border-gray-400 border-t-emerald-600 rounded-full animate-spin" />
+                             <div className="w-4 h-4 border-2 border-gray-400 border-t-red-600 rounded-full animate-spin" />
                           ) : (
                              <Download className="w-4 h-4" />
                           )}
@@ -155,7 +155,7 @@ export default function OrderDetail() {
                        <div className="relative">
                           <div className="absolute top-1/2 left-0 w-full h-1 bg-gray-100 dark:bg-gray-700 -translate-y-1/2 rounded-full" />
                           <div 
-                             className="absolute top-1/2 left-0 h-1 bg-emerald-500 -translate-y-1/2 rounded-full transition-all duration-500"
+                             className="absolute top-1/2 left-0 h-1 bg-red-500 -translate-y-1/2 rounded-full transition-all duration-500"
                              style={{ width: `${(currentStepIndex / (ORDER_STEPS.length - 1)) * 100}%` }}
                           />
                           <div className="relative flex justify-between">
@@ -170,16 +170,16 @@ export default function OrderDetail() {
                                       <div className={`
                                          w-10 h-10 rounded-full flex items-center justify-center border-4 z-10 transition-all duration-300
                                          ${isCompleted 
-                                            ? 'bg-emerald-500 border-emerald-100 dark:border-emerald-900 text-white shadow-lg shadow-emerald-500/30' 
+                                            ? 'bg-red-500 border-red-100 dark:border-red-900 text-white shadow-lg shadow-red-500/30' 
                                             : 'bg-white dark:bg-gray-800 border-gray-100 dark:border-gray-700 text-gray-300 dark:text-gray-600'
                                          }
-                                         ${isCurrent ? 'ring-2 ring-emerald-500 ring-offset-2 dark:ring-offset-gray-900 scale-110' : ''}
+                                         ${isCurrent ? 'ring-2 ring-red-500 ring-offset-2 dark:ring-offset-gray-900 scale-110' : ''}
                                       `}>
                                          <StepIcon className="w-5 h-5" />
                                       </div>
                                       <p className={`
                                          text-xs font-semibold uppercase tracking-wide hidden sm:block mt-1
-                                         ${isCompleted ? 'text-emerald-600 dark:text-emerald-400' : 'text-gray-400 dark:text-gray-600'}
+                                         ${isCompleted ? 'text-red-600 dark:text-red-400' : 'text-gray-400 dark:text-gray-600'}
                                       `}>
                                          {config.label}
                                       </p>
@@ -257,7 +257,7 @@ export default function OrderDetail() {
                                    Qty: {item.quantity}
                                 </span>
                                 {item.discount > 0 && (
-                                   <span className="text-emerald-600 bg-emerald-50 dark:bg-emerald-900/30 px-3 py-1 rounded-lg font-medium border border-emerald-100 dark:border-emerald-900/50">
+                                   <span className="text-red-600 bg-red-50 dark:bg-red-900/30 px-3 py-1 rounded-lg font-medium border border-red-100 dark:border-red-900/50">
                                       Saved {item.discount}%
                                    </span>
                                 )}
@@ -343,19 +343,19 @@ export default function OrderDetail() {
                     <div className="pt-4 mt-4 border-t border-gray-100 dark:border-gray-700">
                        <div className="flex justify-between items-end">
                           <span className="text-base font-bold text-gray-900 dark:text-white">Total</span>
-                          <span className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">{formatCurrency(order.total)}</span>
+                          <span className="text-2xl font-bold text-red-600 dark:text-red-400">{formatCurrency(order.total)}</span>
                        </div>
                     </div>
                  </div>
               </div>
 
               {/* Support Info */}
-              <div className="bg-emerald-50 dark:bg-emerald-900/10 rounded-2xl border border-emerald-100 dark:border-emerald-900/30 p-6">
-                  <h4 className="font-semibold text-emerald-900 dark:text-emerald-100 mb-2">Need help?</h4>
-                  <p className="text-sm text-emerald-700 dark:text-emerald-300 mb-4">
+              <div className="bg-red-50 dark:bg-red-900/10 rounded-2xl border border-red-100 dark:border-red-900/30 p-6">
+                  <h4 className="font-semibold text-red-900 dark:text-red-100 mb-2">Need help?</h4>
+                  <p className="text-sm text-red-700 dark:text-red-300 mb-4">
                      If you have any questions about this order, please contact our support team.
                   </p>
-                  <button className="text-sm font-semibold text-emerald-700 dark:text-emerald-300 hover:text-emerald-800 dark:hover:text-emerald-200 hover:underline">
+                  <button className="text-sm font-semibold text-red-700 dark:text-red-300 hover:text-red-800 dark:hover:text-red-200 hover:underline">
                      Contact Support &rarr;
                   </button>
               </div>

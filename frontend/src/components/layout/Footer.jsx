@@ -10,22 +10,22 @@ const Footer = () => {
           {/* About Section */}
           <div>
             <h3 className="text-xl font-bold mb-6 flex items-center gap-2">
-              <span className="text-emerald-500">Commerce</span>Hub
+              <span className="text-red-500">Commerce</span>Hub
             </h3>
             <p className="text-zinc-400 text-sm leading-relaxed mb-6">
               Your one-stop destination for premium products. We connect millions of buyers and sellers around the world, empowering people & creating economic opportunity for all.
             </p>
             <div className="flex gap-4">
-              <a href="#" className="w-10 h-10 rounded-full bg-zinc-800 flex items-center justify-center text-zinc-400 hover:bg-emerald-600 hover:text-white transition-all">
+              <a href="#" className="w-10 h-10 rounded-full bg-zinc-800 flex items-center justify-center text-zinc-400 hover:bg-red-600 hover:text-white transition-all">
                 <Facebook className="w-5 h-5" />
               </a>
-              <a href="#" className="w-10 h-10 rounded-full bg-zinc-800 flex items-center justify-center text-zinc-400 hover:bg-emerald-600 hover:text-white transition-all">
+              <a href="#" className="w-10 h-10 rounded-full bg-zinc-800 flex items-center justify-center text-zinc-400 hover:bg-red-600 hover:text-white transition-all">
                 <Twitter className="w-5 h-5" />
               </a>
-              <a href="#" className="w-10 h-10 rounded-full bg-zinc-800 flex items-center justify-center text-zinc-400 hover:bg-emerald-600 hover:text-white transition-all">
+              <a href="#" className="w-10 h-10 rounded-full bg-zinc-800 flex items-center justify-center text-zinc-400 hover:bg-red-600 hover:text-white transition-all">
                 <Instagram className="w-5 h-5" />
               </a>
-              <a href="#" className="w-10 h-10 rounded-full bg-zinc-800 flex items-center justify-center text-zinc-400 hover:bg-emerald-600 hover:text-white transition-all">
+              <a href="#" className="w-10 h-10 rounded-full bg-zinc-800 flex items-center justify-center text-zinc-400 hover:bg-red-600 hover:text-white transition-all">
                 <Youtube className="w-5 h-5" />
               </a>
             </div>
@@ -35,11 +35,11 @@ const Footer = () => {
           <div>
             <h4 className="text-lg font-semibold mb-6">Quick Links</h4>
             <ul className="space-y-4 text-sm text-zinc-400">
-              <li><Link to="/" className="hover:text-emerald-500 transition-colors">Home</Link></li>
-              <li><Link to="/about" className="hover:text-emerald-500 transition-colors">About Us</Link></li>
-              <li><Link to="/products" className="hover:text-emerald-500 transition-colors">Shop</Link></li>
-              <li><Link to="/contact" className="hover:text-emerald-500 transition-colors">Contact Us</Link></li>
-              <li><Link to="/blog" className="hover:text-emerald-500 transition-colors">Blog</Link></li>
+              <li><Link to="/" className="hover:text-red-500 transition-colors">Home</Link></li>
+              <li><Link to="/about" className="hover:text-red-500 transition-colors">About Us</Link></li>
+              <li><Link to="/products" className="hover:text-red-500 transition-colors">Shop</Link></li>
+              <li><Link to="/contact" className="hover:text-red-500 transition-colors">Contact Us</Link></li>
+              <li><Link to="/blog" className="hover:text-red-500 transition-colors">Blog</Link></li>
             </ul>
           </div>
 
@@ -47,11 +47,11 @@ const Footer = () => {
           <div>
             <h4 className="text-lg font-semibold mb-6">Customer Service</h4>
             <ul className="space-y-4 text-sm text-zinc-400">
-              <li><Link to="/faq" className="hover:text-emerald-500 transition-colors">FAQ</Link></li>
-              <li><Link to="/shipping" className="hover:text-emerald-500 transition-colors">Shipping Policy</Link></li>
-              <li><Link to="/returns" className="hover:text-emerald-500 transition-colors">Returns & Refunds</Link></li>
-              <li><Link to="/privacy" className="hover:text-emerald-500 transition-colors">Privacy Policy</Link></li>
-              <li><Link to="/terms" className="hover:text-emerald-500 transition-colors">Terms & Conditions</Link></li>
+              <li><Link to="/faq" className="hover:text-red-500 transition-colors">FAQ</Link></li>
+              <li><Link to="/shipping" className="hover:text-red-500 transition-colors">Shipping Policy</Link></li>
+              <li><Link to="/returns" className="hover:text-red-500 transition-colors">Returns & Refunds</Link></li>
+              <li><Link to="/privacy" className="hover:text-red-500 transition-colors">Privacy Policy</Link></li>
+              <li><Link to="/terms" className="hover:text-red-500 transition-colors">Terms & Conditions</Link></li>
             </ul>
           </div>
 
@@ -60,15 +60,15 @@ const Footer = () => {
             <h4 className="text-lg font-semibold mb-6">Contact Us</h4>
             <ul className="space-y-4 text-sm text-zinc-400">
               <li className="flex items-start gap-3">
-                <MapPin className="w-5 h-5 text-emerald-500 mt-0.5 shrink-0" />
+                <MapPin className="w-5 h-5 text-red-500 mt-0.5 shrink-0" />
                 <span>123 Commerce Blvd, Business District, Tech City, TC 90210</span>
               </li>
               <li className="flex items-center gap-3">
-                <Phone className="w-5 h-5 text-emerald-500 shrink-0" />
+                <Phone className="w-5 h-5 text-red-500 shrink-0" />
                 <span>+1 (555) 123-4567</span>
               </li>
               <li className="flex items-center gap-3">
-                <Mail className="w-5 h-5 text-emerald-500 shrink-0" />
+                <Mail className="w-5 h-5 text-red-500 shrink-0" />
                 <span>support@commercehub.com</span>
               </li>
             </ul>

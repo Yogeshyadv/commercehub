@@ -190,7 +190,7 @@ export default function Store() {
                 <div className="relative group">
                   <input
                       type="text"
-                      className="w-full pl-5 pr-12 py-2.5 bg-[#25D366]/5 border border-transparent focus:border-white rounded-lg text-sm focus:ring-2 focus:ring-[#25D366]/20 focus:bg-white transition-all text-gray-700 placeholder-gray-400 shadow-inner"
+                      className="w-full pl-5 pr-12 py-2.5 bg-[#DC2626]/5 border border-transparent focus:border-white rounded-lg text-sm focus:ring-2 focus:ring-[#DC2626]/20 focus:bg-white transition-all text-gray-700 placeholder-gray-400 shadow-inner"
                       placeholder="Search for products, brands and more"
                       value={search}
                       onChange={(e) => setSearch(e.target.value)}
@@ -207,7 +207,7 @@ export default function Store() {
                     {isAuthenticated ? (
                       <button 
                         onClick={() => setIsProfileOpen(!isProfileOpen)}
-                        className="flex items-center gap-2 py-1 px-3 hover:bg-[#25D366]/10 rounded-lg transition-colors border border-transparent hover:border-[#25D366]/20"
+                        className="flex items-center gap-2 py-1 px-3 hover:bg-[#DC2626]/10 rounded-lg transition-colors border border-transparent hover:border-[#DC2626]/20"
                       >
                         <User className="w-5 h-5 text-gray-700" />
                          <span className="text-sm font-semibold text-gray-700 whitespace-nowrap">{user?.firstName || 'My Account'}</span>
@@ -216,7 +216,7 @@ export default function Store() {
                     ) : (
                       <button
                         onClick={() => navigate('/login')}
-                        className="px-8 py-2 bg-white text-[#128C7E] text-sm font-bold border border-[#25D366]/30 rounded-lg hover:bg-[#25D366] hover:text-white transition-all shadow-sm"
+                        className="px-8 py-2 bg-white text-[#128C7E] text-sm font-bold border border-[#DC2626]/30 rounded-lg hover:bg-[#DC2626] hover:text-white transition-all shadow-sm"
                       >
                         Login
                       </button>
@@ -227,7 +227,7 @@ export default function Store() {
                       <>
                         <div className="fixed inset-0 z-30" onClick={() => setIsProfileOpen(false)} />
                         <div className="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-[0_8px_16px_0_rgba(0,0,0,0.2)] border border-gray-100 z-40 py-1 animate-in fade-in zoom-in-95 duration-100 overflow-hidden">
-                           <div className="px-5 py-3 border-b border-gray-100 bg-[#25D366]/10">
+                           <div className="px-5 py-3 border-b border-gray-100 bg-[#DC2626]/10">
                              <p className="text-xs text-gray-500 font-medium">Signed in as</p>
                              <p className="text-sm font-bold text-gray-900 truncate">{user?.email}</p>
                            </div>
@@ -275,7 +275,7 @@ export default function Store() {
                 </div>
                 
                 <div className="flex items-center gap-4 justify-center md:justify-start px-4 group cursor-default">
-                    <div className="w-10 h-10 rounded-full bg-[#25D366]/10 flex items-center justify-center text-[#128C7E] transition-transform group-hover:scale-110">
+                    <div className="w-10 h-10 rounded-full bg-[#DC2626]/10 flex items-center justify-center text-[#128C7E] transition-transform group-hover:scale-110">
                         <ShieldCheck className="w-5 h-5" />
                     </div>
                     <div>
@@ -317,7 +317,7 @@ export default function Store() {
                 {(selectedCategories.length > 0 || priceRange.min || priceRange.max) && (
                     <button 
                         onClick={() => { setSelectedCategories([]); setPriceRange({ min: '', max: '' }); setSearch(''); }}
-                        className="text-xs font-bold text-[#25D366] hover:text-[#128C7E] uppercase"
+                        className="text-xs font-bold text-[#DC2626] hover:text-[#128C7E] uppercase"
                     >
                         Clear All
                     </button>
@@ -332,7 +332,7 @@ export default function Store() {
                         <select 
                             value={priceRange.min}
                             onChange={(e) => setPriceRange({ ...priceRange, min: e.target.value })}
-                            className="w-full text-sm border-gray-200 rounded-md focus:ring-[#25D366] focus:border-[#25D366]"
+                            className="w-full text-sm border-gray-200 rounded-md focus:ring-[#DC2626] focus:border-[#DC2626]"
                         >
                             <option value="">Min</option>
                             <option value="500">₹500</option>
@@ -343,7 +343,7 @@ export default function Store() {
                         <select 
                              value={priceRange.max}
                              onChange={(e) => setPriceRange({ ...priceRange, max: e.target.value })}
-                             className="w-full text-sm border-gray-200 rounded-md focus:ring-[#25D366] focus:border-[#25D366]"
+                             className="w-full text-sm border-gray-200 rounded-md focus:ring-[#DC2626] focus:border-[#DC2626]"
                         >
                             <option value="">Max</option>
                             <option value="2000">₹2000</option>
@@ -359,7 +359,7 @@ export default function Store() {
                 <div className="flex flex-col gap-2 max-h-[400px] overflow-y-auto pr-1 custom-scrollbar">
                     {categories.map((cat) => (
                         <label key={cat} className="flex items-center gap-3 cursor-pointer group text-sm text-gray-700 hover:text-gray-900">
-                             <div className={`w-4 h-4 border rounded flex items-center justify-center transition-colors ${selectedCategories.includes(cat) ? 'bg-[#25D366] border-[#25D366]' : 'border-gray-400 bg-white'}`}>
+                             <div className={`w-4 h-4 border rounded flex items-center justify-center transition-colors ${selectedCategories.includes(cat) ? 'bg-[#DC2626] border-[#DC2626]' : 'border-gray-400 bg-white'}`}>
                                 {selectedCategories.includes(cat) && <Check className="w-3 h-3 text-white" />}
                              </div>
                              <input type="checkbox" className="hidden" checked={selectedCategories.includes(cat)} onChange={() => toggleCategory(cat)} />
@@ -385,7 +385,7 @@ export default function Store() {
                             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent flex flex-col justify-end p-8 text-white">
                                 <h2 className="text-3xl md:text-5xl font-bold mb-2 drop-shadow-lg">{slide.title}</h2>
                                 <p className="text-lg text-gray-200 mb-4">{slide.subtitle}</p>
-                                <button className="bg-white text-gray-900 px-6 py-2 rounded-sm font-bold w-fit hover:bg-[#25D366]/20 transition-colors shadow-lg">
+                                <button className="bg-white text-gray-900 px-6 py-2 rounded-sm font-bold w-fit hover:bg-[#DC2626]/20 transition-colors shadow-lg">
                                     {slide.cta}
                                 </button>
                             </div>
@@ -410,7 +410,7 @@ export default function Store() {
                         <button 
                             key={opt.id} 
                             onClick={() => setSortBy(opt.id)}
-                            className={`font-medium transition-colors border-b-2 py-1 ${sortBy === opt.id ? 'text-[#25D366] border-[#25D366]' : 'text-gray-500 border-transparent hover:text-gray-800'}`}
+                            className={`font-medium transition-colors border-b-2 py-1 ${sortBy === opt.id ? 'text-[#DC2626] border-[#DC2626]' : 'text-gray-500 border-transparent hover:text-gray-800'}`}
                         >
                             {opt.label}
                         </button>
@@ -451,7 +451,7 @@ export default function Store() {
 
                             {/* Info */}
                             <div className="flex flex-col flex-1">
-                                <h3 className="text-sm font-medium text-gray-800 line-clamp-2 hover:text-[#25D366] transition-colors min-h-[40px]" title={product.name}>{product.name}</h3>
+                                <h3 className="text-sm font-medium text-gray-800 line-clamp-2 hover:text-[#DC2626] transition-colors min-h-[40px]" title={product.name}>{product.name}</h3>
                                 
                                 <div className="mt-2 flex items-center gap-2">
                                     <div className="bg-[#128C7E] text-white text-[10px] font-bold px-1.5 py-0.5 rounded-sm flex items-center gap-0.5">
@@ -465,7 +465,7 @@ export default function Store() {
                                     {product.compareAtPrice > product.price && (
                                         <>
                                             <span className="text-sm text-gray-500 line-through">{formatCurrency(product.compareAtPrice)}</span>
-                                            <span className="text-sm font-bold text-[#25D366]">
+                                            <span className="text-sm font-bold text-[#DC2626]">
                                                 {Math.round(((product.compareAtPrice - product.price) / product.compareAtPrice) * 100)}% off
                                             </span>
                                         </>
@@ -512,7 +512,7 @@ export default function Store() {
                             <h3 className="font-bold mb-2">Categories</h3>
                             {categories.map(cat => (
                                 <div key={cat} onClick={() => toggleCategory(cat)} className="flex items-center gap-2 py-2">
-                                    <div className={`w-5 h-5 border flex items-center justify-center ${selectedCategories.includes(cat) ? 'bg-[#25D366] border-[#25D366]' : ''}`}>
+                                    <div className={`w-5 h-5 border flex items-center justify-center ${selectedCategories.includes(cat) ? 'bg-[#DC2626] border-[#DC2626]' : ''}`}>
                                         {selectedCategories.includes(cat) && <Check className="w-3 h-3 text-white" />}
                                     </div>
                                     <span>{cat}</span>

@@ -17,7 +17,7 @@ const TextInput = ({ value, onChange, placeholder, disabled, type = 'text', ...r
     placeholder={placeholder}
     disabled={disabled}
     {...rest}
-    className={`w-full px-4 py-2.5 rounded-xl border bg-white dark:bg-zinc-900 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#25D366] transition-colors ${
+    className={`w-full px-4 py-2.5 rounded-xl border bg-white dark:bg-zinc-900 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#DC2626] transition-colors ${
       disabled
         ? 'border-gray-100 dark:border-zinc-800 text-gray-400 cursor-not-allowed bg-gray-50 dark:bg-zinc-800'
         : 'border-gray-200 dark:border-zinc-700 hover:border-gray-300 dark:hover:border-zinc-600'
@@ -29,7 +29,7 @@ const SelectInput = ({ value, onChange, children }) => (
   <select
     value={value || ''}
     onChange={onChange}
-    className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#25D366] transition-colors"
+    className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#DC2626] transition-colors"
   >
     {children}
   </select>
@@ -80,7 +80,7 @@ export default function MyAccount() {
     businessInfo: { type: 'retailer', industry: 'general', gstin: '', description: '' },
     contactInfo: { email: '', phone: '', website: '', address: { street: '', city: '', state: '', zipCode: '', country: 'India' } },
     settings: { currency: 'INR', timezone: 'Asia/Kolkata', taxEnabled: true, defaultTaxRate: 18 },
-    branding: { primaryColor: '#10B981', secondaryColor: '#059669', accentColor: '#F59E0B' },
+    branding: { primaryColor: '#DC2626', secondaryColor: '#B91C1C', accentColor: '#F59E0B' },
   });
   const [savingBusiness, setSavingBusiness] = useState(false);
 
@@ -127,8 +127,8 @@ export default function MyAccount() {
               defaultTaxRate: t.settings?.defaultTaxRate || 18 
             },
             branding: { 
-              primaryColor: t.branding?.primaryColor || '#10B981', 
-              secondaryColor: t.branding?.secondaryColor || '#059669', 
+              primaryColor: t.branding?.primaryColor || '#DC2626', 
+              secondaryColor: t.branding?.secondaryColor || '#B91C1C', 
               accentColor: t.branding?.accentColor || '#F59E0B' 
             },
           });
@@ -237,11 +237,11 @@ export default function MyAccount() {
                 onClick={() => setActiveTab(tab.id)}
                 className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all ${
                   activeTab === tab.id
-                    ? 'bg-[#25D366]/10 text-[#25D366] dark:bg-[#25D366]/20 dark:text-[#25D366] shadow-sm'
+                    ? 'bg-[#DC2626]/10 text-[#DC2626] dark:bg-[#DC2626]/20 dark:text-[#DC2626] shadow-sm'
                     : 'text-gray-600 dark:text-gray-400 hover:bg-white dark:hover:bg-gray-800'
                 }`}
               >
-                <tab.icon className={`w-5 h-5 ${activeTab === tab.id ? 'text-[#25D366] dark:text-[#25D366]' : 'text-gray-400'}`} />
+                <tab.icon className={`w-5 h-5 ${activeTab === tab.id ? 'text-[#DC2626] dark:text-[#DC2626]' : 'text-gray-400'}`} />
                 {tab.label}
               </button>
             ))}
@@ -259,7 +259,7 @@ export default function MyAccount() {
                     {!isEditingProfile ? (
                       <button 
                         onClick={() => setIsEditingProfile(true)}
-                        className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-[#25D366] bg-[#25D366]/10 rounded-lg hover:bg-[#25D366]/20 transition-colors"
+                        className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-[#DC2626] bg-[#DC2626]/10 rounded-lg hover:bg-[#DC2626]/20 transition-colors"
                       >
                         <Edit2 className="w-4 h-4" /> Edit Profile
                       </button>
@@ -273,7 +273,7 @@ export default function MyAccount() {
                         </button>
                         <button 
                           onClick={handleProfileSave}
-                          className="px-4 py-2 text-sm font-medium text-white bg-[#25D366] rounded-lg hover:bg-[#20bd5a]"
+                          className="px-4 py-2 text-sm font-medium text-white bg-[#DC2626] rounded-lg hover:bg-[#B91C1C]"
                         >
                           Save Changes
                         </button>
@@ -320,7 +320,7 @@ export default function MyAccount() {
                           disabled={!isEditingProfile}
                           value={profileData.phone}
                           onChange={(e) => setProfileData({...profileData, phone: e.target.value})}
-                          className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50 text-gray-900 dark:text-white focus:ring-2 focus:ring-[#25D366]/20 focus:border-[#25D366] transition-all disabled:opacity-60 disabled:cursor-not-allowed"
+                          className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50 text-gray-900 dark:text-white focus:ring-2 focus:ring-[#DC2626]/20 focus:border-[#DC2626] transition-all disabled:opacity-60 disabled:cursor-not-allowed"
                         />
                       </div>
                     </div>
@@ -349,7 +349,7 @@ export default function MyAccount() {
                                       value={passwords[field.key]}
                                       onChange={e => setPasswords({...passwords, [field.key]: e.target.value})}
                                       placeholder={field.placeholder}
-                                      className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-zinc-900 focus:ring-2 focus:ring-[#25D366] focus:border-[#25D366] dark:text-white"
+                                      className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-zinc-900 focus:ring-2 focus:ring-[#DC2626] focus:border-[#DC2626] dark:text-white"
                                   />
                                   <button
                                       type="button"
@@ -361,7 +361,7 @@ export default function MyAccount() {
                               </div>
                           </div>
                         ))}
-                        <button type="submit" disabled={savingPwd} className="mt-4 px-6 py-2.5 bg-[#25D366] text-white font-medium rounded-xl hover:bg-[#20bd5a] transition-colors disabled:opacity-70 flex items-center gap-2">
+                        <button type="submit" disabled={savingPwd} className="mt-4 px-6 py-2.5 bg-[#DC2626] text-white font-medium rounded-xl hover:bg-[#B91C1C] transition-colors disabled:opacity-70 flex items-center gap-2">
                              <Shield className="w-4 h-4" />
                              {savingPwd ? 'Updating...' : 'Update Password'}
                         </button>
@@ -375,7 +375,7 @@ export default function MyAccount() {
                   <div className="flex items-center justify-between mb-6">
                     <h2 className="text-lg font-bold text-gray-900 dark:text-white">Saved Addresses</h2>
                     {!isAddingAddress && (
-                        <button onClick={() => setIsAddingAddress(true)} className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-[#25D366] bg-[#25D366]/10 rounded-lg hover:bg-[#25D366]/20 transition-colors">
+                        <button onClick={() => setIsAddingAddress(true)} className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-[#DC2626] bg-[#DC2626]/10 rounded-lg hover:bg-[#DC2626]/20 transition-colors">
                             <Plus className="w-4 h-4" /> Add Address
                         </button>
                     )}
@@ -392,7 +392,7 @@ export default function MyAccount() {
                           </div>
                           <div className="flex justify-end gap-3">
                               <button onClick={() => setIsAddingAddress(false)} className="px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg dark:text-gray-300 dark:hover:bg-gray-700">Cancel</button>
-                              <button onClick={handleAddAddress} className="px-4 py-2 text-sm text-white bg-[#25D366] hover:bg-[#20bd5a] rounded-lg">Save Address</button>
+                              <button onClick={handleAddAddress} className="px-4 py-2 text-sm text-white bg-[#DC2626] hover:bg-[#B91C1C] rounded-lg">Save Address</button>
                           </div>
                       </div>
                   ) : null}
@@ -408,7 +408,7 @@ export default function MyAccount() {
                   ) : (
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           {addresses.map((addr, idx) => (
-                              <div key={addr._id || idx} className="p-4 rounded-xl border border-gray-200 dark:border-gray-700 hover:border-[#25D366] hover:shadow-sm transition-all relative group">
+                              <div key={addr._id || idx} className="p-4 rounded-xl border border-gray-200 dark:border-gray-700 hover:border-[#DC2626] hover:shadow-sm transition-all relative group">
                                   <div className="flex items-start justify-between">
                                       <div className="flex items-start gap-3">
                                           <MapPin className="w-5 h-5 text-gray-400 mt-0.5" />
@@ -437,7 +437,7 @@ export default function MyAccount() {
                   </div>
                   <h3 className="text-lg font-bold text-gray-900 dark:text-white">No Payment Methods</h3>
                   <p className="text-gray-500 max-w-sm mx-auto mt-2">Manage your saved cards and payment options here.</p>
-                  <button className="mt-4 px-4 py-2 bg-[#25D366] text-white font-medium rounded-lg hover:bg-[#20bd5a] transition-colors">
+                  <button className="mt-4 px-4 py-2 bg-[#DC2626] text-white font-medium rounded-lg hover:bg-[#B91C1C] transition-colors">
                     Add Payment Method
                   </button>
                 </div>
@@ -476,7 +476,7 @@ export default function MyAccount() {
                            <FIELD label="Phone"><TextInput value={business.contactInfo.phone} onChange={e => setBusiness({...business, contactInfo: {...business.contactInfo, phone: e.target.value}})} /></FIELD>
                        </div>
                     </div>
-                     <button type="submit" disabled={savingBusiness} className="px-6 py-2.5 bg-[#25D366] text-white font-bold rounded-xl hover:bg-[#20bd5a]">Save Business Settings</button>
+                     <button type="submit" disabled={savingBusiness} className="px-6 py-2.5 bg-[#DC2626] text-white font-bold rounded-xl hover:bg-[#B91C1C]">Save Business Settings</button>
                   </form>
               )}
                 
@@ -498,7 +498,7 @@ export default function MyAccount() {
                               </FIELD>
                           ))}
                       </div>
-                      <button type="submit" disabled={savingBusiness} className="px-6 py-2.5 bg-[#25D366] text-white font-bold rounded-xl hover:bg-[#20bd5a]">Save Branding</button>
+                      <button type="submit" disabled={savingBusiness} className="px-6 py-2.5 bg-[#DC2626] text-white font-bold rounded-xl hover:bg-[#B91C1C]">Save Branding</button>
                   </form>
               )}
 

@@ -97,7 +97,7 @@ export default function MyOrders() {
                     onClick={() => setStatusFilter(status)}
                     className={`px-4 py-2 text-sm font-medium rounded-lg transition-all capitalize whitespace-nowrap ${
                       statusFilter === status 
-                        ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 shadow-sm ring-1 ring-emerald-200 dark:ring-emerald-800' 
+                        ? 'bg-red-50 text-red-700 dark:bg-red-900/30 dark:text-red-400 shadow-sm ring-1 ring-red-200 dark:ring-red-800' 
                         : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/50'
                     }`}
                 >
@@ -110,14 +110,14 @@ export default function MyOrders() {
         {/* Search Bar */}
         <div className="relative group max-w-2xl">
           <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-            <Search className="h-5 w-5 text-gray-400 group-focus-within:text-emerald-500 transition-colors" />
+            <Search className="h-5 w-5 text-gray-400 group-focus-within:text-red-500 transition-colors" />
           </div>
           <input
             type="text"
             placeholder="Search by Order ID, Product name..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="block w-full pl-11 pr-4 py-3.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 transition-all shadow-sm outline-none text-gray-900 dark:text-white placeholder-gray-400"
+            className="block w-full pl-11 pr-4 py-3.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl focus:ring-4 focus:ring-red-500/10 focus:border-red-500 transition-all shadow-sm outline-none text-gray-900 dark:text-white placeholder-gray-400"
           />
         </div>
 
@@ -132,9 +132,9 @@ export default function MyOrders() {
                 <div 
                   key={order._id}
                   onClick={() => navigate(`/orders/${order._id}`)}
-                  className="group bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-xl hover:border-emerald-500/30 transition-all duration-300 cursor-pointer overflow-hidden relative"
+                  className="group bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-xl hover:border-red-500/30 transition-all duration-300 cursor-pointer overflow-hidden relative"
                 >
-                  <div className="absolute inset-0 bg-gradient-to-r from-emerald-50/0 via-transparent to-transparent dark:from-emerald-900/0 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+                  <div className="absolute inset-0 bg-gradient-to-r from-red-50/0 via-transparent to-transparent dark:from-red-900/0 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
 
                   {/* Desktop Layout */}
                   <div className="p-6">
@@ -145,7 +145,7 @@ export default function MyOrders() {
                           </div>
                           <div>
                              <div className="flex items-center gap-3 mb-1">
-                                <h3 className="text-lg font-bold text-gray-900 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
+                                <h3 className="text-lg font-bold text-gray-900 dark:text-white group-hover:text-red-600 dark:group-hover:text-red-400 transition-colors">
                                   Order #{order.orderNumber || order._id.slice(-8).toUpperCase()}
                                 </h3>
                                 <Badge color={status.color} className="flex items-center gap-1.5 px-2.5 py-0.5 text-xs font-semibold uppercase tracking-wide">
@@ -181,7 +181,7 @@ export default function MyOrders() {
                                    )}
                                 </div>
                                 <div className="min-w-0 flex-1">
-                                   <p className="text-sm font-medium text-gray-900 dark:text-white truncate group-hover/item:text-emerald-600 transition-colors">
+                                   <p className="text-sm font-medium text-gray-900 dark:text-white truncate group-hover/item:text-red-600 transition-colors">
                                       {item.name}
                                    </p>
                                    <p className="text-xs text-gray-500 dark:text-gray-400">
@@ -205,14 +205,14 @@ export default function MyOrders() {
                              className="flex-1 lg:flex-none justify-center flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-sm font-semibold text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all shadow-sm group/btn"
                           >
                              {downloadingId === order._id ? (
-                                <div className="h-4 w-4 border-2 border-gray-400 border-t-emerald-500 rounded-full animate-spin" />
+                                <div className="h-4 w-4 border-2 border-gray-400 border-t-red-500 rounded-full animate-spin" />
                              ) : (
-                                <Download className="h-4 w-4 text-gray-500 group-hover/btn:text-emerald-500 transition-colors" />
+                                <Download className="h-4 w-4 text-gray-500 group-hover/btn:text-red-500 transition-colors" />
                              )}
                              Invoice
                           </button>
                           
-                          <button className="flex-1 lg:flex-none justify-center flex items-center gap-2 px-5 py-2.5 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 rounded-xl text-sm font-semibold hover:bg-emerald-100 dark:hover:bg-emerald-900/40 transition-all md:min-w-[140px] group/btn">
+                          <button className="flex-1 lg:flex-none justify-center flex items-center gap-2 px-5 py-2.5 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 rounded-xl text-sm font-semibold hover:bg-red-100 dark:hover:bg-red-900/40 transition-all md:min-w-[140px] group/btn">
                              View Details
                              <ChevronRight className="h-4 w-4 group-hover/btn:translate-x-0.5 transition-transform" />
                           </button>
@@ -224,8 +224,8 @@ export default function MyOrders() {
             })
           ) : (
             <div className="flex flex-col items-center justify-center py-20 bg-white dark:bg-gray-800 rounded-3xl border border-dashed border-gray-200 dark:border-gray-700 text-center px-4">
-              <div className="w-20 h-20 bg-emerald-50 dark:bg-emerald-900/20 rounded-full flex items-center justify-center mb-6 shadow-sm ring-1 ring-emerald-100 dark:ring-emerald-800">
-                <ShoppingBag className="w-10 h-10 text-emerald-500 dark:text-emerald-400" />
+              <div className="w-20 h-20 bg-red-50 dark:bg-red-900/20 rounded-full flex items-center justify-center mb-6 shadow-sm ring-1 ring-red-100 dark:ring-red-800">
+                <ShoppingBag className="w-10 h-10 text-red-500 dark:text-red-400" />
               </div>
               <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">No orders found</h3>
               <p className="text-gray-500 dark:text-gray-400 max-w-md mx-auto mb-8">
@@ -234,7 +234,7 @@ export default function MyOrders() {
               {!searchTerm && (
                   <button 
                     onClick={() => navigate('/store')}
-                    className="px-8 py-3 bg-emerald-600 text-white font-bold rounded-xl shadow-lg shadow-emerald-600/20 hover:bg-emerald-700 hover:shadow-emerald-600/30 transition-all transform hover:-translate-y-0.5 flex items-center gap-2"
+                    className="px-8 py-3 bg-red-600 text-white font-bold rounded-xl shadow-lg shadow-red-600/20 hover:bg-red-700 hover:shadow-red-600/30 transition-all transform hover:-translate-y-0.5 flex items-center gap-2"
                   >
                     Start Shopping
                     <ChevronRight className="w-4 h-4" />

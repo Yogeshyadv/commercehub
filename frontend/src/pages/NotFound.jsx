@@ -5,7 +5,7 @@ export default function NotFound() {
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-white dark:bg-[#09090b] p-6 text-center animate-in fade-in duration-700">
       {/* Decorative gradient blur */}
-      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-96 h-96 bg-gradient-to-br from-[#25D366]/20 to-blue-500/20 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-96 h-96 bg-gradient-to-br from-[#DC2626]/20 to-blue-500/20 rounded-full blur-3xl pointer-events-none" />
 
       <div className="relative z-10 max-w-lg mx-auto">
         {/* Large 404 */}
@@ -15,7 +15,7 @@ export default function NotFound() {
           </h1>
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="p-5 bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl shadow-gray-200/50 dark:shadow-black/30 border border-gray-100 dark:border-zinc-800">
-              <Search className="w-10 h-10 text-[#25D366]" strokeWidth={2} />
+              <Search className="w-10 h-10 text-[#DC2626]" strokeWidth={2} />
             </div>
           </div>
         </div>
@@ -30,7 +30,7 @@ export default function NotFound() {
         <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
           <Link
             to="/dashboard"
-            className="flex items-center gap-2 px-6 py-3 bg-[#25D366] text-white rounded-xl font-bold shadow-lg shadow-[#25D366]/20 hover:bg-[#20bd5a] transition-all transform hover:scale-105 active:scale-95"
+            className="flex items-center gap-2 px-6 py-3 bg-[#DC2626] text-white rounded-xl font-bold shadow-lg shadow-[#DC2626]/20 hover:bg-[#B91C1C] transition-all transform hover:scale-105 active:scale-95"
           >
             <Home className="w-5 h-5" />
             Go to Dashboard

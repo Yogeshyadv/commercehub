@@ -38,9 +38,21 @@ const catalogSchema = new mongoose.Schema({
     order: { type: Number, default: 0 },
     isHighlighted: { type: Boolean, default: false }
   }],
+  blocks: [{
+    id: { type: String, required: true },
+    type: { type: String, required: true }, // e.g. "hero", "productGrid", "feature", "footer"
+    content: { type: mongoose.Schema.Types.Mixed, default: {} },
+    settings: { type: mongoose.Schema.Types.Mixed, default: {} }
+  }],
   template: {
     type: String,
-    enum: ['grid', 'list', 'magazine', 'minimal', 'luxury', 'modern', 'classic'],
+    enum: [
+      'grid', 'list', 'magazine', 'minimal', 'luxury', 'modern', 'classic', 'modern-blocks',
+      'minimal-luxe', 'dark-premium', 'bold-commerce', 'tech-specs', 'artisan-market',
+      'flash-sale', 'fresh-grocery', 'corporate-b2b', 'editorial', 'neon-street',
+      'pastel-beauty', 'sports-fitness', 'real-estate', 'kids-playful', 'pharmacy-health',
+      'jewellery-gold', 'auto-parts', 'furniture-home', 'pet-store'
+    ],
     default: 'grid'
   },
   design: {
@@ -49,6 +61,7 @@ const catalogSchema = new mongoose.Schema({
     accentColor: { type: String, default: '#3B82F6' },
     fontFamily: { type: String, default: 'Inter' },
     showPrices: { type: Boolean, default: true },
+    customTexts: { type: mongoose.Schema.Types.Mixed, default: {} },
     showStock: { type: Boolean, default: false },
     showDescription: { type: Boolean, default: true },
     productsPerRow: { type: Number, default: 3, min: 1, max: 6 },

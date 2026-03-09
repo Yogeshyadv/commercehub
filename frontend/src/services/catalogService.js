@@ -31,6 +31,11 @@ export const catalogService = {
     return response.data;
   },
 
+  syncProducts: async (id, productIds) => {
+    const response = await api.put(`/catalogs/${id}/products`, { productIds });
+    return response.data;
+  },
+
   removeProduct: async (id, productId) => {
     const response = await api.delete(`/catalogs/${id}/products/${productId}`);
     return response.data;

@@ -207,3 +207,59 @@ exports.getSimilarProducts = async (req, res) => {
     res.status(500).json({ success: false, message: 'Server error' });
   }
 };
+
+// @desc    Generate AI catalog theme
+// @route   POST /api/v1/ai/theme
+exports.generateTheme = async (req, res) => {
+  try {
+    const { prompt } = req.body;
+    if (!prompt) return res.status(400).json({ success: false, message: 'Prompt is required' });
+    const result = await aiService.generateCatalogTheme(prompt);
+    res.status(200).json({ success: true, data: result });
+  } catch (error) {
+    console.error('AI Theme error:', error);
+    return res.status(500).json({ success: false, message: 'Failed to generate theme' });
+  }
+};
+
+// @desc    Generate AI catalog metadata and find matching products
+// @route   POST /api/v1/ai/catalog
+exports.generateCatalog = async (req, res) => {
+  try {
+    const { prompt } = req.body;
+    if (!prompt) return res.status(400).json({ success: false, message: 'Prompt is required' });
+    
+    // 1. Ask AI to generate catalog details
+    const catalogData = await aiService.generateCatalogDetails(prompt);
+
+    // 2. Find matching products based on categories & tags
+    let matchingProducts = [];
+    if (catalogData.categories?.length || catalogData.tags?.length) {
+      const orConditions = [];
+      if (catalogData.categories?.length > 0) {
+        orConditions.push({ category: { $in: catalogData.categories.map(c => new RegExp(c, 'i')) } });
+      }
+      if (catalogData.tags?.length > 0) {
+        orConditions.push({ tags: { $in: catalogData.tags.map(t => new RegExp(t, 'i')) } });
+      }
+      
+      if (orConditions.length > 0) {
+        matchingProducts = await Product.find({
+          tenant: req.tenantId,
+          $or: orConditions
+        }).select('_id name price category images stock').limit(50);
+      }
+    }
+
+    res.status(200).json({ 
+      success: true, 
+      data: {
+        ...catalogData,
+        suggestedProducts: matchingProducts
+      }
+    });
+  } catch (error) {
+    console.error('AI Catalog error:', error);
+    res.status(500).json({ success: false, message: 'Failed to generate catalog' });
+  }
+};

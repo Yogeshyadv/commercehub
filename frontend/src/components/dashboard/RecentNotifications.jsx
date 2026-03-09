@@ -4,9 +4,9 @@ import { formatDate, formatRelativeTime } from '../../utils/formatters';
 const getIcon = (type) => {
   switch (type) {
     case 'ORDER_UPDATE': return <Package className="w-5 h-5 text-blue-500" />;
-    case 'NEW_ORDER': return <Package className="w-5 h-5 text-emerald-500" />;
+    case 'NEW_ORDER': return <Package className="w-5 h-5 text-red-500" />;
     case 'SYSTEM': return <Info className="w-5 h-5 text-gray-500" />;
-    case 'PROMOTION': return <CheckCircle className="w-5 h-5 text-green-500" />;
+    case 'PROMOTION': return <CheckCircle className="w-5 h-5 text-red-500" />;
     case 'ALERT': return <AlertTriangle className="w-5 h-5 text-red-500" />;
     case 'LOW_STOCK': return <AlertTriangle className="w-5 h-5 text-orange-500" />;
     default: return <Bell className="w-5 h-5 text-indigo-500" />;
@@ -32,10 +32,10 @@ export default function RecentNotifications({ notifications = [] }) {
     <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden h-full flex flex-col">
       <div className="p-6 border-b border-gray-50 dark:border-gray-700 flex items-center justify-between flex-shrink-0">
         <h3 className="font-bold text-gray-900 dark:text-white flex items-center gap-2">
-            <Bell className="w-5 h-5 text-emerald-500" />
+            <Bell className="w-5 h-5 text-red-500" />
             Recent Notifications
         </h3>
-        <span className="text-xs font-bold px-2 py-1 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 rounded-lg border border-emerald-100 dark:border-emerald-800/30">
+        <span className="text-xs font-bold px-2 py-1 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 rounded-lg border border-red-100 dark:border-red-800/30">
             {notifications.length} New
         </span>
       </div>
@@ -44,7 +44,7 @@ export default function RecentNotifications({ notifications = [] }) {
         {notifications.map((notification) => (
           <div 
             key={notification._id} 
-            className="p-4 hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-all cursor-pointer group border-l-4 border-transparent hover:border-emerald-500"
+            className="p-4 hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-all cursor-pointer group border-l-4 border-transparent hover:border-red-500"
           >
             <div className="flex gap-4">
               <div className={`mt-1 flex-shrink-0 p-2 rounded-full h-fit transition-transform duration-300 group-hover:scale-110 ${!notification.read ? 'bg-blue-50 dark:bg-blue-900/20' : 'bg-gray-50 dark:bg-gray-700'}`}>

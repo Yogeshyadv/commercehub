@@ -66,7 +66,7 @@ export default function CustomerDetail() {
             <ArrowLeft className="w-5 h-5" />
           </button>
           
-          <div className="h-12 w-12 rounded-xl bg-[#25D366]/10 dark:bg-[#25D366]/20 flex items-center justify-center shrink-0 text-[#128C7E] dark:text-[#25D366] font-bold text-lg">
+          <div className="h-12 w-12 rounded-xl bg-[#DC2626]/10 dark:bg-[#DC2626]/20 flex items-center justify-center shrink-0 text-[#128C7E] dark:text-[#DC2626] font-bold text-lg">
             {customer.name?.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
           </div>
 
@@ -142,12 +142,12 @@ export default function CustomerDetail() {
               </div>
 
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-green-50 dark:bg-green-900/20 flex items-center justify-center text-green-600 dark:text-green-400 shrink-0">
+                <div className="w-10 h-10 rounded-full bg-red-50 dark:bg-red-900/20 flex items-center justify-center text-red-600 dark:text-red-400 shrink-0">
                   <Phone className="w-5 h-5" />
                 </div>
                 <div>
                   <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Phone Number</p>
-                  <a href={`tel:${customer.phone}`} className="text-gray-900 dark:text-white font-medium hover:text-green-600">
+                  <a href={`tel:${customer.phone}`} className="text-gray-900 dark:text-white font-medium hover:text-red-600">
                     {customer.phone || 'N/A'}
                   </a>
                 </div>
@@ -209,7 +209,7 @@ export default function CustomerDetail() {
               </h3>
              {/* If we implement full order history later, this link could go to filtered orders page */}
              {recentOrders.length > 0 && (
-                <Link to={`/dashboard/orders?customer=${customer._id}`} className="text-sm font-semibold text-[#128C7E] dark:text-[#25D366] hover:underline flex items-center gap-1">
+                <Link to={`/dashboard/orders?customer=${customer._id}`} className="text-sm font-semibold text-[#128C7E] dark:text-[#DC2626] hover:underline flex items-center gap-1">
                     View All <ExternalLink className="w-3 h-3" />
                 </Link>
              )}
@@ -222,7 +222,7 @@ export default function CustomerDetail() {
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-3">
                       <div>
                         <div className="flex items-baseline gap-3">
-                          <Link to={`/dashboard/order/${order._id}`} className="text-lg font-bold text-gray-900 dark:text-white hover:text-[#128C7E] dark:hover:text-[#25D366] transition-colors">
+                          <Link to={`/dashboard/order/${order._id}`} className="text-lg font-bold text-gray-900 dark:text-white hover:text-[#128C7E] dark:hover:text-[#DC2626] transition-colors">
                             #{order.orderNumber} // Assume orderNumber exists or slice _id
                           </Link>
                           <Badge color={STATUS_COLORS[order.status]}>

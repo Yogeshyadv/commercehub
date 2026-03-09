@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
   ClipboardList, Eye, Search, Truck, Package,
   ArrowLeft, FileText, Download, Clock, CheckCircle2,
@@ -168,7 +168,7 @@ export default function Orders() {
                     onClick={() => setStatusFilter(status === 'all' ? '' : status)}
                     className={`px-4 py-2 rounded-xl text-sm font-medium whitespace-nowrap transition-all border ${
                         (statusFilter === status || (status === 'all' && !statusFilter))
-                        ? 'bg-[#25D366] text-white border-transparent shadow-lg shadow-[#25D366]/20 transform scale-105'
+                        ? 'bg-[#DC2626] text-white border-transparent shadow-lg shadow-[#DC2626]/20 transform scale-105'
                         : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50 hover:border-gray-300 dark:bg-zinc-900 dark:text-gray-400 dark:border-zinc-800 dark:hover:bg-zinc-800'
                     }`}
                 >
@@ -185,7 +185,7 @@ export default function Orders() {
             placeholder="Search orders by number, customer, or email..." 
             value={search}
             onChange={e => setSearch(e.target.value)}
-            className="w-full pl-12 pr-4 py-3.5 bg-white dark:bg-zinc-900 rounded-2xl border border-gray-100 dark:border-zinc-800 focus:ring-2 focus:ring-[#25D366]/20 focus:border-gray-300 dark:focus:border-zinc-700 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none transition-all shadow-sm" 
+            className="w-full pl-12 pr-4 py-3.5 bg-white dark:bg-zinc-900 rounded-2xl border border-gray-100 dark:border-zinc-800 focus:ring-2 focus:ring-[#DC2626]/20 focus:border-gray-300 dark:focus:border-zinc-700 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none transition-all shadow-sm" 
           />
         </div>
       </div>
@@ -266,10 +266,10 @@ export default function Orders() {
                         {/* Simplified Payment Status */}
                         <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border ${
                             order.paymentStatus === 'completed' 
-                            ? 'bg-green-50 text-green-700 border-green-100 dark:bg-green-900/20 dark:text-green-400 dark:border-green-900/30'
+                            ? 'bg-red-50 text-red-700 border-red-100 dark:bg-red-900/20 dark:text-red-400 dark:border-red-900/30'
                             : 'bg-gray-50 text-gray-600 border-gray-200 dark:bg-zinc-900 dark:text-gray-400 dark:border-zinc-700'
                         }`}>
-                            <span className={`w-1.5 h-1.5 rounded-full ${order.paymentStatus === 'completed' ? 'bg-green-500' : 'bg-gray-400'}`} />
+                            <span className={`w-1.5 h-1.5 rounded-full ${order.paymentStatus === 'completed' ? 'bg-red-500' : 'bg-gray-400'}`} />
                             {PAYMENT_CONFIG[order.paymentStatus]?.label || order.paymentStatus}
                         </div>
                       </td>
@@ -363,7 +363,7 @@ export default function Orders() {
                         {getNextStatuses(selectedOrder.status).length > 0 && (
                             <button 
                                 onClick={() => setStatusModal(selectedOrder)}
-                                className="px-4 py-2 bg-[#25D366] hover:bg-[#20bd5a] text-white text-sm font-bold rounded-lg shadow-sm shadow-emerald-500/20 transition-all"
+                                className="px-4 py-2 bg-[#DC2626] hover:bg-[#B91C1C] text-white text-sm font-bold rounded-lg shadow-sm shadow-red-500/20 transition-all"
                             >
                                 Update Status
                             </button>
@@ -380,7 +380,7 @@ export default function Orders() {
                         <div className="flex items-center justify-between text-sm mb-4">
                             <span className="font-semibold text-gray-900 dark:text-white">Order Status</span>
                             {selectedOrder.status === 'delivered' ? (
-                                <span className="text-green-600 flex items-center gap-1"><CheckCircle2 className="w-4 h-4"/> Completed</span>
+                                <span className="text-red-600 flex items-center gap-1"><CheckCircle2 className="w-4 h-4"/> Completed</span>
                             ) : (
                                 <span className="text-blue-600 flex items-center gap-1"><Truck className="w-4 h-4"/> In Progress</span>
                             )}
@@ -388,7 +388,7 @@ export default function Orders() {
                         {/* Simple Progress Bar */}
                         <div className="h-2 w-full bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
                             <div 
-                                className={`h-full bg-[#25D366] transition-all duration-500`} 
+                                className={`h-full bg-[#DC2626] transition-all duration-500`} 
                                 style={{ width: 
                                     selectedOrder.status === 'delivered' ? '100%' : 
                                     selectedOrder.status === 'shipped' ? '75%' : 
@@ -421,7 +421,7 @@ export default function Orders() {
                                 <p className="mb-2"><span className="text-gray-500">Method:</span> <span className="font-medium text-gray-900 dark:text-white capitalize">{selectedOrder.paymentMethod}</span></p>
                                 <p className="mb-2"><span className="text-gray-500">Status:</span> 
                                     <span className={`ml-2 px-2 py-0.5 rounded text-xs font-bold ${
-                                        selectedOrder.paymentStatus === 'completed' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'
+                                        selectedOrder.paymentStatus === 'completed' ? 'bg-red-100 text-red-700' : 'bg-yellow-100 text-yellow-700'
                                     }`}>
                                         {selectedOrder.paymentStatus.toUpperCase()}
                                     </span>
@@ -524,7 +524,7 @@ export default function Orders() {
                     <button key={s} onClick={() => setNewStatus(s)}
                       className={`px-4 py-3 rounded-xl border-2 text-sm font-bold capitalize transition-all ${
                         newStatus === s
-                          ? 'border-[#25D366] bg-[#25D366]/10 text-[#25D366]'
+                          ? 'border-[#DC2626] bg-[#DC2626]/10 text-[#DC2626]'
                           : 'border-gray-200 dark:border-zinc-700 text-gray-600 dark:text-gray-300 hover:border-gray-300 dark:hover:border-zinc-600'
                       }`}>
                       {STATUS_CONFIG[s]?.label || s}
@@ -535,7 +535,7 @@ export default function Orders() {
 
               <div>
                 <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">Note (optional)</label>
-                <textarea className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#25D366] resize-none"
+                <textarea className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#DC2626] resize-none"
                   rows="2" value={statusNote} onChange={e => setStatusNote(e.target.value)} placeholder="Add a note..." />
               </div>
             </div>
@@ -545,7 +545,7 @@ export default function Orders() {
                 Cancel
               </button>
               <button onClick={handleStatusUpdate} disabled={!newStatus || updating}
-                className="flex-1 flex items-center justify-center gap-2 py-3 bg-[#25D366] hover:bg-[#20bd5a] disabled:opacity-50 text-white rounded-xl font-bold text-sm shadow-lg shadow-[#25D366]/20 transition-all active:scale-95">
+                className="flex-1 flex items-center justify-center gap-2 py-3 bg-[#DC2626] hover:bg-[#B91C1C] disabled:opacity-50 text-white rounded-xl font-bold text-sm shadow-lg shadow-[#DC2626]/20 transition-all active:scale-95">
                 {updating ? 'Updating...' : 'Update Status'}
               </button>
             </div>

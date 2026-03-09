@@ -30,7 +30,7 @@ export default function Testimonials() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section header */}
         <div className="text-center mb-16">
-          <span className="inline-block px-4 py-2 bg-emerald-100 text-emerald-700 rounded-full text-sm font-bold mb-4">
+          <span className="inline-block px-4 py-2 bg-red-100 text-red-700 rounded-full text-sm font-bold mb-4">
             CUSTOMER STORIES
           </span>
           <h2 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-4">
@@ -46,7 +46,7 @@ export default function Testimonials() {
           {testimonials.map((testimonial, index) => (
             <div
               key={index}
-              className="bg-white p-8 rounded-2xl border border-gray-200 hover:border-emerald-300 hover:shadow-xl transition-all duration-300"
+              className="bg-white p-8 rounded-2xl border border-gray-200 hover:border-red-300 hover:shadow-xl transition-all duration-300"
             >
               {/* Rating */}
               <div className="flex gap-1 mb-4">
@@ -62,7 +62,7 @@ export default function Testimonials() {
 
               {/* Author */}
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-full flex items-center justify-center text-2xl">
+                <div className="w-12 h-12 bg-gradient-to-br from-red-500 to-teal-500 rounded-full flex items-center justify-center text-2xl">
                   {testimonial.image}
                 </div>
                 <div>
@@ -78,19 +78,19 @@ export default function Testimonials() {
         <div className="mt-16 pt-16 border-t border-gray-200">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 items-center justify-items-center">
             <div className="text-center">
-              <div className="text-4xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent mb-2">1000+</div>
+              <div className="text-4xl font-bold bg-gradient-to-r from-red-600 to-teal-600 bg-clip-text text-transparent mb-2">1000+</div>
               <div className="text-gray-600">Active Businesses</div>
             </div>
             <div className="text-center">
-              <div className="text-4xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent mb-2">50K+</div>
+              <div className="text-4xl font-bold bg-gradient-to-r from-red-600 to-teal-600 bg-clip-text text-transparent mb-2">50K+</div>
               <div className="text-gray-600">Products Sold</div>
             </div>
             <div className="text-center">
-              <div className="text-4xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent mb-2">99.9%</div>
+              <div className="text-4xl font-bold bg-gradient-to-r from-red-600 to-teal-600 bg-clip-text text-transparent mb-2">99.9%</div>
               <div className="text-gray-600">Uptime</div>
             </div>
             <div className="text-center">
-              <div className="text-4xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent mb-2">24/7</div>
+              <div className="text-4xl font-bold bg-gradient-to-r from-red-600 to-teal-600 bg-clip-text text-transparent mb-2">24/7</div>
               <div className="text-gray-600">Support</div>
             </div>
           </div>

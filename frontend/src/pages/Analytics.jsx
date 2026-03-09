@@ -13,14 +13,14 @@ import { formatCurrency } from '../utils/formatters';
 import toast from 'react-hot-toast';
 import StatsCard from '../components/dashboard/StatsCard';
 
-const COLORS = ['#25D366', '#128C7E', '#34B7F1', '#3b82f6', '#8b5cf6', '#f59e0b', '#ec4899', '#6366f1'];
+const COLORS = ['#DC2626', '#128C7E', '#34B7F1', '#3b82f6', '#8b5cf6', '#f59e0b', '#ec4899', '#6366f1'];
 
 const STATUS_MAP = {
   pending: { label: 'Pending', color: '#f59e0b' },
   confirmed: { label: 'Confirmed', color: '#3B82F6' },
   processing: { label: 'Processing', color: '#8b5cf6' },
   shipped: { label: 'Shipped', color: '#34B7F1' },
-  delivered: { label: 'Delivered', color: '#25D366' },
+  delivered: { label: 'Delivered', color: '#DC2626' },
   cancelled: { label: 'Cancelled', color: '#ef4444' },
   refunded: { label: 'Refunded', color: '#6b7280' },
   returned: { label: 'Returned', color: '#f97316' },
@@ -101,7 +101,7 @@ export default function Analytics() {
         <select
           value={period}
           onChange={e => setPeriod(e.target.value)}
-          className="px-4 py-2.5 rounded-xl border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-[#25D366]/20 transition-colors cursor-pointer"
+          className="px-4 py-2.5 rounded-xl border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-[#DC2626]/20 transition-colors cursor-pointer"
         >
           <option value="today">Today</option>
           <option value="7d">Last 7 Days</option>
@@ -158,7 +158,7 @@ export default function Analytics() {
         {/* Sales by Category (New) */}
         <div className="lg:col-span-1 bg-white dark:bg-zinc-950 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm p-6">
           <div className="flex items-center gap-2 mb-4">
-            <Tag className="w-5 h-5 text-[#25D366]" />
+            <Tag className="w-5 h-5 text-[#DC2626]" />
             <h3 className="text-lg font-bold text-gray-900 dark:text-white">Sales by Category</h3>
           </div>
           <div className="h-60 relative">
@@ -233,7 +233,7 @@ export default function Analytics() {
                             return null;
                         }}
                     />
-                    <Bar dataKey="revenue" name="Revenue" fill="#25D366" radius={[0, 4, 4, 0]} barSize={20} />
+                    <Bar dataKey="revenue" name="Revenue" fill="#DC2626" radius={[0, 4, 4, 0]} barSize={20} />
                   </BarChart>
                 </ResponsiveContainer>
              </div>
@@ -248,7 +248,7 @@ export default function Analytics() {
         {/* Top Products */}
         <div className="bg-white dark:bg-zinc-950 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm p-6">
           <div className="flex items-center gap-2 mb-5">
-            <Package className="w-5 h-5 text-[#25D366]" />
+            <Package className="w-5 h-5 text-[#DC2626]" />
             <h3 className="text-lg font-bold text-gray-900 dark:text-white">Top Products</h3>
           </div>
           {topProducts.length > 0 ? (
@@ -316,7 +316,7 @@ export default function Analytics() {
         {/* Customer Overview */}
         <div className="bg-white dark:bg-zinc-950 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm p-6">
         <div className="flex items-center gap-2 mb-4">
-            <Users className="w-5 h-5 text-emerald-500" />
+            <Users className="w-5 h-5 text-red-500" />
             <h3 className="text-base font-bold text-gray-900 dark:text-white">Customer Overview</h3>
         </div>
         <div className="space-y-4">
@@ -325,9 +325,9 @@ export default function Analytics() {
                     <span className="text-xs text-blue-600 dark:text-blue-400 font-medium uppercase tracking-wider">Total Customers</span>
                     <p className="text-2xl font-bold text-blue-700 dark:text-blue-300 mt-1">{customerData?.totalCustomers || 0}</p>
                 </div>
-                <div className="p-4 rounded-xl bg-emerald-50 dark:bg-emerald-900/10 border border-emerald-100 dark:border-emerald-900/20">
-                    <span className="text-xs text-emerald-600 dark:text-emerald-400 font-medium uppercase tracking-wider">New This Month</span>
-                    <p className="text-2xl font-bold text-emerald-700 dark:text-emerald-300 mt-1">{customerData?.newThisMonth || 0}</p>
+                <div className="p-4 rounded-xl bg-red-50 dark:bg-red-900/10 border border-red-100 dark:border-red-900/20">
+                    <span className="text-xs text-red-600 dark:text-red-400 font-medium uppercase tracking-wider">New This Month</span>
+                    <p className="text-2xl font-bold text-red-700 dark:text-red-300 mt-1">{customerData?.newThisMonth || 0}</p>
                 </div>
             </div>
 

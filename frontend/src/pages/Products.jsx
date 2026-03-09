@@ -127,7 +127,7 @@ export default function Products() {
   const getStockStatus = (stock) => {
     if (stock <= 0) return { label: 'Out of Stock', color: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' };
     if (stock < 10) return { label: 'Low Stock', color: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400' };
-    return { label: 'In Stock', color: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' };
+    return { label: 'In Stock', color: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' };
   };
 
   return (
@@ -167,7 +167,7 @@ export default function Products() {
 
           <button 
             onClick={() => navigate('/dashboard/products/new')}
-            className="flex items-center gap-2 px-5 py-3 bg-[#25D366] hover:bg-[#20bd5a] text-white rounded-xl font-bold shadow-lg shadow-[#25D366]/20 transition-all transform hover:scale-105 active:scale-95"
+            className="flex items-center gap-2 px-5 py-3 bg-[#DC2626] hover:bg-[#B91C1C] text-white rounded-xl font-bold shadow-lg shadow-[#DC2626]/20 transition-all transform hover:scale-105 active:scale-95"
           >
             <Plus className="w-5 h-5" strokeWidth={2.5} />
             <span>Add Product</span>
@@ -193,7 +193,7 @@ export default function Products() {
                     onClick={() => setActiveTab(tab.id)}
                     className={`px-4 py-2 rounded-xl text-sm font-medium whitespace-nowrap transition-all border ${
                         activeTab === tab.id
-                        ? 'bg-[#25D366] text-white border-transparent shadow-lg shadow-[#25D366]/20 transform scale-105'
+                        ? 'bg-[#DC2626] text-white border-transparent shadow-lg shadow-[#DC2626]/20 transform scale-105'
                         : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50 hover:border-gray-300 dark:bg-zinc-900 dark:text-gray-400 dark:border-zinc-800 dark:hover:bg-zinc-800'
                     }`}
                 >
@@ -211,7 +211,7 @@ export default function Products() {
                     placeholder="Search products by name, SKU, or tags..." 
                     value={search}
                     onChange={e => setSearch(e.target.value)}
-                    className="w-full pl-12 pr-4 py-3.5 bg-white dark:bg-zinc-900 rounded-2xl border border-gray-100 dark:border-zinc-800 focus:ring-2 focus:ring-[#25D366]/20 focus:border-gray-300 dark:focus:border-zinc-700 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none transition-all shadow-sm" 
+                    className="w-full pl-12 pr-4 py-3.5 bg-white dark:bg-zinc-900 rounded-2xl border border-gray-100 dark:border-zinc-800 focus:ring-2 focus:ring-[#DC2626]/20 focus:border-gray-300 dark:focus:border-zinc-700 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none transition-all shadow-sm" 
                 />
             </div>
             
@@ -221,7 +221,7 @@ export default function Products() {
                     <Filter className="h-5 w-5 text-gray-400" />
                 </div>
                 <select
-                    className="w-full pl-11 pr-10 py-3.5 bg-white dark:bg-zinc-900 rounded-2xl border border-gray-100 dark:border-zinc-800 focus:ring-2 focus:ring-[#25D366]/20 text-gray-700 dark:text-gray-300 font-medium appearance-none cursor-pointer focus:outline-none"
+                    className="w-full pl-11 pr-10 py-3.5 bg-white dark:bg-zinc-900 rounded-2xl border border-gray-100 dark:border-zinc-800 focus:ring-2 focus:ring-[#DC2626]/20 text-gray-700 dark:text-gray-300 font-medium appearance-none cursor-pointer focus:outline-none"
                     value={categoryFilter}
                     onChange={(e) => setCategoryFilter(e.target.value)}
                 >
@@ -320,7 +320,7 @@ export default function Products() {
                         <span className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider bg-gray-100 dark:bg-zinc-900 px-2 py-0.5 rounded-md">
                           {product.category || 'Uncategorized'}
                         </span>
-                        <div className={`flex items-center gap-1.5 text-xs font-medium ${isOutOfStock ? 'text-red-500' : isLowStock ? 'text-yellow-600' : 'text-green-600'}`}>
+                        <div className={`flex items-center gap-1.5 text-xs font-medium ${isOutOfStock ? 'text-red-500' : isLowStock ? 'text-yellow-600' : 'text-red-600'}`}>
                            <Package className="w-3.5 h-3.5" />
                            <span>{product.stock} units</span>
                         </div>
@@ -353,7 +353,7 @@ export default function Products() {
                                onChange={(e) => toggleStock(product, e)}
                                className="sr-only peer"
                              />
-                             <div className="w-11 h-6 bg-gray-200 dark:bg-zinc-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#25D366] relative transition-colors"></div>
+                             <div className="w-11 h-6 bg-gray-200 dark:bg-zinc-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#DC2626] relative transition-colors"></div>
                            </label>
                         </div>
                       </div>

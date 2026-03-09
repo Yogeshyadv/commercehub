@@ -1,22 +1,22 @@
-/* ...existing code... */
+﻿/* ...existing code... */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
 @import "tailwindcss";
 
 @theme {
-  --color-primary-50: #eefdf5;
-  --color-primary-100: #d5fbe5;
-  --color-primary-200: #aef7d1;
-  --color-primary-300: #76efb7;
-  --color-primary-400: #38e197;
-  --color-primary-500: #10c878;
-  --color-primary-600: #05a761;
-  --color-primary-700: #078550;
-  --color-primary-800: #0a6942;
-  --color-primary-900: #0b5638;
-  --color-primary-950: #02301f;
+  --color-primary-50: #fff1f2;
+  --color-primary-100: #ffe4e6;
+  --color-primary-200: #fecdd3;
+  --color-primary-300: #fda4af;
+  --color-primary-400: #fb7185;
+  --color-primary-500: #f43f5e;
+  --color-primary-600: #dc2626;
+  --color-primary-700: #b91c1c;
+  --color-primary-800: #991b1b;
+  --color-primary-900: #7f1d1d;
+  --color-primary-950: #450a0a;
   
-  --color-whatsapp-light: #25D366;
+  --color-whatsapp-light: #DC2626;
   --color-whatsapp-dark: #128C7E;
 }
 
@@ -24,6 +24,19 @@
 @plugin "@tailwindcss/typography";
 
 /* ===== BASE STYLES ===== */
+html, body {
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  background-color: #f8fafc;
+}
+
+.dark html {
+  background-color: #13131f;
+}
+
 body {
   font-family: 'Inter', sans-serif;
   background-color: #f8fafc;
@@ -32,7 +45,7 @@ body {
 }
 
 .dark body {
-  background-color: #09090b; /* zinc-950: Deeper, richer dark */
+  background-color: #13131f; /* zinc-950: Deeper, richer dark */
   color: #f4f4f5; /* zinc-100: Softer white for better contrast without eye strain */
 }
 

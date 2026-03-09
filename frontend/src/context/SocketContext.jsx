@@ -41,7 +41,7 @@ export function SocketProvider({ children }) {
 
         toast((t) => (
           <div className="flex items-center gap-3" onClick={() => toast.dismiss(t.id)}>
-             <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center text-xl">📦</div>
+             <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center text-xl">📦</div>
              <div>
                <p className="font-bold text-gray-900">New Order Received</p>
                <p className="text-sm text-gray-500">Order from {data.customer} for ₹{data.amount}</p>

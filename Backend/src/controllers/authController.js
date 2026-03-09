@@ -294,6 +294,11 @@ exports.updateProfile = async (req, res) => {
       runValidators: true
     });
 
+    // Sync phone to tenant's contactInfo so catalogs pick it up automatically
+    if (req.body.phone && req.tenantId) {
+      await Tenant.findByIdAndUpdate(req.tenantId, { 'contactInfo.phone': req.body.phone });
+    }
+
     res.status(200).json({
       success: true,
       message: 'Profile updated successfully',

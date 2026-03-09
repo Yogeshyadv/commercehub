@@ -89,6 +89,31 @@ exports.updateStock = async (req, res) => {
     await inventory.save();
     await syncProductStock(inventory.product, req.tenantId);
 
+    // Fire LOW_STOCK notification when stock drops to or below reorder level
+    if (type !== 'in' && newQuantity <= inventory.reorderLevel) {
+      try {
+        const Notification = require('../models/Notification');
+        const Tenant = require('../models/Tenant');
+        const [tenant, product] = await Promise.all([
+          Tenant.findById(req.tenantId, 'owner'),
+          Product.findById(inventory.product, 'name')
+        ]);
+        if (tenant?.owner) {
+          const notif = await Notification.create({
+            recipient: tenant.owner,
+            type: 'LOW_STOCK',
+            title: 'Low Stock Alert',
+            message: `"${product?.name || 'A product'}" is running low — only ${newQuantity} unit${newQuantity !== 1 ? 's' : ''} remaining (reorder level: ${inventory.reorderLevel}).`,
+            relatedId: inventory.product
+          });
+          const io = req.app.get('io');
+          if (io) io.to(tenant.owner.toString()).emit('notification', notif);
+        }
+      } catch (e) {
+        console.warn('Low stock notification failed:', e.message);
+      }
+    }
+
     res.status(200).json({ success: true, data: inventory });
   } catch (error) {
     console.error('UpdateStock error:', error);

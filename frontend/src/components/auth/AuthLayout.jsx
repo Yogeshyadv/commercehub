@@ -66,15 +66,15 @@ export default function AuthLayout({ children, title, subtitle, type = 'login' }
           <div className="mt-8 pt-8 border-t border-gray-200">
             <div className="flex items-center justify-center gap-6 text-xs text-gray-500">
               <div className="flex items-center gap-1">
-                <HiCheckCircle className="w-4 h-4 text-green-500" />
+                <HiCheckCircle className="w-4 h-4 text-red-500" />
                 <span>Free 14-day trial</span>
               </div>
               <div className="flex items-center gap-1">
-                <HiCheckCircle className="w-4 h-4 text-green-500" />
+                <HiCheckCircle className="w-4 h-4 text-red-500" />
                 <span>No credit card</span>
               </div>
               <div className="flex items-center gap-1">
-                <HiCheckCircle className="w-4 h-4 text-green-500" />
+                <HiCheckCircle className="w-4 h-4 text-red-500" />
                 <span>Cancel anytime</span>
               </div>
             </div>

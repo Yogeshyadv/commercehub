@@ -22,10 +22,10 @@ export default function TrustedBy() {
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
           {stats.map((stat, index) => (
             <div key={index} className="text-center">
-              <div className="inline-flex items-center justify-center w-12 h-12 bg-gradient-to-br from-emerald-100 to-teal-100 rounded-xl mb-3">
-                <stat.icon className="w-6 h-6 text-emerald-600" />
+              <div className="inline-flex items-center justify-center w-12 h-12 bg-gradient-to-br from-red-100 to-teal-100 rounded-xl mb-3">
+                <stat.icon className="w-6 h-6 text-red-600" />
               </div>
-              <div className="text-3xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent mb-1">
+              <div className="text-3xl font-bold bg-gradient-to-r from-red-600 to-teal-600 bg-clip-text text-transparent mb-1">
                 {stat.value}
               </div>
               <div className="text-sm text-gray-600">{stat.label}</div>

@@ -87,7 +87,7 @@ export default function Wishlist() {
             </p>
             <button
               onClick={() => navigate('/')}
-              className="px-8 py-3 bg-emerald-600 text-white rounded-xl font-medium hover:bg-emerald-700 transition-colors"
+              className="px-8 py-3 bg-red-600 text-white rounded-xl font-medium hover:bg-red-700 transition-colors"
             >
               Start Shopping
             </button>
@@ -133,14 +133,14 @@ export default function Wishlist() {
                     <p className="text-xs text-gray-500 dark:text-gray-400 font-medium mb-1">
                       {product.category || 'General'}
                     </p>
-                    <h3 className="font-bold text-gray-900 dark:text-white line-clamp-2 min-h-[40px] group-hover:text-emerald-600 transition-colors">
+                    <h3 className="font-bold text-gray-900 dark:text-white line-clamp-2 min-h-[40px] group-hover:text-red-600 transition-colors">
                       {product.name}
                     </h3>
                   </div>
 
                   <div className="flex items-end justify-between gap-2 mt-4">
                     <div className="flex flex-col">
-                        <span className="text-lg font-bold text-emerald-600 dark:text-emerald-400">
+                        <span className="text-lg font-bold text-red-600 dark:text-red-400">
                             {formatCurrency(product.price)}
                         </span>
                         {product.rating > 0 && (
@@ -154,7 +154,7 @@ export default function Wishlist() {
                     <button
                         onClick={(e) => handleAddToCart(product, e)}
                         disabled={product.stock <= 0}
-                        className="p-2.5 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded-xl hover:bg-emerald-100 dark:hover:bg-emerald-900/50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                        className="p-2.5 bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-xl hover:bg-red-100 dark:hover:bg-red-900/50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                     >
                         <ShoppingCart className="w-5 h-5" />
                     </button>

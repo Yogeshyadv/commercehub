@@ -69,7 +69,7 @@ exports.getPublicCatalog = async (req, res) => {
   try {
     const catalog = await Catalog.findOne({ 'sharing.shareableLink': req.params.shareableLink, 'sharing.isPublic': true, status: 'published' })
       .populate('products.product', 'name price compareAtPrice images shortDescription stock status category')
-      .populate('tenant', 'name logo branding contactInfo socialLinks');
+      .populate({ path: 'tenant', select: 'name logo branding contactInfo socialLinks owner', populate: { path: 'owner', select: 'phone' } });
 
     if (!catalog) return res.status(404).json({ success: false, message: 'Catalog not found' });
     if (catalog.sharing.expiresAt && catalog.sharing.expiresAt < new Date()) return res.status(410).json({ success: false, message: 'Catalog link expired' });
@@ -166,6 +166,46 @@ exports.removeProduct = async (req, res) => {
     res.status(200).json({ success: true, message: 'Product removed', data: catalog });
   } catch (error) {
     console.error('RemoveProduct error:', error);
+    return res.status(500).json({ success: false, message: 'Server error' });
+  }
+};
+
+/* Atomically replace the entire product list for a catalog */
+exports.syncProducts = async (req, res) => {
+  try {
+    const { productIds } = req.body;
+    if (!Array.isArray(productIds)) {
+      return res.status(400).json({ success: false, message: 'productIds must be an array' });
+    }
+
+    const catalog = await Catalog.findOne({ _id: req.params.id, tenant: req.tenantId });
+    if (!catalog) return res.status(404).json({ success: false, message: 'Catalog not found' });
+
+    // Products that were removed
+    const oldIds = catalog.products.map(p => p.product.toString());
+    const removedIds = oldIds.filter(id => !productIds.includes(id));
+    const addedIds = productIds.filter(id => !oldIds.includes(id));
+
+    // Verify added products belong to this tenant
+    const validProducts = productIds.length > 0
+      ? await Product.find({ _id: { $in: productIds }, tenant: req.tenantId }).select('_id')
+      : [];
+    const validIds = validProducts.map(p => p._id.toString());
+
+    catalog.products = validIds.map((pid, i) => ({ product: pid, order: i }));
+    await catalog.save();
+
+    // Update cross-references in background (non-blocking)
+    if (removedIds.length > 0) {
+      Product.updateMany({ _id: { $in: removedIds } }, { $pull: { catalogs: catalog._id } }).catch(() => {});
+    }
+    if (addedIds.length > 0) {
+      Product.updateMany({ _id: { $in: addedIds } }, { $addToSet: { catalogs: catalog._id } }).catch(() => {});
+    }
+
+    res.status(200).json({ success: true, message: 'Products synced', data: catalog });
+  } catch (error) {
+    console.error('SyncProducts error:', error);
     return res.status(500).json({ success: false, message: 'Server error' });
   }
 };

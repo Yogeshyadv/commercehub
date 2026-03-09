@@ -144,7 +144,7 @@ export default function Checkout() {
             <div className="flex h-[72px] items-center justify-between gap-6">
                 <div className="flex items-center gap-4">
                     <div onClick={() => navigate('/')} className="cursor-pointer flex items-center gap-2 select-none">
-                    <span className="text-2xl font-bold tracking-tight text-emerald-600 italic">
+                    <span className="text-2xl font-bold tracking-tight text-red-600 italic">
                         Commerce<span className="text-gray-800 not-italic">Hub</span>
                     </span>
                     </div>
@@ -155,9 +155,9 @@ export default function Checkout() {
 
         <div className="flex-1 flex flex-col items-center justify-center p-4">
           <div className="max-w-md w-full bg-white rounded-sm shadow-sm border border-gray-200 p-8 text-center relative overflow-hidden">
-            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#25D366] to-[#128C7E]"></div>
-            <div className="w-16 h-16 bg-[#25D366]/10 rounded-full flex items-center justify-center mx-auto mb-6">
-              <CheckCircle className="w-8 h-8 text-[#25D366]" />
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#DC2626] to-[#128C7E]"></div>
+            <div className="w-16 h-16 bg-[#DC2626]/10 rounded-full flex items-center justify-center mx-auto mb-6">
+              <CheckCircle className="w-8 h-8 text-[#DC2626]" />
             </div>
             <h2 className="text-2xl font-bold text-gray-900 mb-2">Order Placed Successfully!</h2>
             <p className="text-gray-500 mb-6">Thank you for your purchase. Your order has been confirmed.</p>
@@ -185,13 +185,13 @@ export default function Checkout() {
             <div className="space-y-3">
               <button 
                 onClick={() => navigate('/my-orders')} 
-                className="w-full h-12 bg-[#25D366] text-white font-bold rounded-sm shadow-sm hover:bg-[#128C7E] hover:shadow-md transition-all uppercase text-sm tracking-wide transform hover:-translate-y-0.5"
+                className="w-full h-12 bg-[#DC2626] text-white font-bold rounded-sm shadow-sm hover:bg-[#128C7E] hover:shadow-md transition-all uppercase text-sm tracking-wide transform hover:-translate-y-0.5"
               >
                 Track Order
               </button>
               <button
                 onClick={() => navigate('/')}
-                className="w-full h-12 bg-white text-[#128C7E] font-bold border-2 border-[#128C7E] rounded-sm hover:bg-[#25D366]/10 transition-colors uppercase text-sm tracking-wide"
+                className="w-full h-12 bg-white text-[#128C7E] font-bold border-2 border-[#128C7E] rounded-sm hover:bg-[#DC2626]/10 transition-colors uppercase text-sm tracking-wide"
               >
                 Continue Shopping
               </button>
@@ -234,7 +234,7 @@ export default function Checkout() {
                     {isAuthenticated ? (
                       <button 
                         onClick={() => setIsProfileOpen(!isProfileOpen)}
-                        className="flex items-center gap-2 py-1 px-3 hover:bg-[#25D366]/10 rounded-lg transition-colors border border-transparent hover:border-[#25D366]/20"
+                        className="flex items-center gap-2 py-1 px-3 hover:bg-[#DC2626]/10 rounded-lg transition-colors border border-transparent hover:border-[#DC2626]/20"
                       >
                          <UserIcon className="w-5 h-5 text-gray-700" />
                          <span className="text-sm font-semibold text-gray-700 whitespace-nowrap">{user?.firstName || 'Account'}</span>
@@ -243,7 +243,7 @@ export default function Checkout() {
                     ) : (
                       <button
                         onClick={() => navigate('/login')}
-                        className="px-6 py-2 bg-white text-[#128C7E] text-sm font-bold border border-[#25D366]/30 rounded-lg hover:bg-[#25D366] hover:text-white transition-all shadow-sm"
+                        className="px-6 py-2 bg-white text-[#128C7E] text-sm font-bold border border-[#DC2626]/30 rounded-lg hover:bg-[#DC2626] hover:text-white transition-all shadow-sm"
                       >
                         Login
                       </button>
@@ -254,7 +254,7 @@ export default function Checkout() {
                       <>
                         <div className="fixed inset-0 z-30" onClick={() => setIsProfileOpen(false)} />
                         <div className="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-[0_8px_16px_0_rgba(0,0,0,0.2)] border border-gray-100 z-40 py-1 animate-in fade-in zoom-in-95 duration-100 overflow-hidden">
-                           <div className="px-5 py-3 border-b border-gray-100 bg-[#25D366]/10">
+                           <div className="px-5 py-3 border-b border-gray-100 bg-[#DC2626]/10">
                              <p className="text-xs text-gray-500 font-medium">Signed in as</p>
                              <p className="text-sm font-bold text-gray-900 truncate">{user?.email}</p>
                            </div>
@@ -296,7 +296,7 @@ export default function Checkout() {
 
                 {/* Step 2: Delivery Address (Active or Completed) */}
                 <div className="bg-white rounded-sm shadow-sm border border-gray-100">
-                    <div className={`p-4 ${activeStep === 2 ? 'bg-[#25D366] text-white' : 'bg-white text-gray-500'}`}>
+                    <div className={`p-4 ${activeStep === 2 ? 'bg-[#DC2626] text-white' : 'bg-white text-gray-500'}`}>
                         <div className="flex items-center gap-3">
                             <span className={`w-7 h-7 ${activeStep === 2 ? 'bg-white text-[#128C7E]' : 'bg-gray-100 text-gray-500'} text-xs font-bold flex items-center justify-center rounded-[2px]`}>2</span>
                             <h3 className={`font-bold uppercase text-sm ${activeStep === 2 ? 'text-white' : 'text-gray-500'}`}>Delivery Address</h3>
@@ -324,11 +324,11 @@ export default function Checkout() {
                                                     pincode: addr.postalCode || ''
                                                 }));
                                             }}
-                                            className="group border border-gray-200 rounded-sm p-4 hover:border-[#25D366] hover:bg-[#25D366]/10 cursor-pointer transition-all flex items-start gap-4"
+                                            className="group border border-gray-200 rounded-sm p-4 hover:border-[#DC2626] hover:bg-[#DC2626]/10 cursor-pointer transition-all flex items-start gap-4"
                                         >
                                             <div className="mt-1">
-                                                <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${formData.address === addr.street ? 'border-[#25D366]' : 'border-gray-300 group-hover:border-[#25D366]'}`}>
-                                                    {formData.address === addr.street && <div className="w-2 h-2 rounded-full bg-[#25D366]" />}
+                                                <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${formData.address === addr.street ? 'border-[#DC2626]' : 'border-gray-300 group-hover:border-[#DC2626]'}`}>
+                                                    {formData.address === addr.street && <div className="w-2 h-2 rounded-full bg-[#DC2626]" />}
                                                 </div>
                                             </div>
                                             <div className="space-y-1">
@@ -355,69 +355,69 @@ export default function Checkout() {
                          <form id="address-form" onSubmit={handleAddressSubmit} className="space-y-6 max-w-2xl">
                               <div className="grid grid-cols-2 gap-6">
                                   <div className="group">
-                                      <label className="text-xs font-bold text-gray-600 mb-1.5 block uppercase tracking-wide group-focus-within:text-[#25D366] transition-colors">Name</label>
+                                      <label className="text-xs font-bold text-gray-600 mb-1.5 block uppercase tracking-wide group-focus-within:text-[#DC2626] transition-colors">Name</label>
                                       <input 
                                         type="text" name="name" value={formData.name} onChange={handleChange}
                                         required
-                                        className="w-full p-3 bg-gray-50 border border-gray-200 rounded-md focus:bg-white focus:border-[#25D366] focus:ring-1 focus:ring-[#25D366] focus:outline-none text-sm transition-all duration-200 placeholder-gray-400"
+                                        className="w-full p-3 bg-gray-50 border border-gray-200 rounded-md focus:bg-white focus:border-[#DC2626] focus:ring-1 focus:ring-[#DC2626] focus:outline-none text-sm transition-all duration-200 placeholder-gray-400"
                                         placeholder="Full Name"
                                       />
                                   </div>
                                   <div className="group">
-                                      <label className="text-xs font-bold text-gray-600 mb-1.5 block uppercase tracking-wide group-focus-within:text-[#25D366] transition-colors">10-digit mobile number</label>
+                                      <label className="text-xs font-bold text-gray-600 mb-1.5 block uppercase tracking-wide group-focus-within:text-[#DC2626] transition-colors">10-digit mobile number</label>
                                       <input 
                                         type="tel" name="phone" value={formData.phone} onChange={handleChange}
                                         required pattern="[0-9]{10}"
-                                        className="w-full p-3 bg-gray-50 border border-gray-200 rounded-md focus:bg-white focus:border-[#25D366] focus:ring-1 focus:ring-[#25D366] focus:outline-none text-sm transition-all duration-200 placeholder-gray-400"
+                                        className="w-full p-3 bg-gray-50 border border-gray-200 rounded-md focus:bg-white focus:border-[#DC2626] focus:ring-1 focus:ring-[#DC2626] focus:outline-none text-sm transition-all duration-200 placeholder-gray-400"
                                         placeholder="Mobile Number"
                                       />
                                   </div>
                               </div>
                               <div className="grid grid-cols-2 gap-6">
                                   <div className="group">
-                                      <label className="text-xs font-bold text-gray-600 mb-1.5 block uppercase tracking-wide group-focus-within:text-emerald-600 transition-colors">Pincode</label>
+                                      <label className="text-xs font-bold text-gray-600 mb-1.5 block uppercase tracking-wide group-focus-within:text-red-600 transition-colors">Pincode</label>
                                       <input 
                                         type="text" name="pincode" value={formData.pincode} onChange={handleChange}
                                         required
-                                        className="w-full p-3 bg-gray-50 border border-gray-200 rounded-md focus:bg-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 focus:outline-none text-sm transition-all duration-200 placeholder-gray-400"
+                                        className="w-full p-3 bg-gray-50 border border-gray-200 rounded-md focus:bg-white focus:border-red-500 focus:ring-1 focus:ring-red-500 focus:outline-none text-sm transition-all duration-200 placeholder-gray-400"
                                         placeholder="Pincode"
                                       />
                                   </div>
                                   <div className="group">
-                                      <label className="text-xs font-bold text-gray-600 mb-1.5 block uppercase tracking-wide group-focus-within:text-emerald-600 transition-colors">Locality</label>
+                                      <label className="text-xs font-bold text-gray-600 mb-1.5 block uppercase tracking-wide group-focus-within:text-red-600 transition-colors">Locality</label>
                                       <input 
                                         type="text" name="city" value={formData.city} onChange={handleChange}
                                         required
-                                        className="w-full p-3 bg-gray-50 border border-gray-200 rounded-md focus:bg-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 focus:outline-none text-sm transition-all duration-200 placeholder-gray-400"
+                                        className="w-full p-3 bg-gray-50 border border-gray-200 rounded-md focus:bg-white focus:border-red-500 focus:ring-1 focus:ring-red-500 focus:outline-none text-sm transition-all duration-200 placeholder-gray-400"
                                         placeholder="Locality"
                                       />
                                   </div>
                               </div>
                               <div className="group">
-                                  <label className="text-xs font-bold text-gray-600 mb-1.5 block uppercase tracking-wide group-focus-within:text-emerald-600 transition-colors">Address (Area and Street)</label>
+                                  <label className="text-xs font-bold text-gray-600 mb-1.5 block uppercase tracking-wide group-focus-within:text-red-600 transition-colors">Address (Area and Street)</label>
                                   <textarea 
                                     name="address" rows="3" value={formData.address} onChange={handleChange}
                                     required
-                                    className="w-full p-3 bg-gray-50 border border-gray-200 rounded-md focus:bg-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 focus:outline-none text-sm transition-all duration-200 placeholder-gray-400 resize-none"
+                                    className="w-full p-3 bg-gray-50 border border-gray-200 rounded-md focus:bg-white focus:border-red-500 focus:ring-1 focus:ring-red-500 focus:outline-none text-sm transition-all duration-200 placeholder-gray-400 resize-none"
                                     placeholder="Address (Area and Street)"
                                   />
                               </div>
                               <div className="grid grid-cols-2 gap-6">
                                   <div className="group">
-                                      <label className="text-xs font-bold text-gray-600 mb-1.5 block uppercase tracking-wide group-focus-within:text-emerald-600 transition-colors">City/District/Town</label>
+                                      <label className="text-xs font-bold text-gray-600 mb-1.5 block uppercase tracking-wide group-focus-within:text-red-600 transition-colors">City/District/Town</label>
                                       <input 
                                         type="text" name="city" value={formData.city} onChange={handleChange} // Reusing city state for simplicity
                                         required
-                                        className="w-full p-3 bg-gray-50 border border-gray-200 rounded-md focus:bg-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 focus:outline-none text-sm transition-all duration-200 placeholder-gray-400"
+                                        className="w-full p-3 bg-gray-50 border border-gray-200 rounded-md focus:bg-white focus:border-red-500 focus:ring-1 focus:ring-red-500 focus:outline-none text-sm transition-all duration-200 placeholder-gray-400"
                                         placeholder="City/District/Town"
                                       />
                                   </div>
                                   <div className="group">
-                                      <label className="text-xs font-bold text-gray-600 mb-1.5 block uppercase tracking-wide group-focus-within:text-emerald-600 transition-colors">State</label>
+                                      <label className="text-xs font-bold text-gray-600 mb-1.5 block uppercase tracking-wide group-focus-within:text-red-600 transition-colors">State</label>
                                       <input 
                                         type="text" name="state" value={formData.state} onChange={handleChange}
                                         required
-                                        className="w-full p-3 bg-gray-50 border border-gray-200 rounded-md focus:bg-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 focus:outline-none text-sm transition-all duration-200 placeholder-gray-400"
+                                        className="w-full p-3 bg-gray-50 border border-gray-200 rounded-md focus:bg-white focus:border-red-500 focus:ring-1 focus:ring-red-500 focus:outline-none text-sm transition-all duration-200 placeholder-gray-400"
                                         placeholder="State"
                                       />
                                   </div>
@@ -425,7 +425,7 @@ export default function Checkout() {
 
                               <button 
                                 type="submit"
-                                className="bg-emerald-600 text-white px-8 py-3.5 text-sm font-bold shadow-lg shadow-emerald-200 rounded-lg uppercase hover:bg-emerald-700 hover:shadow-xl transition-all transform hover:-translate-y-0.5 mt-4"
+                                className="bg-red-600 text-white px-8 py-3.5 text-sm font-bold shadow-lg shadow-red-200 rounded-lg uppercase hover:bg-red-700 hover:shadow-xl transition-all transform hover:-translate-y-0.5 mt-4"
                               >
                                 Save and Deliver Here
                               </button>
@@ -436,7 +436,7 @@ export default function Checkout() {
 
                 {/* Step 3: Order Summary */}
                 <div className="bg-white rounded-sm shadow-sm border border-gray-100">
-                    <div className={`p-4 ${activeStep === 3 ? 'bg-[#25D366] text-white' : 'bg-white'}`}>
+                    <div className={`p-4 ${activeStep === 3 ? 'bg-[#DC2626] text-white' : 'bg-white'}`}>
                         <div className="flex items-center gap-3">
                             <span className={`w-7 h-7 ${activeStep === 3 ? 'bg-white text-[#128C7E]' : 'bg-gray-100 text-gray-500'} text-xs font-bold flex items-center justify-center rounded-[2px]`}>3</span>
                             <h3 className={`font-bold uppercase text-sm ${activeStep === 3 ? 'text-white' : 'text-gray-500'}`}>Order Summary</h3>
@@ -464,7 +464,7 @@ export default function Checkout() {
                                 <span className="text-xs text-gray-500">Order confirmation email will be sent to <span className="font-bold text-gray-800">{formData.email}</span></span>
                                 <button 
                                      onClick={() => setActiveStep(4)}
-                                     className="bg-emerald-600 text-white px-8 py-3 text-sm font-bold shadow-lg shadow-emerald-200 rounded-lg uppercase hover:bg-emerald-700 hover:shadow-xl transition-all transform hover:-translate-y-0.5"
+                                     className="bg-red-600 text-white px-8 py-3 text-sm font-bold shadow-lg shadow-red-200 rounded-lg uppercase hover:bg-red-700 hover:shadow-xl transition-all transform hover:-translate-y-0.5"
                                 >
                                     Continue
                                 </button>
@@ -475,7 +475,7 @@ export default function Checkout() {
 
                  {/* Step 4: Payment Options */}
                  <div className="bg-white rounded-sm shadow-sm border border-gray-100">
-                    <div className={`p-4 ${activeStep === 4 ? 'bg-[#25D366] text-white' : 'bg-white'}`}>
+                    <div className={`p-4 ${activeStep === 4 ? 'bg-[#DC2626] text-white' : 'bg-white'}`}>
                         <div className="flex items-center gap-3">
                             <span className={`w-7 h-7 ${activeStep === 4 ? 'bg-white text-[#128C7E]' : 'bg-gray-100 text-gray-500'} text-xs font-bold flex items-center justify-center rounded-[2px]`}>4</span>
                             <h3 className={`font-bold uppercase text-sm ${activeStep === 4 ? 'text-white' : 'text-gray-500'}`}>Payment Options</h3>
@@ -484,8 +484,8 @@ export default function Checkout() {
                     {activeStep === 4 && (
                         <div className="p-6">
                             <div className="space-y-4">
-                                <div className="flex items-center gap-4 p-4 border border-[#25D366]/20 bg-[#25D366]/5 rounded-sm">
-                                    <input type="radio" checked readOnly className="w-4 h-4 text-[#128C7E] border-gray-300 focus:ring-[#25D366]" />
+                                <div className="flex items-center gap-4 p-4 border border-[#DC2626]/20 bg-[#DC2626]/5 rounded-sm">
+                                    <input type="radio" checked readOnly className="w-4 h-4 text-[#128C7E] border-gray-300 focus:ring-[#DC2626]" />
                                     <div className="flex-1">
                                         <span className="text-sm font-medium text-gray-900 block">Cash on Delivery</span>
                                         <span className="text-xs text-gray-500">Pay when you receive the order</span>
@@ -493,7 +493,7 @@ export default function Checkout() {
                                 </div>
 
                                 <div className="flex items-center gap-4 p-4 border border-gray-200 rounded-sm opacity-60">
-                                    <input type="radio" disabled className="w-4 h-4 text-[#128C7E] border-gray-300 focus:ring-[#25D366]" />
+                                    <input type="radio" disabled className="w-4 h-4 text-[#128C7E] border-gray-300 focus:ring-[#DC2626]" />
                                     <div className="flex-1">
                                         <span className="text-sm font-medium text-gray-900 block">Credit / Debit / ATM Card</span>
                                         <span className="text-xs text-gray-500">Add new card</span>
@@ -504,7 +504,7 @@ export default function Checkout() {
                                 <button 
                                      onClick={handleSubmit} 
                                      disabled={loading}
-                                     className="bg-emerald-600 text-white px-12 py-3.5 text-base font-bold shadow-lg shadow-emerald-200 rounded-lg uppercase hover:bg-emerald-700 hover:shadow-xl transition-all transform hover:-translate-y-0.5 mt-4 w-full sm:w-auto disabled:opacity-70 disabled:cursor-not-allowed"
+                                     className="bg-red-600 text-white px-12 py-3.5 text-base font-bold shadow-lg shadow-red-200 rounded-lg uppercase hover:bg-red-700 hover:shadow-xl transition-all transform hover:-translate-y-0.5 mt-4 w-full sm:w-auto disabled:opacity-70 disabled:cursor-not-allowed"
                                 >
                                     {loading ? 'Processing...' : `Place Order`}
                                 </button>
@@ -530,13 +530,13 @@ export default function Checkout() {
                         </div>
                         <div className="flex justify-between text-base text-gray-800">
                             <span>Discount</span>
-                            <span className="text-[#25D366]">- {formatCurrency(totalDiscount)}</span>
+                            <span className="text-[#DC2626]">- {formatCurrency(totalDiscount)}</span>
                         </div>
                         <div className="flex justify-between text-base text-gray-800">
                             <span>Delivery Charges</span>
                             <span>
                                 <span className="line-through text-gray-400 mr-1">₹40</span>
-                                <span className="text-[#25D366]">Free</span>
+                                <span className="text-[#DC2626]">Free</span>
                             </span>
                         </div>
                         <div className="flex justify-between text-base text-gray-800">
@@ -551,7 +551,7 @@ export default function Checkout() {
                             </div>
                         </div>
 
-                         <div className="text-[#25D366] font-medium text-sm pt-2">
+                         <div className="text-[#DC2626] font-medium text-sm pt-2">
                             You will save {formatCurrency(totalDiscount)} on this order
                         </div>
                     </div>

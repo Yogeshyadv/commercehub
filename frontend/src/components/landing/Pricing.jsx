@@ -62,7 +62,7 @@ export default function Pricing() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section header */}
         <div className="text-center mb-16">
-          <span className="inline-block px-4 py-2 bg-emerald-100 text-emerald-700 rounded-full text-sm font-bold mb-4">
+          <span className="inline-block px-4 py-2 bg-red-100 text-red-700 rounded-full text-sm font-bold mb-4">
             PRICING
           </span>
           <h2 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-4">
@@ -80,8 +80,8 @@ export default function Pricing() {
               key={index}
               className={`relative rounded-2xl p-8 transition-all duration-300 ${
                 plan.highlighted
-                  ? 'bg-gradient-to-br from-emerald-600 to-teal-600 text-white shadow-2xl scale-105 border-2 border-emerald-500'
-                  : 'bg-white border-2 border-gray-200 hover:border-emerald-300 hover:shadow-xl'
+                  ? 'bg-gradient-to-br from-red-600 to-teal-600 text-white shadow-2xl scale-105 border-2 border-red-500'
+                  : 'bg-white border-2 border-gray-200 hover:border-red-300 hover:shadow-xl'
               }`}
             >
               {plan.badge && (
@@ -101,7 +101,7 @@ export default function Pricing() {
                       <span className={`text-5xl font-bold ${plan.highlighted ? 'text-white' : 'text-gray-900'}`}>
                         ₹{plan.price}
                       </span>
-                      <span className={`text-base ml-2 ${plan.highlighted ? 'text-emerald-100' : 'text-gray-500'}`}>
+                      <span className={`text-base ml-2 ${plan.highlighted ? 'text-red-100' : 'text-gray-500'}`}>
                         {plan.period}
                       </span>
                     </>
@@ -111,7 +111,7 @@ export default function Pricing() {
                     </span>
                   )}
                 </div>
-                <p className={`text-sm ${plan.highlighted ? 'text-emerald-100' : 'text-gray-600'}`}>
+                <p className={`text-sm ${plan.highlighted ? 'text-red-100' : 'text-gray-600'}`}>
                   {plan.description}
                 </p>
               </div>
@@ -121,8 +121,8 @@ export default function Pricing() {
                 to={plan.link}
                 className={`block w-full text-center px-6 py-3 rounded-xl font-semibold transition-all duration-200 mb-6 ${
                   plan.highlighted
-                    ? 'bg-white text-emerald-700 hover:bg-gray-50 shadow-lg'
-                    : 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white hover:from-emerald-700 hover:to-teal-700 shadow-lg shadow-emerald-500/25'
+                    ? 'bg-white text-red-700 hover:bg-gray-50 shadow-lg'
+                    : 'bg-gradient-to-r from-red-600 to-teal-600 text-white hover:from-red-700 hover:to-teal-700 shadow-lg shadow-red-500/25'
                 }`}
               >
                 {plan.cta}
@@ -132,7 +132,7 @@ export default function Pricing() {
               <ul className="space-y-3">
                 {plan.features.map((feature, idx) => (
                   <li key={idx} className="flex items-start gap-3">
-                    <HiCheck className={`w-5 h-5 flex-shrink-0 ${plan.highlighted ? 'text-emerald-200' : 'text-emerald-500'}`} />
+                    <HiCheck className={`w-5 h-5 flex-shrink-0 ${plan.highlighted ? 'text-red-200' : 'text-red-500'}`} />
                     <span className={`text-sm ${plan.highlighted ? 'text-white' : 'text-gray-700'}`}>
                       {feature}
                     </span>

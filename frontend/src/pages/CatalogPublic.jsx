@@ -1,7 +1,10 @@
-﻿import { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { catalogService } from '../services/catalogService';
 import { formatCurrency } from '../utils/formatters';
+import BlockCanvas from '../components/catalog/blocks/BlockCanvas';
+import { CatalogCanvas, getTheme } from '../components/catalog/CatalogThemeCanvas';
+import toast from 'react-hot-toast';
 
 const WhatsAppIcon = () => (
   <svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
@@ -17,6 +20,8 @@ export default function CatalogPublic() {
   const [error, setError] = useState(null);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [copied, setCopied] = useState(false);
+  const [cart, setCart] = useState({});
+  const [cartOpen, setCartOpen] = useState(false);
 
   useEffect(() => {
     const fetchCatalog = async () => {
@@ -45,17 +50,52 @@ export default function CatalogPublic() {
 
   const enquireProduct = (product) => {
     const tenant = catalog?.tenant || {};
-    const phone = tenant.socialLinks?.whatsapp || tenant.contactInfo?.phone || '';
+    const phone = (tenant.socialLinks?.whatsapp || tenant.contactInfo?.phone || tenant.owner?.phone || '').replace(/\D/g, '');
     const msg = `Hi! I'm interested in *${product.name}* (${formatCurrency(product.price)}) from your catalog *${catalog.name}*.\n\nCatalog link: ${window.location.href}`;
-    window.open(`https://wa.me/${phone.replace(/\D/g, '')}?text=${encodeURIComponent(msg)}`, '_blank');
+    window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, '_blank');
+  };
+
+  const addToCart = (product) => {
+    setCart(prev => {
+      const qty = (prev[product._id]?.qty || 0) + 1;
+      toast.success(`${product.name} added to cart`, { duration: 1500 });
+      return { ...prev, [product._id]: { product, qty } };
+    });
+  };
+
+  const updateQty = (productId, delta) => {
+    setCart(prev => {
+      const entry = prev[productId];
+      if (!entry) return prev;
+      const qty = entry.qty + delta;
+      if (qty <= 0) {
+        const next = { ...prev };
+        delete next[productId];
+        return next;
+      }
+      return { ...prev, [productId]: { ...entry, qty } };
+    });
+  };
+
+  const cartItems = Object.values(cart);
+  const cartCount = cartItems.reduce((s, e) => s + e.qty, 0);
+  const cartTotal = cartItems.reduce((s, e) => s + e.product.price * e.qty, 0);
+
+  const handleWhatsAppOrder = () => {
+    const tenant = catalog?.tenant || {};
+    const phone = (catalog?.design?.customTexts?.whatsappPhone || tenant?.socialLinks?.whatsapp || tenant?.contactInfo?.phone || tenant?.owner?.phone || '').replace(/\D/g, '');
+    if (!phone) { toast.error('No WhatsApp number configured for this store.'); return; }
+    const lines = cartItems.map(({ product, qty }) => `� ${product.name} � ${qty}  �  ${formatCurrency(product.price * qty)}`).join('\n');
+    const msg = `Hi! I'd like to place an order from *${catalog.name}*:\n\n${lines}\n\n*Order Total: ${formatCurrency(cartTotal)}*\n\nPlease confirm availability. Thank you!\n${window.location.href}`;
+    window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, '_blank');
   };
 
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ background: 'linear-gradient(135deg,#f0fdf4 0%,#dcfce7 100%)' }}>
         <div className="flex flex-col items-center gap-4">
-          <div className="w-12 h-12 border-4 border-[#25D366] border-t-transparent rounded-full animate-spin" />
-          <p className="text-gray-500 font-medium">Loading catalog…</p>
+          <div className="w-12 h-12 border-4 border-[#DC2626] border-t-transparent rounded-full animate-spin" />
+          <p className="text-gray-500 font-medium">Loading catalog�</p>
         </div>
       </div>
     );
@@ -66,7 +106,7 @@ export default function CatalogPublic() {
       <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
         <div className="text-center max-w-sm">
           <div className="w-20 h-20 bg-red-50 rounded-2xl flex items-center justify-center mx-auto mb-5">
-            <span className="text-4xl">📋</span>
+            <span className="text-4xl">??</span>
           </div>
           <h2 className="text-2xl font-bold text-gray-900">Catalog Not Found</h2>
           <p className="text-gray-500 mt-2">{error}</p>
@@ -77,218 +117,111 @@ export default function CatalogPublic() {
 
   const tenant = catalog?.tenant || {};
   const products = catalog?.products?.map(p => p.product || p).filter(Boolean) || [];
-  const branding = tenant.branding || {};
-  const accentColor = branding.primaryColor || '#25D366';
-  const tags = catalog?.tags || [];
 
-  return (
-    <div className="min-h-screen" style={{ backgroundColor: catalog?.design?.backgroundColor || '#f9fafb' }}>
-
-      {/* Sticky Top Bar */}
-      <header className="sticky top-0 z-20 bg-white/90 backdrop-blur-md border-b border-gray-100 shadow-sm">
-        <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
-          {/* Brand */}
-          <div className="flex items-center gap-3 min-w-0">
-            {tenant.logo?.url ? (
-              <img src={tenant.logo.url} alt={tenant.name} className="h-9 w-9 rounded-xl object-cover shrink-0 shadow-sm" />
-            ) : (
-              <div className="h-9 w-9 rounded-xl flex items-center justify-center shrink-0 shadow-sm"
-                style={{ backgroundColor: accentColor }}>
-                <span className="text-white font-bold text-sm">{tenant.name?.[0] || 'S'}</span>
-              </div>
-            )}
-            <div className="min-w-0">
-              <p className="font-bold text-gray-900 text-sm truncate">{tenant.name || 'Store'}</p>
-              <p className="text-xs text-gray-400 truncate">{catalog.name}</p>
-            </div>
-          </div>
-          {/* Actions */}
-          <div className="flex items-center gap-2 shrink-0">
-            <button onClick={copyLink}
-              className="flex items-center gap-1.5 px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-sm font-semibold transition-colors">
-              {copied ? (
-                <><svg className="w-4 h-4 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg><span>Copied!</span></>
-              ) : (
-                <><svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg><span className="hidden sm:inline">Copy Link</span></>
-              )}
-            </button>
-            <button onClick={shareOnWhatsApp}
-              className="flex items-center gap-1.5 px-3 py-2 text-white rounded-xl text-sm font-semibold transition-all hover:brightness-110 shadow-sm"
-              style={{ backgroundColor: '#25D366' }}>
-              <WhatsAppIcon />
-              <span className="hidden sm:inline">Share</span>
-            </button>
-          </div>
-        </div>
-      </header>
-
-      {/* Hero Section */}
-      <div className="relative w-full h-64 sm:h-80 overflow-hidden">
-        {catalog.coverImage?.url ? (
-          <img src={catalog.coverImage.url} alt={catalog.name} className="w-full h-full object-cover" />
-        ) : (
-          <div className="w-full h-full" style={{ background: `linear-gradient(135deg, ${accentColor}30 0%, ${accentColor}10 100%)` }} />
-        )}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-        <div className="absolute bottom-0 left-0 right-0 p-6 max-w-6xl mx-auto">
-          <div className="flex items-end justify-between gap-4">
-            <div>
-              <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold mb-3 ${
-                catalog.status === 'published' ? 'bg-[#25D366]/90 text-white' : 'bg-amber-500/90 text-white'
-              }`}>
-                <span className="w-1.5 h-1.5 rounded-full bg-white" />
-                {catalog.status === 'published' ? 'Live' : 'Draft'}
-              </span>
-              <h1 className="text-2xl sm:text-4xl font-bold text-white tracking-tight drop-shadow-lg">{catalog.name}</h1>
-              {catalog.description && (
-                <p className="text-white/70 text-sm mt-2 max-w-lg">{catalog.description}</p>
-              )}
-            </div>
-            <div className="hidden sm:flex flex-col items-end gap-1 shrink-0">
-              <span className="text-3xl font-bold text-white">{products.length}</span>
-              <span className="text-white/60 text-xs font-medium uppercase tracking-wide">Products</span>
-            </div>
-          </div>
-          {tags.length > 0 && (
-            <div className="flex flex-wrap gap-2 mt-4">
-              {tags.map(tag => (
-                <span key={tag} className="px-3 py-1 rounded-full text-xs font-semibold text-white/80 border border-white/20 bg-white/10 backdrop-blur-sm">
-                  #{tag}
-                </span>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Products Section */}
-      <div className="max-w-6xl mx-auto px-4 py-10">
-        {products.length === 0 ? (
-          <div className="text-center py-24">
-            <div className="w-20 h-20 bg-white rounded-2xl flex items-center justify-center mx-auto mb-5 shadow-sm">
-              <svg className="w-10 h-10 text-gray-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
-              </svg>
-            </div>
-            <h3 className="text-lg font-bold text-gray-700">No products in this catalog yet</h3>
-          </div>
-        ) : (
-          <div className={`grid gap-5 ${
-            catalog.template === 'list' ? 'grid-cols-1' :
-            catalog.template === 'magazine' ? 'grid-cols-1 sm:grid-cols-2' :
-            'grid-cols-2 sm:grid-cols-3 lg:grid-cols-4'
-          }`}>
-            {products.map(product => (
-              <div key={product._id}
-                className="group bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer border border-gray-100"
-                onClick={() => setSelectedProduct(product)}>
-
-                {/* Image */}
-                <div className={`relative overflow-hidden bg-gray-50 ${catalog.template === 'list' ? 'h-44 sm:h-52' : 'aspect-[4/3]'}`}>
-                  {product.images?.[0]?.url ? (
-                    <img src={product.images[0].url} alt={product.name}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center">
-                      <svg className="w-12 h-12 text-gray-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
-                      </svg>
-                    </div>
-                  )}
-                  {product.compareAtPrice > product.price && (
-                    <div className="absolute top-2 left-2 bg-red-500 text-white text-xs px-2 py-1 rounded-lg font-bold shadow-md">
-                      {Math.round((1 - product.price / product.compareAtPrice) * 100)}% OFF
-                    </div>
-                  )}
-                  {product.stock === 0 && (
-                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-                      <span className="bg-white text-gray-800 text-xs font-bold px-3 py-1.5 rounded-lg">Out of Stock</span>
-                    </div>
-                  )}
-                  <div className="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                </div>
-
-                {/* Info */}
-                <div className="p-3.5">
-                  {product.category && (
-                    <p className="text-xs font-semibold uppercase tracking-wider mb-1" style={{ color: accentColor }}>{product.category}</p>
-                  )}
-                  <h3 className="font-bold text-gray-900 text-sm line-clamp-2 leading-snug">{product.name}</h3>
-                  {catalog.design?.showDescription && product.shortDescription && (
-                    <p className="text-xs text-gray-500 mt-1 line-clamp-2">{product.shortDescription}</p>
-                  )}
-                  {catalog.design?.showPrices !== false && (
-                    <div className="flex items-center gap-2 mt-2">
-                      <span className="font-bold text-gray-900 text-base">{formatCurrency(product.price)}</span>
-                      {product.compareAtPrice > product.price && (
-                        <span className="text-xs text-gray-400 line-through">{formatCurrency(product.compareAtPrice)}</span>
-                      )}
-                    </div>
-                  )}
-                  <button
-                    onClick={e => { e.stopPropagation(); enquireProduct(product); }}
-                    className="mt-3 w-full flex items-center justify-center gap-2 py-2 rounded-xl text-sm font-bold text-white transition-all hover:brightness-110 active:scale-95"
-                    style={{ backgroundColor: '#25D366' }}>
-                    <WhatsAppIcon />
-                    Enquire
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* Footer */}
-      <footer className="bg-white border-t border-gray-100 mt-4">
-        <div className="max-w-6xl mx-auto px-4 py-8">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
+  if (catalog.template === 'modern-blocks') {
+    return (
+      <div className="min-h-screen flex flex-col w-full" style={{
+        backgroundColor: catalog?.design?.backgroundColor || '#f4f4f5',
+        fontFamily: `"${catalog.design?.fontFamily || 'Inter'}", sans-serif`
+      }}>
+        {/* Navigation Bar */}
+        <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-gray-200/50 shadow-sm">
+          <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
             <div className="flex items-center gap-3">
-              {tenant.logo?.url ? (
+              {tenant?.logo?.url ? (
                 <img src={tenant.logo.url} alt={tenant.name} className="h-10 w-10 rounded-xl object-cover" />
               ) : (
-                <div className="h-10 w-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: accentColor }}>
-                  <span className="text-white font-bold">{tenant.name?.[0] || 'S'}</span>
+                <div className="h-10 w-10 rounded-xl flex items-center justify-center bg-blue-600 text-white font-bold text-lg">
+                  {tenant?.name?.[0] || 'S'}
                 </div>
               )}
               <div>
-                <p className="font-bold text-gray-900">{tenant.name || 'Store'}</p>
-                <p className="text-xs text-gray-400">Powered by NextGen</p>
+                <p className="font-bold text-gray-900 text-sm">{tenant?.name || 'Store'}</p>
+                <p className="text-xs text-gray-500">{catalog.name}</p>
               </div>
             </div>
-            {tenant.contactInfo && (
-              <div className="flex flex-wrap items-center justify-center gap-4 text-sm text-gray-500">
-                {tenant.contactInfo.phone && (
-                  <a href={`tel:${tenant.contactInfo.phone}`} className="flex items-center gap-1.5 hover:text-gray-800 transition-colors">
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>
-                    {tenant.contactInfo.phone}
-                  </a>
-                )}
-                {tenant.contactInfo.email && (
-                  <a href={`mailto:${tenant.contactInfo.email}`} className="flex items-center gap-1.5 hover:text-gray-800 transition-colors">
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
-                    {tenant.contactInfo.email}
-                  </a>
-                )}
-                {tenant.contactInfo.website && (
-                  <a href={tenant.contactInfo.website} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 hover:text-gray-800 transition-colors">
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9" /></svg>
-                    Website
-                  </a>
-                )}
-              </div>
-            )}
+            <div className="flex items-center gap-2">
+              <button onClick={copyLink} className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-sm font-semibold transition-colors">
+                {copied ? 'Copied!' : 'Copy Link'}
+              </button>
+              {catalog.isWhatsAppEnabled && (
+                <button onClick={() => window.open(`https://wa.me/${tenant.contactInfo?.phone?.replace(/\D/g, '')}`, '_blank')} className="px-4 py-2 bg-[#DC2626] hover:bg-[#B91C1C] text-white rounded-xl text-sm font-bold shadow-sm transition-all focus:ring-4 focus:ring-[#DC2626]/20">
+                  <span className="flex items-center gap-2"><WhatsAppIcon/> Chat</span>
+                </button>
+              )}
+            </div>
           </div>
+        </header>
+
+        {/* Render Blocks */}
+        <div className="flex-1 w-full relative">
+          <BlockCanvas 
+            blocks={catalog.blocks || []} 
+            isEditor={false} 
+            products={products} 
+          />
         </div>
-      </footer>
+      </div>
+    );
+  }
+
+
+  // Merge saved design overrides into the base theme
+  const savedDesign = catalog.design || {};
+  const baseTheme = getTheme(catalog.template);
+  const theme = {
+    ...baseTheme,
+    bg: savedDesign.backgroundColor || baseTheme.bg,
+    text: savedDesign.textColor || baseTheme.text,
+    accent: savedDesign.accentColor || baseTheme.accent,
+    fontBody: savedDesign.fontFamily || baseTheme.fontBody,
+  };
+  const texts = savedDesign.customTexts || {};
+
+  return (
+    <div style={{ minHeight: '100vh', overflowX: 'hidden' }}>
+      {/* Template canvas � renders full template design */}
+      <CatalogCanvas
+        catalog={catalog}
+        theme={theme}
+        products={products}
+        texts={texts}
+        isPublic={true}
+        onProductClick={setSelectedProduct}
+        onAddToCart={addToCart}
+      />
+
+      {/* Floating share bar � sticky bottom on mobile, bottom-right on desktop */}
+      <div style={{ position: 'fixed', bottom: 20, right: 16, zIndex: 50, display: 'flex', flexDirection: 'column', gap: 8 }}>
+        {cartCount > 0 && (
+          <button
+            onClick={() => setCartOpen(true)}
+            style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '11px 18px', background: '#111827', color: '#fff', border: 'none', borderRadius: 50, fontSize: 13, fontWeight: 700, cursor: 'pointer', boxShadow: '0 4px 20px rgba(0,0,0,0.3)', whiteSpace: 'nowrap', position: 'relative' }}
+          >
+            ?? Cart
+            <span style={{ background: '#DC2626', color: '#fff', borderRadius: '50%', width: 20, height: 20, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 800, flexShrink: 0 }}>{cartCount > 9 ? '9+' : cartCount}</span>
+          </button>
+        )}
+        <button
+          onClick={shareOnWhatsApp}
+          style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '11px 18px', background: '#DC2626', color: '#fff', border: 'none', borderRadius: 50, fontSize: 13, fontWeight: 700, cursor: 'pointer', boxShadow: '0 4px 20px rgba(220,38,38,0.4)', whiteSpace: 'nowrap' }}
+        >
+          <WhatsAppIcon /> Share
+        </button>
+        <button
+          onClick={copyLink}
+          style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '9px 14px', background: '#fff', color: '#374151', border: '1.5px solid #e5e7eb', borderRadius: 50, fontSize: 12, fontWeight: 600, cursor: 'pointer', boxShadow: '0 2px 10px rgba(0,0,0,0.1)', whiteSpace: 'nowrap' }}
+        >
+          {copied ? '? Copied!' : '?? Copy'}
+        </button>
+      </div>
 
       {/* Product Detail Modal */}
       {selectedProduct && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
           onClick={() => setSelectedProduct(null)}>
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto"
-            onClick={e => e.stopPropagation()}
-            style={{ animation: 'scaleIn 0.2s ease-out' }}>
+            onClick={e => e.stopPropagation()}>
             {selectedProduct.images?.[0]?.url && (
               <div className="relative h-64 overflow-hidden rounded-t-2xl bg-gray-50">
                 <img src={selectedProduct.images[0].url} alt={selectedProduct.name} className="w-full h-full object-cover" />
@@ -301,7 +234,7 @@ export default function CatalogPublic() {
             )}
             <div className="p-6">
               {selectedProduct.category && (
-                <p className="text-xs font-bold uppercase tracking-wider mb-1" style={{ color: accentColor }}>{selectedProduct.category}</p>
+                <p className="text-xs font-bold uppercase tracking-wider mb-1" style={{ color: theme.accent }}>{selectedProduct.category}</p>
               )}
               <h2 className="text-xl font-bold text-gray-900">{selectedProduct.name}</h2>
               {selectedProduct.brand && (
@@ -316,17 +249,26 @@ export default function CatalogPublic() {
               {selectedProduct.stock === 0 ? (
                 <span className="inline-block mt-2 px-3 py-1 bg-red-50 text-red-600 text-xs font-bold rounded-lg">Out of Stock</span>
               ) : (
-                <span className="inline-block mt-2 px-3 py-1 bg-green-50 text-green-600 text-xs font-bold rounded-lg">{selectedProduct.stock > 0 ? `${selectedProduct.stock} in stock` : 'In Stock'}</span>
+                <span className="inline-block mt-2 px-3 py-1 bg-red-50 text-red-600 text-xs font-bold rounded-lg">
+                  {selectedProduct.stock > 0 ? selectedProduct.stock + ' in stock' : 'In Stock'}
+                </span>
               )}
               {selectedProduct.description && (
                 <p className="text-gray-600 mt-4 text-sm leading-relaxed">{selectedProduct.description}</p>
               )}
-              <div className="mt-6 flex gap-3">
+              <div className="mt-6 flex gap-3 flex-wrap">
+                {selectedProduct.stock !== 0 && (
+                  <button onClick={() => { addToCart(selectedProduct); setSelectedProduct(null); }}
+                    className="flex-1 flex items-center justify-center gap-2 py-3.5 rounded-xl font-bold hover:brightness-110 transition-all text-white"
+                    style={{ backgroundColor: theme.accent, boxShadow: `0 4px 20px ${theme.accent}55`, minWidth: 120 }}>
+                    ?? Add to Cart
+                  </button>
+                )}
                 <button onClick={() => enquireProduct(selectedProduct)}
-                  className="flex-1 flex items-center justify-center gap-2 py-3.5 text-white rounded-xl font-bold hover:brightness-110 transition-all shadow-lg"
-                  style={{ backgroundColor: '#25D366', boxShadow: '0 4px 20px rgba(37,211,102,0.35)' }}>
+                  className="flex-1 flex items-center justify-center gap-2 py-3.5 text-white rounded-xl font-bold hover:brightness-110 transition-all"
+                  style={{ backgroundColor: '#DC2626', boxShadow: '0 4px 20px rgba(220,38,38,0.35)', minWidth: 120 }}>
                   <WhatsAppIcon />
-                  Enquire on WhatsApp
+                  Enquire
                 </button>
                 <button onClick={() => setSelectedProduct(null)}
                   className="px-4 py-3.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-bold transition-colors">
@@ -334,6 +276,72 @@ export default function CatalogPublic() {
                 </button>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+      {/* Cart Drawer */}
+      {cartOpen && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 60 }}>
+          {/* Backdrop */}
+          <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.5)' }} onClick={() => setCartOpen(false)} />
+          {/* Drawer */}
+          <div style={{ position: 'absolute', top: 0, right: 0, bottom: 0, width: '100%', maxWidth: 420, background: '#fff', boxShadow: '-8px 0 40px rgba(0,0,0,0.2)', display: 'flex', flexDirection: 'column' }}>
+            {/* Header */}
+            <div style={{ padding: '20px 24px', borderBottom: '1px solid #f3f4f6', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div>
+                <h2 style={{ fontSize: 18, fontWeight: 800, color: '#111827', margin: 0 }}>Your Order</h2>
+                <p style={{ fontSize: 12, color: '#6b7280', marginTop: 2 }}>{cartCount} item{cartCount !== 1 ? 's' : ''}</p>
+              </div>
+              <button onClick={() => setCartOpen(false)} style={{ background: '#f3f4f6', border: 'none', borderRadius: '50%', width: 36, height: 36, cursor: 'pointer', fontSize: 18, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>�</button>
+            </div>
+
+            {/* Items */}
+            <div style={{ flex: 1, overflowY: 'auto', padding: '16px 24px' }}>
+              {cartItems.length === 0 ? (
+                <div style={{ textAlign: 'center', paddingTop: 60, color: '#9ca3af' }}>
+                  <div style={{ fontSize: 48, marginBottom: 12 }}>??</div>
+                  <p style={{ fontWeight: 600 }}>Your cart is empty</p>
+                </div>
+              ) : (
+                cartItems.map(({ product, qty }) => (
+                  <div key={product._id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 0', borderBottom: '1px solid #f9fafb' }}>
+                    {product.images?.[0]?.url ? (
+                      <img src={product.images[0].url} alt={product.name} style={{ width: 56, height: 56, borderRadius: 10, objectFit: 'cover', flexShrink: 0, background: '#f3f4f6' }} />
+                    ) : (
+                      <div style={{ width: 56, height: 56, borderRadius: 10, background: '#f3f4f6', flexShrink: 0 }} />
+                    )}
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <p style={{ fontWeight: 700, color: '#111827', fontSize: 14, margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{product.name}</p>
+                      <p style={{ color: '#6b7280', fontSize: 12, margin: '2px 0 0' }}>{formatCurrency(product.price)} each</p>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+                      <button onClick={() => updateQty(product._id, -1)} style={{ width: 28, height: 28, borderRadius: '50%', border: '1.5px solid #e5e7eb', background: '#fff', cursor: 'pointer', fontSize: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700 }}>-</button>
+                      <span style={{ fontWeight: 700, minWidth: 20, textAlign: 'center', fontSize: 14 }}>{qty}</span>
+                      <button onClick={() => updateQty(product._id, 1)} style={{ width: 28, height: 28, borderRadius: '50%', border: '1.5px solid #DC2626', background: '#DC2626', cursor: 'pointer', fontSize: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 700 }}>+</button>
+                    </div>
+                    <p style={{ fontWeight: 800, color: '#111827', fontSize: 14, minWidth: 64, textAlign: 'right', flexShrink: 0 }}>{formatCurrency(product.price * qty)}</p>
+                  </div>
+                ))
+              )}
+            </div>
+
+            {/* Footer */}
+            {cartItems.length > 0 && (
+              <div style={{ padding: '20px 24px', borderTop: '1px solid #f3f4f6' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16 }}>
+                  <span style={{ fontWeight: 700, fontSize: 16, color: '#111827' }}>Total</span>
+                  <span style={{ fontWeight: 800, fontSize: 18, color: '#111827' }}>{formatCurrency(cartTotal)}</span>
+                </div>
+                <button onClick={handleWhatsAppOrder}
+                  style={{ width: '100%', padding: '14px 0', background: '#DC2626', color: '#fff', border: 'none', borderRadius: 14, fontSize: 15, fontWeight: 800, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, boxShadow: '0 4px 20px rgba(220,38,38,0.4)' }}>
+                  <WhatsAppIcon /> Send Order via WhatsApp
+                </button>
+                <button onClick={() => setCart({})}
+                  style={{ width: '100%', marginTop: 8, padding: '10px 0', background: 'transparent', color: '#9ca3af', border: 'none', borderRadius: 10, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+                  Clear cart
+                </button>
+              </div>
+            )}
           </div>
         </div>
       )}

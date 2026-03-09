@@ -99,7 +99,7 @@ export default function BulkUploadModal({ isOpen, onClose, onSuccess }) {
                   className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                 />
                 <div className="flex flex-col items-center">
-                  <div className="w-12 h-12 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center mb-3 text-green-600 dark:text-green-400">
+                  <div className="w-12 h-12 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center mb-3 text-red-600 dark:text-red-400">
                     <Upload className="w-6 h-6" />
                   </div>
                   <p className="font-medium text-gray-900 dark:text-white">
@@ -111,10 +111,10 @@ export default function BulkUploadModal({ isOpen, onClose, onSuccess }) {
             </>
           ) : (
             <div className="space-y-4">
-              <div className={`p-4 rounded-lg ${result.success ? 'bg-green-50 dark:bg-green-900/20' : 'bg-red-50 dark:bg-red-900/20'}`}>
+              <div className={`p-4 rounded-lg ${result.success ? 'bg-red-50 dark:bg-red-900/20' : 'bg-red-50 dark:bg-red-900/20'}`}>
                 <div className="flex items-center gap-2 mb-2">
                     {result.success ? (
-                        <Check className="w-5 h-5 text-green-600" />
+                        <Check className="w-5 h-5 text-red-600" />
                     ) : (
                         <AlertCircle className="w-5 h-5 text-red-600" />
                     )}
@@ -142,7 +142,7 @@ export default function BulkUploadModal({ isOpen, onClose, onSuccess }) {
           {!result && (
             <Button 
                 onClick={handleUpload} 
-                className="bg-[#25D366] hover:bg-[#20bd5a] text-white"
+                className="bg-[#DC2626] hover:bg-[#B91C1C] text-white"
                 disabled={!file || uploading}
             >
                 {uploading ? <Loader size="sm" color="white" /> : 'Upload Products'}

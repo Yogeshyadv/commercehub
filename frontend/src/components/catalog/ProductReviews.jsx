@@ -86,7 +86,7 @@ export default function ProductReviews({ productId, averageRating, totalReviews,
           {!isWriting ? (
             <button 
               onClick={() => setIsWriting(true)}
-              className="w-full py-2.5 bg-emerald-600 text-white rounded-xl font-medium hover:bg-emerald-700 transition-colors"
+              className="w-full py-2.5 bg-red-600 text-white rounded-xl font-medium hover:bg-red-700 transition-colors"
             >
               Write a Review
             </button>
@@ -133,7 +133,7 @@ export default function ProductReviews({ productId, averageRating, totalReviews,
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
                     placeholder="Summarize your experience"
-                    className="w-full px-4 py-2 rounded-xl border border-gray-200 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-800 focus:ring-2 focus:ring-emerald-500 outline-none dark:text-white"
+                    className="w-full px-4 py-2 rounded-xl border border-gray-200 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-800 focus:ring-2 focus:ring-red-500 outline-none dark:text-white"
                   />
                 </div>
 
@@ -145,7 +145,7 @@ export default function ProductReviews({ productId, averageRating, totalReviews,
                     onChange={(e) => setComment(e.target.value)}
                     rows={4}
                     placeholder="What did you like or dislike?"
-                    className="w-full px-4 py-2 rounded-xl border border-gray-200 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-800 focus:ring-2 focus:ring-emerald-500 outline-none dark:text-white"
+                    className="w-full px-4 py-2 rounded-xl border border-gray-200 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-800 focus:ring-2 focus:ring-red-500 outline-none dark:text-white"
                   />
                 </div>
 
@@ -153,7 +153,7 @@ export default function ProductReviews({ productId, averageRating, totalReviews,
                   <button 
                     type="submit" 
                     disabled={submitting}
-                    className="px-6 py-2.5 bg-emerald-600 text-white rounded-xl font-medium hover:bg-emerald-700 disabled:opacity-50 transition-colors"
+                    className="px-6 py-2.5 bg-red-600 text-white rounded-xl font-medium hover:bg-red-700 disabled:opacity-50 transition-colors"
                   >
                     {submitting ? 'Submitting...' : 'Submit Review'}
                   </button>
@@ -173,7 +173,7 @@ export default function ProductReviews({ productId, averageRating, totalReviews,
                 <div key={review._id} className="bg-white dark:bg-zinc-900 p-6 rounded-2xl border border-gray-100 dark:border-zinc-800">
                   <div className="flex justify-between items-start mb-4">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center text-emerald-700 dark:text-emerald-400 font-bold">
+                      <div className="w-10 h-10 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center text-red-700 dark:text-red-400 font-bold">
                         {generateInitials(`${review.customer?.firstName || ''} ${review.customer?.lastName || ''}`.trim() || 'User')}
                       </div>
                       <div>
@@ -191,7 +191,7 @@ export default function ProductReviews({ productId, averageRating, totalReviews,
                       </div>
                     </div>
                     {review.isVerifiedPurchase && (
-                      <div className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400 text-xs font-medium bg-emerald-50 dark:bg-emerald-900/20 px-2 py-1 rounded-full">
+                      <div className="flex items-center gap-1 text-red-600 dark:text-red-400 text-xs font-medium bg-red-50 dark:bg-red-900/20 px-2 py-1 rounded-full">
                         <CheckCircle className="w-3 h-3" />
                         Verified Purchase
                       </div>

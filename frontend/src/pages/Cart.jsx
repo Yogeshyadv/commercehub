@@ -76,7 +76,7 @@ export default function Cart() {
             {/* Logo area */}
             <div className="flex items-center gap-4">
                 <div onClick={() => navigate('/')} className="cursor-pointer flex items-center gap-2 select-none">
-                  <span className="text-2xl font-bold tracking-tight text-emerald-600 italic">
+                  <span className="text-2xl font-bold tracking-tight text-red-600 italic">
                     Commerce<span className="text-gray-800 not-italic">Hub</span>
                   </span>
                 </div>
@@ -90,7 +90,7 @@ export default function Cart() {
                     {isAuthenticated ? (
                       <button 
                         onClick={() => setIsProfileOpen(!isProfileOpen)}
-                        className="flex items-center gap-2 py-1 px-3 hover:bg-emerald-50 rounded-lg transition-colors border border-transparent hover:border-emerald-100"
+                        className="flex items-center gap-2 py-1 px-3 hover:bg-red-50 rounded-lg transition-colors border border-transparent hover:border-red-100"
                       >
                          <User className="w-5 h-5 text-gray-700" />
                          <span className="text-sm font-semibold text-gray-700 whitespace-nowrap">{user?.firstName || 'Account'}</span>
@@ -99,7 +99,7 @@ export default function Cart() {
                     ) : (
                       <button
                         onClick={() => navigate('/login')}
-                        className="px-6 py-2 bg-white text-emerald-600 text-sm font-bold border border-emerald-200 rounded-lg hover:bg-emerald-600 hover:text-white transition-all shadow-sm"
+                        className="px-6 py-2 bg-white text-red-600 text-sm font-bold border border-red-200 rounded-lg hover:bg-red-600 hover:text-white transition-all shadow-sm"
                       >
                         Login
                       </button>
@@ -110,11 +110,11 @@ export default function Cart() {
                       <>
                         <div className="fixed inset-0 z-30" onClick={() => setIsProfileOpen(false)} />
                         <div className="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-[0_8px_16px_0_rgba(0,0,0,0.2)] border border-gray-100 z-40 py-1 animate-in fade-in zoom-in-95 duration-100 overflow-hidden">
-                           <div className="px-5 py-3 border-b border-gray-100 bg-emerald-50/50">
+                           <div className="px-5 py-3 border-b border-gray-100 bg-red-50/50">
                              <p className="text-xs text-gray-500 font-medium">Signed in as</p>
                              <p className="text-sm font-bold text-gray-900 truncate">{user?.email}</p>
                            </div>
-                           <button onClick={() => navigate('/dashboard')} className="w-full text-left px-5 py-3 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-3 font-medium border-b border-gray-50"><Package className="w-4 h-4 text-emerald-600" /> Orders</button>
+                           <button onClick={() => navigate('/dashboard')} className="w-full text-left px-5 py-3 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-3 font-medium border-b border-gray-50"><Package className="w-4 h-4 text-red-600" /> Orders</button>
                            <button onClick={() => { logout(); setIsProfileOpen(false); }} className="w-full text-left px-5 py-3 text-sm text-red-600 hover:bg-red-50 flex items-center gap-3 font-medium"><LogOut className="w-4 h-4" /> Logout</button>
                         </div>
                       </>
@@ -124,7 +124,7 @@ export default function Cart() {
                 {/* Cart */}
                 <button 
                     onClick={() => navigate('/cart')}
-                    className="relative flex items-center gap-2 text-gray-700 hover:text-emerald-600 font-semibold text-sm group"
+                    className="relative flex items-center gap-2 text-gray-700 hover:text-red-600 font-semibold text-sm group"
                 >
                     <div className="relative">
                       <ShoppingCart className="w-5 h-5" />
@@ -153,7 +153,7 @@ export default function Cart() {
                 <p className="text-sm text-gray-500 mb-6">Explore our wide selection and find something you like</p>
                 <button 
                     onClick={() => navigate('/')}
-                    className="bg-[#25D366] text-white px-8 py-3 font-medium text-sm rounded-sm shadow hover:bg-[#128C7E] transition-colors uppercase"
+                    className="bg-[#DC2626] text-white px-8 py-3 font-medium text-sm rounded-sm shadow hover:bg-[#128C7E] transition-colors uppercase"
                 >
                     Shop Now
                 </button>
@@ -174,7 +174,7 @@ export default function Cart() {
             {/* Logo area */}
             <div className="flex items-center gap-4">
                 <div onClick={() => navigate('/')} className="cursor-pointer flex items-center gap-2 select-none">
-                  <span className="text-2xl font-bold tracking-tight text-emerald-600 italic">
+                  <span className="text-2xl font-bold tracking-tight text-red-600 italic">
                     Commerce<span className="text-gray-800 not-italic">Hub</span>
                   </span>
                 </div>
@@ -188,7 +188,7 @@ export default function Cart() {
                     {isAuthenticated ? (
                       <button 
                         onClick={() => setIsProfileOpen(!isProfileOpen)}
-                        className="flex items-center gap-2 py-1 px-3 hover:bg-emerald-50 rounded-lg transition-colors border border-transparent hover:border-emerald-100"
+                        className="flex items-center gap-2 py-1 px-3 hover:bg-red-50 rounded-lg transition-colors border border-transparent hover:border-red-100"
                       >
                          <User className="w-5 h-5 text-gray-700" />
                          <span className="text-sm font-semibold text-gray-700 whitespace-nowrap">{user?.firstName || 'Account'}</span>
@@ -197,7 +197,7 @@ export default function Cart() {
                     ) : (
                       <button
                         onClick={() => navigate('/login')}
-                        className="px-6 py-2 bg-white text-emerald-600 text-sm font-bold border border-emerald-200 rounded-lg hover:bg-emerald-600 hover:text-white transition-all shadow-sm"
+                        className="px-6 py-2 bg-white text-red-600 text-sm font-bold border border-red-200 rounded-lg hover:bg-red-600 hover:text-white transition-all shadow-sm"
                       >
                         Login
                       </button>
@@ -208,11 +208,11 @@ export default function Cart() {
                       <>
                         <div className="fixed inset-0 z-30" onClick={() => setIsProfileOpen(false)} />
                         <div className="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-[0_8px_16px_0_rgba(0,0,0,0.2)] border border-gray-100 z-40 py-1 animate-in fade-in zoom-in-95 duration-100 overflow-hidden">
-                           <div className="px-5 py-3 border-b border-gray-100 bg-emerald-50/50">
+                           <div className="px-5 py-3 border-b border-gray-100 bg-red-50/50">
                              <p className="text-xs text-gray-500 font-medium">Signed in as</p>
                              <p className="text-sm font-bold text-gray-900 truncate">{user?.email}</p>
                            </div>
-                           <button onClick={() => navigate('/dashboard')} className="w-full text-left px-5 py-3 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-3 font-medium border-b border-gray-50"><Package className="w-4 h-4 text-emerald-600" /> Orders</button>
+                           <button onClick={() => navigate('/dashboard')} className="w-full text-left px-5 py-3 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-3 font-medium border-b border-gray-50"><Package className="w-4 h-4 text-red-600" /> Orders</button>
                            <button onClick={() => { logout(); setIsProfileOpen(false); }} className="w-full text-left px-5 py-3 text-sm text-red-600 hover:bg-red-50 flex items-center gap-3 font-medium"><LogOut className="w-4 h-4" /> Logout</button>
                         </div>
                       </>
@@ -222,7 +222,7 @@ export default function Cart() {
                 {/* Cart */}
                 <button 
                     onClick={() => navigate('/cart')}
-                    className="relative flex items-center gap-2 text-gray-700 hover:text-emerald-600 font-semibold text-sm group"
+                    className="relative flex items-center gap-2 text-gray-700 hover:text-red-600 font-semibold text-sm group"
                 >
                     <div className="relative">
                       <ShoppingCart className="w-5 h-5" />
@@ -273,7 +273,7 @@ export default function Cart() {
 
                             {/* Details */}
                             <div className="flex-1">
-                                <h3 className="text-base font-medium text-gray-900 mb-1 hover:text-[#25D366] cursor-pointer transition-colors"
+                                <h3 className="text-base font-medium text-gray-900 mb-1 hover:text-[#DC2626] cursor-pointer transition-colors"
                                     onClick={() => navigate(`/product/${item.product._id}`)}
                                 >
                                     {item.product.name}
@@ -298,7 +298,7 @@ export default function Cart() {
                                         {formatCurrency(item.product.price)}
                                      </span>
                                      {item.product.compareAtPrice > item.product.price && (
-                                        <span className="text-sm text-[#25D366] font-bold">
+                                        <span className="text-sm text-[#DC2626] font-bold">
                                             {Math.round(((item.product.compareAtPrice - item.product.price) / item.product.compareAtPrice) * 100)}% Off
                                         </span>
                                      )}
@@ -325,7 +325,7 @@ export default function Cart() {
                                         </button>
                                     </div>
                                     
-                                    <button className="text-base font-medium text-gray-900 hover:text-[#25D366] uppercase text-sm">Save for later</button>
+                                    <button className="text-base font-medium text-gray-900 hover:text-[#DC2626] uppercase text-sm">Save for later</button>
                                     <button 
                                         onClick={() => handleRemoveItem(item.product._id, item.product.name)}
                                         className="text-base font-medium text-gray-900 hover:text-red-500 uppercase text-sm"
@@ -338,7 +338,7 @@ export default function Cart() {
 
                             {/* Delivery Date */}
                             <div className="text-sm hidden md:block w-48 shrink-0">
-                                <div className="text-gray-900 mb-1">Delivery by Tomorrow, Sun | <span className="text-[#25D366]">Free</span> <span className="line-through text-gray-400">₹40</span></div>
+                                <div className="text-gray-900 mb-1">Delivery by Tomorrow, Sun | <span className="text-[#DC2626]">Free</span> <span className="line-through text-gray-400">₹40</span></div>
                             </div>
                         </div>
                     ))}
@@ -346,7 +346,7 @@ export default function Cart() {
                     <div className="p-4 border-t border-gray-100 flex justify-end bg-white sticky bottom-0 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] z-10 lg:static lg:shadow-none">
                          <button 
                             onClick={() => navigate('/checkout')}
-                            className="bg-emerald-600 text-white px-10 py-3.5 text-base font-bold shadow-lg shadow-emerald-200 rounded-lg uppercase hover:bg-emerald-700 transition-all transform hover:-translate-y-0.5"
+                            className="bg-red-600 text-white px-10 py-3.5 text-base font-bold shadow-lg shadow-red-200 rounded-lg uppercase hover:bg-red-700 transition-all transform hover:-translate-y-0.5"
                          >
                             Place Order
                          </button>
@@ -369,13 +369,13 @@ export default function Cart() {
                         </div>
                         <div className="flex justify-between text-base text-gray-800">
                             <span>Discount</span>
-                            <span className="text-[#25D366]">- {formatCurrency(totalDiscount)}</span>
+                            <span className="text-[#DC2626]">- {formatCurrency(totalDiscount)}</span>
                         </div>
                         <div className="flex justify-between text-base text-gray-800">
                             <span>Delivery Charges</span>
                             <span>
                                 <span className="line-through text-gray-400 mr-1">₹40</span>
-                                <span className="text-[#25D366]">{deliveryStatus}</span>
+                                <span className="text-[#DC2626]">{deliveryStatus}</span>
                             </span>
                         </div>
                         <div className="flex justify-between text-base text-gray-800">
@@ -390,7 +390,7 @@ export default function Cart() {
                             </div>
                         </div>
 
-                         <div className="text-[#25D366] font-medium text-sm pt-2">
+                         <div className="text-[#DC2626] font-medium text-sm pt-2">
                             You will save {formatCurrency(totalDiscount + (deliveryCharges === 0 ? 40 : 0))} on this order
                         </div>
                     </div>

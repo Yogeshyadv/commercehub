@@ -1,6 +1,16 @@
 import api from './api';
 
 export const aiService = {
+  generateCatalog: async (prompt) => {
+    const response = await api.post('/ai/catalog', { prompt });
+    return response.data;
+  },
+
+  generateTheme: async (prompt) => {
+    const response = await api.post('/ai/theme', { prompt });
+    return response.data;
+  },
+
   generateDescription: async (productData) => {
     const response = await api.post('/ai/description', productData);
     return response.data;

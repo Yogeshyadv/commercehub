@@ -1,66 +1,179 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
-  ShoppingBag, 
-  Users, 
-  IndianRupee, 
-  TrendingUp, 
-  Package, 
-  AlertCircle,
-  Clock,
-  CheckCircle2,
-  XCircle,
-  Truck
+  ShoppingBag, Users, IndianRupee, Package, Clock, Plus,
+  ArrowUpRight, ArrowDownRight, ChevronRight, ChevronDown,
+  ExternalLink, AlertCircle, Sparkles, Activity, BookOpen,
+  BarChart2, ShoppingCart, TrendingUp, Store
 } from 'lucide-react';
 import {
-  AreaChart, Area, XAxis, YAxis, CartesianGrid,
-  Tooltip, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell,
+  AreaChart, Area, XAxis, YAxis, Tooltip,
+  ResponsiveContainer, CartesianGrid,
 } from 'recharts';
-import StatsCard from '../components/dashboard/StatsCard';
-import RecentOrders from '../components/dashboard/RecentOrders';
-import LowStockAlert from '../components/dashboard/LowStockAlert';
-import RecentNotifications from '../components/dashboard/RecentNotifications';
 import Loader from '../components/common/Loader';
 import Badge from '../components/common/Badge';
 import { analyticsService } from '../services/analyticsService';
 import { orderService } from '../services/orderService';
-import { productService } from '../services/productService';
 import { aiService } from '../services/aiService';
-import { formatCurrency, formatNumber } from '../utils/formatters';
+import { formatCurrency, formatNumber, formatRelativeTime } from '../utils/formatters';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 import { useSocket } from '../context/SocketContext';
 import toast from 'react-hot-toast';
 
-const PIE_COLORS = ['#25D366', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
+/* ─────────────────────────────────────────────────────────────────
+   EXACT SHOPIFY POLARIS TOKENS
+   Card shadow (no border CSS — shadow creates the outline):
+     light: 0 0 0 1px rgba(26,26,26,.13), 0 1px 0 0 rgba(26,26,26,.07)
+     dark:  0 0 0 1px rgba(255,255,255,.12), 0 1px 0 0 rgba(0,0,0,.32)
+   Radius: 12px  ·  Page bg: #f6f6f7  ·  Text: #1a1a1a
+   Subdued: #6d7175  ·  Border divider: #e1e3e5
+───────────────────────────────────────────────────────────────── */
+const CARD = [
+  'bg-white dark:bg-[#1a1a24]',
+  'rounded-xl',
+  'shadow-[0_0_0_1px_rgba(26,26,26,0.13),0_1px_0_0_rgba(26,26,26,0.07)]',
+  'dark:shadow-[0_0_0_1px_rgba(255,255,255,0.10),0_1px_0_0_rgba(0,0,0,0.32)]',
+].join(' ');
 
+const DIVIDER = 'border-[#e1e3e5] dark:border-white/[0.08]';
+const H1      = 'text-[1.375rem] font-bold leading-snug text-[#1a1a1a] dark:text-[#e3e3e3]';
+const SUBDUED = 'text-[#6d7175] dark:text-[#9898b8]';
+
+const STATUS_COLOR = {
+  pending: 'yellow', confirmed: 'blue', processing: 'indigo',
+  shipped: 'purple', delivered: 'green', cancelled: 'red', refunded: 'gray',
+};
+
+const PERIOD_OPTS = [
+  { v: '1d',  l: 'Today'        },
+  { v: '7d',  l: 'Last 7 days'  },
+  { v: '30d', l: 'Last 30 days' },
+  { v: '90d', l: 'Last 90 days' },
+  { v: '1y',  l: 'This year'    },
+];
+
+const MANAGE_LINKS = [
+  { icon: Package,     label: 'Products',  sub: 'Manage your catalog',    to: '/dashboard/products'  },
+  { icon: Users,       label: 'Customers', sub: 'View customer list',     to: '/dashboard/customers' },
+  { icon: ShoppingBag, label: 'Orders',    sub: 'Manage and fulfill',     to: '/dashboard/orders'    },
+  { icon: BarChart2,   label: 'Analytics', sub: 'Reports and insights',   to: '/dashboard/analytics' },
+  { icon: BookOpen,    label: 'Catalogs',  sub: 'Manage catalogs',        to: '/dashboard/catalogs'  },
+  { icon: Package,     label: 'Inventory', sub: 'Stock management',       to: '/dashboard/inventory' },
+];
+
+/* ── Period dropdown ─────────────────────────────────────────── */
+function PeriodPicker({ value, onChange }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+  const label = PERIOD_OPTS.find(o => o.v === value)?.l || 'Today';
+
+  useEffect(() => {
+    const handler = e => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  return (
+    <div className="relative" ref={ref}>
+      <button
+        onClick={() => setOpen(p => !p)}
+        className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-[#303030] dark:text-[#d4d4d4]
+          bg-white dark:bg-[#23233a]
+          shadow-[0_0_0_1px_rgba(26,26,26,0.13),0_1px_0_0_rgba(26,26,26,0.07)]
+          dark:shadow-[0_0_0_1px_rgba(255,255,255,0.10)]
+          rounded-lg hover:bg-[#f6f6f7] dark:hover:bg-white/[0.06] transition-colors"
+      >
+        {label}
+        <ChevronDown className="w-4 h-4 text-[#6d7175]" />
+      </button>
+      {open && (
+        <div className={`absolute right-0 top-full mt-1 w-40 z-20 ${CARD} overflow-hidden`}>
+          {PERIOD_OPTS.map(o => (
+            <button
+              key={o.v}
+              onClick={() => { onChange(o.v); setOpen(false); }}
+              className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${
+                o.v === value
+                  ? 'bg-[#f1f8f5] dark:bg-[#DC2626]/10 text-[#DC2626] font-semibold'
+                  : 'text-[#303030] dark:text-[#d4d4d4] hover:bg-[#f6f6f7] dark:hover:bg-white/[0.05]'
+              }`}
+            >
+              {o.l}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ── Mini metric cell (bottom of performance card) ──────────── */
+function MiniMetric({ label, value, change, icon: Icon }) {
+  const isUp = change >= 0;
+  return (
+    <div className="flex-1 px-5 py-4 min-w-0">
+      <p className={`text-xs ${SUBDUED} mb-1.5`}>{label}</p>
+      <div className="flex items-baseline gap-2 flex-wrap">
+        <span className="text-[0.9375rem] font-bold text-[#1a1a1a] dark:text-[#e3e3e3]">{value}</span>
+        {change !== undefined && (
+          <span className={`inline-flex items-center gap-0.5 text-[11px] font-semibold rounded-md px-1.5 py-0.5 ${
+            isUp
+              ? 'bg-[#f1f8f5] dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400'
+              : 'bg-[#fff4f4] dark:bg-red-500/10 text-red-600 dark:text-red-400'
+          }`}>
+            {isUp ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
+            {Math.abs(change)}%
+          </span>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* ── Chart tooltip (Shopify style) ──────────────────────────── */
+const ChartTooltip = ({ active, payload, label }) => {
+  if (!active || !payload?.length) return null;
+  return (
+    <div className="bg-[#1a1a1a] dark:bg-[#0d0d0d] text-white rounded-xl px-3.5 py-2.5 text-xs shadow-xl">
+      <p className={`${SUBDUED} mb-0.5 text-[10px]`}>{label}</p>
+      <p className="font-bold text-white text-sm">{formatCurrency(payload[0]?.value || 0)}</p>
+    </div>
+  );
+};
+
+/* ═══════════════════════════════════════════════════════════════
+   MAIN COMPONENT
+═══════════════════════════════════════════════════════════════ */
 export default function Dashboard() {
-  const [stats, setStats] = useState(null);
-  const [salesData, setSalesData] = useState([]);
+  const [stats, setStats]               = useState(null);
+  const [salesData, setSalesData]       = useState([]);
   const [customerOrders, setCustomerOrders] = useState([]);
-  const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [chartPeriod, setChartPeriod] = useState('30d');
-  const { user } = useAuth();
-  const navigate = useNavigate();
-  const socket = useSocket();
+  const [products, setProducts]         = useState([]);
+  const [loading, setLoading]           = useState(true);
+  const [period, setPeriod]             = useState('30d');
+  const [periodLoading, setPeriodLoading] = useState(false);
+  const { user }    = useAuth();
+  const navigate    = useNavigate();
+  const socket      = useSocket();
   const { addItem } = useCart();
+  const isVendor    = user?.role === 'vendor' || user?.role === 'vendor_staff' || user?.role === 'super_admin';
 
-  const isVendor = user?.role === 'vendor' || user?.role === 'vendor_staff' || user?.role === 'super_admin';
+  const greeting = () => {
+    const h = new Date().getHours();
+    if (h < 12) return 'Good morning';
+    if (h < 18) return 'Good afternoon';
+    return 'Good evening';
+  };
 
   useEffect(() => {
     if (socket && isVendor) {
-      socket.on('new_order', (data) => {
-        // Increment order count locally or refresh data
-        setStats(prev => prev ? ({ ...prev, totalOrders: (prev.totalOrders || 0) + 1 }) : prev);
-        
-        // Optionally refresh recent orders if we had that function exposed or call fetch again
-        // For now, simpler to just update the aggregate stat
+      socket.on('new_order', () => {
+        setStats(prev =>
+          prev ? { ...prev, overview: { ...prev.overview, totalOrders: (prev.overview?.totalOrders || 0) + 1 } } : prev
+        );
       });
-
-      return () => {
-        socket.off('new_order');
-      };
+      return () => { socket.off('new_order'); };
     }
   }, [socket, isVendor]);
 
@@ -75,10 +188,9 @@ export default function Dashboard() {
           if (d.status === 'fulfilled') setStats(d.value.data);
           if (a.status === 'fulfilled') setSalesData(a.value.data?.salesData || []);
         } else {
-          // Fetch customer orders and recommended products
           const [ordersRes, productsRes] = await Promise.allSettled([
             orderService.getMyOrders(),
-            aiService.getRecommendations()
+            aiService.getRecommendations(),
           ]);
           if (ordersRes.status === 'fulfilled') setCustomerOrders(ordersRes.value.data || []);
           if (productsRes.status === 'fulfilled') setProducts(productsRes.value.data || []);
@@ -92,433 +204,384 @@ export default function Dashboard() {
     fetchData();
   }, [isVendor]);
 
+  const handlePeriodChange = async (v) => {
+    setPeriod(v);
+    setPeriodLoading(true);
+    try {
+      const r = await analyticsService.getSalesAnalytics({ period: v });
+      setSalesData(r.data?.salesData || []);
+    } catch {
+      toast.error('Failed to load data');
+    } finally {
+      setPeriodLoading(false);
+    }
+  };
+
   if (loading) return <Loader text="Loading dashboard..." />;
 
-  // Customer Dashboard
+  /* ═══════════════════════════════════════════════════════════════
+     CUSTOMER DASHBOARD
+  ═══════════════════════════════════════════════════════════════ */
   if (!isVendor) {
-    const totalSpent = customerOrders.reduce((sum, order) => sum + (order.total || 0), 0);
-    const pendingOrders = customerOrders.filter(o => o.status === 'pending' || o.status === 'confirmed').length;
-    
-    const getStatusColor = (status) => {
-      const colors = {
-        pending: 'yellow',
-        confirmed: 'blue',
-        processing: 'purple',
-        shipped: 'indigo',
-        delivered: 'green',
-        cancelled: 'red',
-      };
-      return colors[status] || 'gray';
-    };
+    const totalSpent   = customerOrders.reduce((s, o) => s + (o.total || 0), 0);
+    const pendingCount = customerOrders.filter(o => ['pending', 'confirmed'].includes(o.status)).length;
 
     return (
-      <div className="space-y-8 animate-in fade-in duration-500">
-        <div className="flex items-center justify-between">
+      <div className="max-w-[960px] mx-auto space-y-5 pb-12">
+
+        {/* Header */}
+        <div className="flex items-center justify-between pt-2 pb-1">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Welcome, {user?.firstName}! 👋</h1>
-            <p className="text-gray-500 dark:text-gray-400 mt-1">Track your orders and find new products.</p>
+            <h1 className={H1}>{greeting()}, {user?.firstName}!</h1>
+            <p className={`text-sm mt-0.5 ${SUBDUED}`}>Track your orders and discover products.</p>
           </div>
-          <Link to="/store" className="hidden sm:flex items-center gap-2 px-4 py-2 bg-[#25D366] text-white rounded-xl font-medium shadow-lg shadow-[#25D366]/20 hover:bg-[#20bd5a] transition-all">
-            <ShoppingBag className="w-5 h-5" />
-            Start Shopping
+          <Link to="/store" className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-[#DC2626] rounded-lg hover:bg-[#b91c1c] transition-colors shadow-[0_1px_0_rgba(0,0,0,0.2)]">
+            <Store className="w-4 h-4" /> View store
           </Link>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-          <StatsCard 
-            title="Total Orders" 
-            value={customerOrders.length.toString()} 
-            icon={Package} 
-            color="blue" 
-          />
-          <StatsCard 
-            title="Pending Orders" 
-            value={pendingOrders.toString()} 
-            icon={Clock} 
-            color="yellow" 
-          />
-          <StatsCard 
-            title="Total Spent" 
-            value={formatCurrency(totalSpent)} 
-            icon={IndianRupee} 
-            color="green" 
-          />
+        {/* Performance card */}
+        <div className={CARD}>
+          {/* Metric header */}
+          <div className="px-5 pt-5 pb-0">
+            <div className="flex items-start justify-between mb-1">
+              <p className={`text-sm ${SUBDUED}`}>Total spent</p>
+            </div>
+            <p className="text-[2rem] font-bold tracking-tight text-[#1a1a1a] dark:text-[#e3e3e3] font-[feature-settings:'tnum']">
+              {formatCurrency(totalSpent)}
+            </p>
+          </div>
+          {/* Divider + mini metrics */}
+          <div className={`mt-5 flex divide-x ${DIVIDER} border-t ${DIVIDER}`}>
+            <MiniMetric label="Total orders"   value={String(customerOrders.length)} />
+            <MiniMetric label="Pending orders" value={String(pendingCount)} />
+            <MiniMetric label="Delivered"      value={String(customerOrders.filter(o => o.status === 'delivered').length)} />
+          </div>
         </div>
 
-        {/* Recent Orders */}
-        {customerOrders.length > 0 ? (
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
-            <div className="p-6 border-b border-gray-50 dark:border-gray-700 flex items-center justify-between bg-gray-50/50 dark:bg-gray-700/50">
-              <h3 className="font-bold text-gray-900 dark:text-white">Recent Orders</h3>
-              <Link to="/my-orders" className="text-sm text-[#128C7E] dark:text-[#25D366] hover:text-[#25D366] font-semibold transition-colors">
-                View All →
-              </Link>
-            </div>
-            <div className="divide-y divide-gray-50 dark:divide-gray-700">
-              {customerOrders.slice(0, 5).map((order) => (
-                <div key={order._id} className="p-4 hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors group">
-                  <div className="flex items-center justify-between mb-2">
-                    <div>
-                      <p className="font-bold text-gray-900 dark:text-white group-hover:text-[#128C7E] dark:group-hover:text-[#25D366] transition-colors">Order #{order._id.slice(-8)}</p>
-                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                        {new Date(order.createdAt).toLocaleDateString('en-IN', { dateStyle: 'medium' })}
-                      </p>
+        {/* Recent orders */}
+        <div className={CARD}>
+          <div className={`flex items-center justify-between px-5 py-4 border-b ${DIVIDER}`}>
+            <h2 className="text-sm font-semibold text-[#1a1a1a] dark:text-[#e3e3e3]">Recent orders</h2>
+            <Link to="/my-orders" className="text-xs font-semibold text-[#DC2626] hover:underline">View all</Link>
+          </div>
+          {customerOrders.length > 0 ? (
+            <div className={`divide-y ${DIVIDER}`}>
+              {customerOrders.slice(0, 6).map(order => (
+                <div key={order._id} className="flex items-center justify-between px-5 py-4 hover:bg-[#f6f6f7] dark:hover:bg-white/[0.03] transition-colors">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="w-9 h-9 bg-[#f6f6f7] dark:bg-white/[0.06] rounded-lg flex items-center justify-center shrink-0 text-xs font-bold text-[#6d7175]">
+                      #{order._id.slice(-4)}
                     </div>
-                    <div className="text-right">
-                      <p className="font-bold text-gray-900 dark:text-white">{formatCurrency(order.total)}</p>
-                      <div className="mt-1">
-                        <Badge color={getStatusColor(order.status)}>
-                          {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
-                        </Badge>
-                      </div>
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold text-[#1a1a1a] dark:text-[#e3e3e3] truncate">Order #{order._id.slice(-8)}</p>
+                      <p className={`text-xs ${SUBDUED} mt-0.5`}>{new Date(order.createdAt).toLocaleDateString('en-IN', { dateStyle: 'medium' })} · {order.items?.length ?? 0} items</p>
                     </div>
                   </div>
-                  <div className="text-sm text-gray-500 dark:text-gray-400 flex items-center gap-2">
-                    <Package className="w-4 h-4" />
-                    {order.items.length} item{order.items.length > 1 ? 's' : ''}
+                  <div className="flex items-center gap-3 shrink-0">
+                    <p className="text-sm font-bold text-[#1a1a1a] dark:text-[#e3e3e3]">{formatCurrency(order.total)}</p>
+                    <Badge color={STATUS_COLOR[order.status] || 'gray'}>{order.status}</Badge>
                   </div>
                 </div>
               ))}
             </div>
-          </div>
-        ) : (
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-12 text-center">
-            <div className="w-20 h-20 bg-gray-50 dark:bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-6">
-              <ShoppingBag className="w-10 h-10 text-gray-400 dark:text-gray-500" />
+          ) : (
+            <div className="py-16 flex flex-col items-center justify-center gap-3 text-center">
+              <div className="w-14 h-14 bg-[#f6f6f7] dark:bg-white/[0.05] rounded-full flex items-center justify-center">
+                <ShoppingBag className="w-7 h-7 text-[#b5b5b5] dark:text-[#5a5a7a]" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-[#1a1a1a] dark:text-[#e3e3e3]">No orders yet</p>
+                <p className={`text-xs ${SUBDUED} mt-0.5`}>When you place an order, it will show here.</p>
+              </div>
+              <Link to="/store" className="mt-1 px-4 py-2 text-sm font-semibold text-white bg-[#DC2626] rounded-lg hover:bg-[#b91c1c] transition-colors shadow-[0_1px_0_rgba(0,0,0,0.2)]">
+                Browse products
+              </Link>
             </div>
-            <h3 className="text-xl font-bold text-gray-900 dark:text-white">Start Shopping</h3>
-            <p className="text-gray-500 dark:text-gray-400 mt-2 max-w-md mx-auto">
-              Browse products, add items to cart, and place your first order.
-            </p>
-            <Link 
-              to="/store" 
-              className="inline-flex items-center gap-2 mt-6 px-6 py-3 bg-[#25D366] text-white rounded-xl font-bold hover:bg-[#20bd5a] transition-all shadow-lg shadow-[#25D366]/20"
-            >
-              <ShoppingBag className="w-5 h-5" />
-              Browse Products
-            </Link>
+          )}
+        </div>
+
+        {/* Recommended products */}
+        {products.length > 0 && (
+          <div className={CARD}>
+            <div className={`flex items-center justify-between px-5 py-4 border-b ${DIVIDER}`}>
+              <h2 className="text-sm font-semibold text-[#1a1a1a] dark:text-[#e3e3e3] flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-[#DC2626]" /> Recommended for you
+              </h2>
+              <Link to="/store" className="text-xs font-semibold text-[#DC2626] hover:underline">View all</Link>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-0">
+              {products.slice(0, 4).map((product, i) => (
+                <div key={product._id} className={`group p-4 ${i < 3 ? `border-r ${DIVIDER}` : ''}`}>
+                  <Link to={`/product/${product._id}`} className="block aspect-square bg-[#f6f6f7] dark:bg-white/[0.04] rounded-lg overflow-hidden mb-3">
+                    {product.images?.[0]?.url
+                      ? <img src={product.images[0].url} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                      : <div className="w-full h-full flex items-center justify-center"><Package className="w-8 h-8 text-[#c9cccf] dark:text-[#4a4a6a]" /></div>}
+                  </Link>
+                  <p className="text-xs font-semibold text-[#1a1a1a] dark:text-[#e3e3e3] truncate mb-0.5">{product.name}</p>
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm font-bold text-[#1a1a1a] dark:text-[#e3e3e3]">{formatCurrency(product.price)}</p>
+                    <button onClick={() => { addItem(product, 1); toast.success('Added!'); }} className="p-1.5 rounded-lg bg-[#f6f6f7] dark:bg-white/[0.06] hover:bg-[#DC2626] hover:text-white text-[#6d7175] transition-all">
+                      <ShoppingCart className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         )}
 
-        {/* Available Products */}
-        {products.length > 0 && (
-          <div className="space-y-6">
-             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-bold text-gray-900 dark:text-white">Recommended For You</h3>
-              <Link to="/store" className="text-sm text-[#128C7E] dark:text-[#25D366] hover:text-[#25D366] font-semibold transition-colors">
-                View All →
-              </Link>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {products.map((product) => (
-                <div 
-                  key={product._id} 
-                  className="group bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl overflow-hidden hover:shadow-xl hover:shadow-gray-200/50 dark:hover:shadow-black/20 hover:border-[#25D366]/30 dark:hover:border-[#25D366]/30 transition-all duration-300"
-                >
-                  <Link to={`/product/${product._id}`} className="block relative overflow-hidden">
-                    <div className="aspect-square bg-gray-50 dark:bg-gray-700">
-                      {product.images?.[0]?.url ? (
-                        <img
-                          src={product.images[0].url}
-                          alt={product.name}
-                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center text-gray-300 dark:text-gray-500 bg-gray-50 dark:bg-gray-700">
-                          <Package className="w-12 h-12" />
-                        </div>
-                      )}
-                    </div>
-                    {product.stock < 10 && product.stock > 0 && (
-                      <div className="absolute top-3 left-3 px-2 py-1 bg-orange-500/90 backdrop-blur-sm text-white text-[10px] font-bold uppercase tracking-wider rounded-lg">
-                        Low Stock
-                      </div>
-                    )}
-                  </Link>
-                  <div className="p-4">
-                    <p className="text-xs font-semibold text-[#128C7E] dark:text-[#25D366] uppercase tracking-wide mb-1">{product.category}</p>
-                    <Link to={`/product/${product._id}`}>
-                      <h4 className="font-bold text-gray-900 dark:text-white truncate hover:text-[#25D366] dark:hover:text-[#25D366] transition-colors mb-2">
-                        {product.name}
-                      </h4>
-                    </Link>
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-xl font-bold text-gray-900 dark:text-white">{formatCurrency(product.price)}</p>
-                        {product.compareAtPrice > product.price && (
-                          <p className="text-xs text-gray-400 dark:text-gray-500 line-through">
-                            {formatCurrency(product.compareAtPrice)}
-                          </p>
-                        )}
-                      </div>
-                      <button
-                        onClick={() => {
-                          addItem(product, 1);
-                          toast.success(`${product.name} added to cart!`);
-                        }}
-                        className="p-2.5 bg-gray-900 dark:bg-gray-700 text-white rounded-xl hover:bg-[#25D366] dark:hover:bg-[#25D366] transition-all duration-300 shadow-md hover:shadow-lg active:scale-95"
-                        title="Add to cart"
-                      >
-                        <ShoppingBag className="w-5 h-5" />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
       </div>
     );
   }
 
-  // Vendor Dashboard
-  const o = stats?.overview || {};
-  const orderStatusData = stats?.orderStatusDistribution
-    ? Object.entries(stats.orderStatusDistribution).map(([name, value]) => ({ name, value }))
-    : [];
+  /* ═══════════════════════════════════════════════════════════════
+     VENDOR DASHBOARD  —  Shopify Admin exact replica
+  ═══════════════════════════════════════════════════════════════ */
+  const o               = stats?.overview       || {};
+  const recentOrders    = stats?.recentOrders   || [];
+  const lowStock        = stats?.lowStockProducts || [];
+
+  /* Mini-metric change values */
+  const avgOrderValue   = o.totalOrders > 0 ? Math.round((o.totalRevenue || 0) / o.totalOrders) : 0;
+  const convRate        = o.totalCustomers > 0 ? Number(((o.totalOrders || 0) / (o.totalCustomers || 1) * 100).toFixed(1)) : 0;
+
+  /* Chart data – normalise for display */
+  const chartData = salesData.map(d => ({
+    date:    d._id,
+    revenue: d.revenue || 0,
+    orders:  d.orders  || 0,
+  }));
+
+  const AXIS_TICK = { fontSize: 11, fill: '#9ca3af' };
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-500 pb-10">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Dashboard Overview</h1>
-          <p className="text-gray-500 dark:text-gray-400 mt-1">Check your store's performance and analytics.</p>
-        </div>
-        <div className="flex gap-3">
-          <button 
-            onClick={() => navigate('/dashboard/analytics')}
-            className="px-4 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 rounded-xl text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-          >
-            View Reports
-          </button>
-          <button 
-            onClick={() => navigate('/dashboard/products/new')}
-            className="px-4 py-2 bg-[#25D366] text-white rounded-xl text-sm font-bold shadow-lg shadow-[#25D366]/20 hover:bg-[#20bd5a] transition-all"
-          >
-            + Add Product
-          </button>
-        </div>
-      </div>
+    <div className="max-w-[960px] mx-auto space-y-5 pb-12">
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        <StatsCard
-          title="Total Lifetime Sales"
-          value={formatCurrency(o.totalRevenue || 0)}
-          change={o.revenueGrowth}
-          changeType={o.revenueGrowth >= 0 ? 'increase' : 'decrease'}
-          icon={IndianRupee}
-          color="green"
-          subtitle={`₹${formatNumber(o.monthlyRevenue || 0)} this month`}
-          to="/dashboard/analytics"
-        />
-        <StatsCard
-          title="Total Orders"
-          value={o.totalOrders || 0}
-          change={o.orderGrowth}
-          changeType={o.orderGrowth >= 0 ? 'increase' : 'decrease'}
-          icon={ShoppingBag}
-          color="blue"
-          subtitle={`${o.monthlyOrders || 0} orders this month`}
-          to="/dashboard/orders"
-        />
-        <StatsCard
-          title="Active Products"
-          value={o.activeProducts || 0}
-          subtitle={`out of ${o.totalProducts || 0} total`}
-          icon={Package}
-          color="purple"
-          to="/dashboard/products"
-        />
-        <StatsCard
-          title="Total Customers"
-          value={o.totalCustomers || 0}
-          icon={Users}
-          color="yellow"
-          subtitle="Lifetime customers"
-          to="/dashboard/customers"
-        />
-      </div>
-
-      {/* Charts Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Revenue Chart */}
-        <div className="lg:col-span-2 bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
-          <div className="flex items-center justify-between mb-6">
-            <h3 className="text-lg font-bold text-gray-900 dark:text-white">Sales Analytics</h3>
-            <select 
-              value={chartPeriod}
-              onChange={(e) => {
-                setChartPeriod(e.target.value);
-                analyticsService.getSalesAnalytics({ period: e.target.value })
-                  .then(res => setSalesData(res.data?.salesData || []))
-                  .catch(() => toast.error('Failed to load chart data'));
-              }}
-              className="text-sm border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-700 rounded-lg text-gray-500 dark:text-gray-300 focus:ring-[#25D366] focus:border-[#25D366] px-3 py-1.5 cursor-pointer"
+      {/* ── Page header ─────────────────────────────────────────── */}
+      <div className="flex items-center justify-between pt-2 pb-1">
+        <h1 className={H1}>Home</h1>
+        <div className="flex items-center gap-2">
+          {lowStock.length > 0 && (
+            <Link
+              to="/dashboard/inventory"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-500/10 rounded-lg"
             >
-              <option value="7d">Last 7 Days</option>
-              <option value="30d">Last 30 Days</option>
-              <option value="90d">Last 90 Days</option>
-              <option value="1y">This Year</option>
-            </select>
-          </div>
-          <div className="h-80 w-full">
-            {salesData.length > 0 ? (
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={salesData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-                  <defs>
-                    <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#25D366" stopOpacity={0.1}/>
-                      <stop offset="95%" stopColor="#25D366" stopOpacity={0}/>
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#374151" strokeOpacity={0.2} vertical={false} />
-                  <XAxis 
-                    dataKey="_id" 
-                    axisLine={false}
-                    tickLine={false}
-                    tick={{ fontSize: 12, fill: '#9ca3af' }}
-                    tickFormatter={v => { const d = new Date(v); return `${d.getDate()} ${d.toLocaleString('default', { month: 'short' })}`; }} 
-                    dy={10}
-                  />
-                  <YAxis 
-                    axisLine={false}
-                    tickLine={false}
-                    tick={{ fontSize: 12, fill: '#9ca3af' }}
-                    tickFormatter={(value) => `₹${value}`}
-                  />
-                  <Tooltip 
-                    contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', backgroundColor: 'rgba(255, 255, 255, 0.9)' }}
-                    itemStyle={{ color: '#374151' }}
-                    formatter={v => [formatCurrency(v), 'Sales']} 
-                  />
-                  <Area 
-                    type="monotone" 
-                    dataKey="revenue" 
-                    stroke="#25D366" 
-                    strokeWidth={3}
-                    fillOpacity={1} 
-                    fill="url(#colorRevenue)" 
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
-            ) : (
-              <div className="h-full flex flex-col items-center justify-center text-gray-400 dark:text-gray-500">
-                <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-full mb-3">
-                  <TrendingUp className="h-8 w-8 text-gray-300 dark:text-gray-500" />
-                </div>
-                <p>No sales data available yet.</p>
+              <AlertCircle className="w-3.5 h-3.5" />
+              {lowStock.length} low stock
+            </Link>
+          )}
+          <Link
+            to="/store"
+            className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-[#1a1a1a] dark:text-[#e3e3e3]
+              shadow-[0_0_0_1px_rgba(26,26,26,0.13),0_1px_0_0_rgba(26,26,26,0.07)]
+              dark:shadow-[0_0_0_1px_rgba(255,255,255,0.10)]
+              bg-white dark:bg-[#1a1a24] rounded-lg hover:bg-[#f6f6f7] dark:hover:bg-white/[0.06] transition-colors"
+          >
+            View your store <ExternalLink className="w-3.5 h-3.5 text-[#6d7175]" />
+          </Link>
+        </div>
+      </div>
+
+      {/* ── Performance card ("Today" equivalent) ───────────────── */}
+      <div className={CARD}>
+        {/* Header: metric label + period picker */}
+        <div className="px-5 pt-5 pb-0">
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex-1 min-w-0">
+              <p className={`text-sm ${SUBDUED} mb-1`}>Total sales</p>
+              <div className="flex items-baseline gap-3">
+                <p className="text-[2.25rem] font-bold tracking-tight text-[#1a1a1a] dark:text-[#e3e3e3] leading-none">
+                  {formatCurrency(o.totalRevenue || 0)}
+                </p>
+                {o.revenueGrowth !== undefined && (
+                  <span className={`inline-flex items-center gap-0.5 text-xs font-semibold px-2 py-0.5 rounded-md ${
+                    o.revenueGrowth >= 0
+                      ? 'bg-[#f1f8f5] dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400'
+                      : 'bg-[#fff4f4] dark:bg-red-500/10 text-red-600 dark:text-red-400'
+                  }`}>
+                    {o.revenueGrowth >= 0 ? <ArrowUpRight className="w-3.5 h-3.5" /> : <ArrowDownRight className="w-3.5 h-3.5" />}
+                    {Math.abs(o.revenueGrowth)}%
+                  </span>
+                )}
               </div>
-            )}
+              <p className={`text-xs ${SUBDUED} mt-1`}>{formatCurrency(o.monthlyRevenue || 0)} this month</p>
+            </div>
+            <PeriodPicker value={period} onChange={handlePeriodChange} />
           </div>
         </div>
 
-        {/* Order Status Pie */}
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
-          <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-6">Order Status</h3>
-          <div className="h-64 relative">
-            {orderStatusData.length > 0 ? (
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie 
-                    data={orderStatusData} 
-                    dataKey="value" 
-                    nameKey="name" 
-                    cx="50%" 
-                    cy="50%"
-                    innerRadius={60}
-                    outerRadius={80} 
-                    paddingAngle={5}
-                  >
-                    {orderStatusData.map((_, i) => (
-                      <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} strokeWidth={0} />
-                    ))}
-                  </Pie>
-                  <Tooltip 
-                    contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', backgroundColor: 'rgba(255, 255, 255, 0.9)' }}
-                    itemStyle={{ color: '#374151' }}
-                  />
-                </PieChart>
-              </ResponsiveContainer>
-            ) : (
-              <div className="h-full flex flex-col items-center justify-center text-gray-400 dark:text-gray-500">
-                 <p>No orders yet</p>
-              </div>
-            )}
-            {orderStatusData.length > 0 && (
-              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                <div className="text-center">
-                  <p className="text-2xl font-bold text-gray-900 dark:text-white">{o.monthlyOrders || 0}</p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 uppercase font-semibold">Total</p>
+        {/* Chart */}
+        <div className="h-[180px] mt-5 px-1">
+          {periodLoading ? (
+            <div className="h-full flex items-center justify-center">
+              <div className="w-6 h-6 border-2 border-[#DC2626] border-t-transparent rounded-full animate-spin" />
+            </div>
+          ) : chartData.length > 0 ? (
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={chartData} margin={{ top: 4, right: 8, left: -20, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="polarisFill" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%"   stopColor="#DC2626" stopOpacity={0.12} />
+                    <stop offset="100%" stopColor="#DC2626" stopOpacity={0}    />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="0" stroke="#f0f0f0" className="dark:stroke-white/[0.04]" vertical={false} />
+                <XAxis dataKey="date" axisLine={false} tickLine={false} tick={AXIS_TICK} dy={8}
+                  tickFormatter={v => { const d = new Date(v); return `${d.getDate()} ${d.toLocaleString('default', { month: 'short' })}`; }} />
+                <YAxis axisLine={false} tickLine={false} tick={AXIS_TICK}
+                  tickFormatter={v => `₹${v >= 1000 ? Math.round(v / 1000) + 'k' : v}`} />
+                <Tooltip content={<ChartTooltip />} cursor={{ stroke: '#DC2626', strokeWidth: 1, strokeDasharray: '4 4' }} />
+                <Area type="monotone" dataKey="revenue" stroke="#DC2626" strokeWidth={2}
+                  fill="url(#polarisFill)" dot={false}
+                  activeDot={{ r: 4, stroke: '#DC2626', strokeWidth: 2, fill: 'white' }} />
+              </AreaChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="h-full flex flex-col items-center justify-center gap-2">
+              <TrendingUp className="w-8 h-8 text-[#c9cccf] dark:text-[#4a4a6a]" />
+              <p className={`text-sm ${SUBDUED}`}>No sales data for this period</p>
+            </div>
+          )}
+        </div>
+
+        {/* Mini-metrics footer row */}
+        <div className={`flex divide-x ${DIVIDER} border-t ${DIVIDER} mt-2`}>
+          <MiniMetric
+            label="Orders"
+            value={formatNumber(o.totalOrders || 0)}
+            change={o.orderGrowth}
+          />
+          <MiniMetric
+            label="Sessions"
+            value={formatNumber(o.totalCustomers || 0)}
+          />
+          <MiniMetric
+            label="Avg. order value"
+            value={formatCurrency(avgOrderValue)}
+          />
+          <MiniMetric
+            label="Conversion rate"
+            value={`${convRate}%`}
+          />
+        </div>
+      </div>
+
+      {/* ── Recent orders ────────────────────────────────────────── */}
+      <div className={CARD}>
+        <div className={`flex items-center justify-between px-5 py-4 border-b ${DIVIDER}`}>
+          <h2 className="text-sm font-semibold text-[#1a1a1a] dark:text-[#e3e3e3]">Recent orders</h2>
+          <Link to="/dashboard/orders" className="flex items-center gap-1 text-xs font-semibold text-[#DC2626] hover:underline">
+            View all <ChevronRight className="w-3.5 h-3.5" />
+          </Link>
+        </div>
+
+        {recentOrders.length > 0 ? (
+          <div className={`divide-y ${DIVIDER}`}>
+            {recentOrders.slice(0, 7).map(order => (
+              <div key={order._id} className="flex items-center justify-between px-5 py-3.5 hover:bg-[#f6f6f7] dark:hover:bg-white/[0.03] transition-colors">
+                <div className="flex items-center gap-3 min-w-0">
+                  {/* Order number badge */}
+                  <div className="w-9 h-9 bg-[#f6f6f7] dark:bg-white/[0.06] rounded-lg flex items-center justify-center shrink-0">
+                    <span className="text-[11px] font-bold text-[#6d7175]">
+                      #{(order.orderNumber || order._id).slice(-4)}
+                    </span>
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold text-[#1a1a1a] dark:text-[#e3e3e3] truncate">
+                      {order.customer?.firstName} {order.customer?.lastName}
+                    </p>
+                    <p className={`text-xs ${SUBDUED} mt-0.5`}>
+                      {typeof formatRelativeTime === 'function'
+                        ? formatRelativeTime(order.createdAt)
+                        : new Date(order.createdAt).toLocaleDateString('en-IN')}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-4 shrink-0">
+                  <p className="text-sm font-bold text-[#1a1a1a] dark:text-[#e3e3e3]">
+                    {formatCurrency(order.total)}
+                  </p>
+                  <Badge color={STATUS_COLOR[order.status] || 'gray'}>{order.status}</Badge>
                 </div>
               </div>
-            )}
+            ))}
+            {/* Footer link */}
+            <div className={`px-5 py-3 bg-[#fafafa] dark:bg-white/[0.02]`}>
+              <Link to="/dashboard/orders" className="text-xs font-semibold text-[#DC2626] hover:underline flex items-center gap-1">
+                View all orders <ChevronRight className="w-3.5 h-3.5" />
+              </Link>
+            </div>
           </div>
-          <div className="mt-6 space-y-2">
-            {orderStatusData.map((entry, i) => (
-              <div key={i} className="flex items-center justify-between text-sm">
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full" style={{ backgroundColor: PIE_COLORS[i % PIE_COLORS.length] }} />
-                  <span className="text-gray-600 dark:text-gray-400 capitalize">{entry.name}</span>
-                </div>
-                <span className="font-semibold text-gray-900 dark:text-white">{entry.value}</span>
+        ) : (
+          <div className="py-16 flex flex-col items-center justify-center gap-3 text-center">
+            <div className="w-14 h-14 bg-[#f6f6f7] dark:bg-white/[0.05] rounded-full flex items-center justify-center">
+              <ShoppingBag className="w-7 h-7 text-[#b5b5b5] dark:text-[#5a5a7a]" />
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-[#1a1a1a] dark:text-[#e3e3e3]">No orders yet</p>
+              <p className={`text-xs ${SUBDUED} mt-0.5`}>When you get an order, it will show here.</p>
+            </div>
+            <button
+              onClick={() => navigate('/dashboard/products')}
+              className="mt-1 px-4 py-2 text-sm font-semibold text-white bg-[#DC2626] rounded-lg hover:bg-[#b91c1c] transition-colors shadow-[0_1px_0_rgba(0,0,0,0.2)]"
+            >
+              View products
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* ── Low stock alert (inline, only when there are items) ─── */}
+      {lowStock.length > 0 && (
+        <div className={CARD}>
+          <div className={`flex items-center justify-between px-5 py-4 border-b ${DIVIDER}`}>
+            <div className="flex items-center gap-2.5">
+              <AlertCircle className="w-4 h-4 text-amber-500" />
+              <h2 className="text-sm font-semibold text-[#1a1a1a] dark:text-[#e3e3e3]">Low inventory</h2>
+            </div>
+            <Link to="/dashboard/inventory" className="text-xs font-semibold text-[#DC2626] hover:underline">Manage</Link>
+          </div>
+          <div className={`divide-y ${DIVIDER}`}>
+            {lowStock.slice(0, 5).map(p => (
+              <div key={p._id} className="flex items-center justify-between px-5 py-3 hover:bg-[#f6f6f7] dark:hover:bg-white/[0.03] transition-colors">
+                <p className="text-sm text-[#303030] dark:text-[#d4d4d4] truncate">{p.name}</p>
+                <span className="text-xs font-bold text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-500/10 px-2.5 py-1 rounded-full ml-3 shrink-0">
+                  {p.stock} left
+                </span>
               </div>
             ))}
           </div>
         </div>
+      )}
+
+      {/* ── Manage your store ────────────────────────────────────── */}
+      <div className={CARD}>
+        <div className={`px-5 py-4 border-b ${DIVIDER}`}>
+          <h2 className="text-sm font-semibold text-[#1a1a1a] dark:text-[#e3e3e3]">Manage your store</h2>
+        </div>
+        <div className="grid grid-cols-2 sm:grid-cols-3">
+          {MANAGE_LINKS.map(({ icon: Icon, label, sub, to }, i) => (
+            <Link
+              key={to}
+              to={to}
+              className={`group flex items-center gap-3.5 px-5 py-4 hover:bg-[#f6f6f7] dark:hover:bg-white/[0.03] transition-colors
+                ${i % 3 < 2 ? `border-r ${DIVIDER}` : ''}
+                ${i < 3      ? `border-b ${DIVIDER}` : ''}
+              `}
+            >
+              <div className="w-9 h-9 bg-[#f6f6f7] dark:bg-white/[0.06] rounded-xl flex items-center justify-center shrink-0 group-hover:bg-[#DC2626]/10 transition-colors">
+                <Icon className="w-4 h-4 text-[#6d7175] group-hover:text-[#DC2626] transition-colors" strokeWidth={2} />
+              </div>
+              <div className="min-w-0">
+                <p className="text-sm font-semibold text-[#1a1a1a] dark:text-[#e3e3e3] group-hover:text-[#DC2626] transition-colors">{label}</p>
+                <p className={`text-xs ${SUBDUED} truncate mt-0.5`}>{sub}</p>
+              </div>
+            </Link>
+          ))}
+        </div>
       </div>
 
-      {/* Orders Bar Chart */}
-       <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
-        <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-6">Daily Orders Trend</h3>
-        <div className="h-64">
-           {salesData.length > 0 ? (
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={salesData} barSize={20}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#374151" strokeOpacity={0.2} vertical={false} />
-                <XAxis 
-                  dataKey="_id" 
-                  axisLine={false}
-                  tickLine={false}
-                  tick={{ fontSize: 12, fill: '#9ca3af' }}
-                  tickFormatter={v => { const d = new Date(v); return `${d.getDate()}`; }} 
-                  dy={10}
-                />
-                <YAxis 
-                   axisLine={false}
-                   tickLine={false}
-                   tick={{ fontSize: 12, fill: '#9ca3af' }}
-                />
-                <Tooltip 
-                  cursor={{ fill: 'transparent' }}
-                  contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', backgroundColor: 'rgba(255, 255, 255, 0.9)' }}
-                  itemStyle={{ color: '#374151' }}
-                />
-                <Bar 
-                  dataKey="orders" 
-                  fill="#3b82f6" 
-                  radius={[4, 4, 4, 4]} 
-                />
-              </BarChart>
-            </ResponsiveContainer>
-          ) : (
-             <div className="h-full flex items-center justify-center text-gray-400 dark:text-gray-500">No order data yet</div>
-          )}
-        </div>
-       </div>
-
-      {/* Lists Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 space-y-6">
-            <RecentOrders orders={stats?.recentOrders || []} />
-        </div>
-        <div className="space-y-6">
-            <RecentNotifications notifications={stats?.notifications || []} />
-            <LowStockAlert products={stats?.lowStockProducts || []} />
-        </div>
-      </div>
-    
     </div>
   );
 }

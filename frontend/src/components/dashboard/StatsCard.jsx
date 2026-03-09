@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 
 const iconColorMap = {
   blue: 'bg-blue-50 text-blue-600 ring-1 ring-blue-100 dark:bg-blue-900/20 dark:text-blue-400 dark:ring-blue-900/30',
-  green: 'bg-emerald-50 text-emerald-600 ring-1 ring-emerald-100 dark:bg-emerald-900/20 dark:text-emerald-400 dark:ring-emerald-900/30',
+  green: 'bg-red-50 text-red-600 ring-1 ring-red-100 dark:bg-red-900/20 dark:text-red-400 dark:ring-red-900/30',
   teal: 'bg-teal-50 text-teal-600 ring-1 ring-teal-100 dark:bg-teal-900/20 dark:text-teal-400 dark:ring-teal-900/30',
   yellow: 'bg-amber-50 text-amber-600 ring-1 ring-amber-100 dark:bg-amber-900/20 dark:text-amber-400 dark:ring-amber-900/30',
   purple: 'bg-purple-50 text-purple-600 ring-1 ring-purple-100 dark:bg-purple-900/20 dark:text-purple-400 dark:ring-purple-900/30',
@@ -26,7 +26,7 @@ export default function StatsCard({ title, value, change, changeType = 'increase
           {(change !== undefined && change !== null) && (
             <div className={`flex items-center mt-3 gap-1.5 text-xs font-semibold px-2 py-1 rounded-lg w-fit ${
               isPositive 
-                ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400' 
+                ? 'bg-red-50 text-red-600 dark:bg-red-500/10 dark:text-red-400' 
                 : 'bg-red-50 text-red-700 dark:bg-red-500/10 dark:text-red-400'
             }`}>
               {isPositive ? (

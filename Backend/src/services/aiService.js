@@ -8,6 +8,141 @@ if (process.env.OPENAI_API_KEY && process.env.OPENAI_API_KEY !== 'sk-xxx') {
 }
 
 const aiService = {
+  generateCatalogTheme: async (prompt) => {
+    if (!openai) {
+        return {
+            template: 'minimal',
+            design: {
+                backgroundColor: '#f8f9fa',
+                textColor: '#212529',
+                accentColor: '#3b82f6',
+                fontFamily: 'Inter',
+            },
+            message: "Using fallback theme because OpenAI API is not configured."
+        };
+    }
+    try {
+        const aiPrompt = `You are an expert e-commerce designer. The user wants to design a catalog.
+User prompt: "${prompt}"
+Return ONLY a valid JSON object describing the design. It must perfectly match this schema:
+{
+  "template": "one of: grid, list, magazine, minimal, luxury, modern, classic",
+  "design": {
+    "backgroundColor": "Hex color code",
+    "textColor": "Hex color code",
+    "accentColor": "Hex color code",
+    "fontFamily": "one of: Inter, Roboto, Playfair Display, Montserrat, Lora, Oswald"
+  }
+}
+Generate colors and fonts that match the vibe of the user's prompt.`;
+
+        const completion = await openai.chat.completions.create({
+            model: "gpt-3.5-turbo",
+            messages: [{ role: "user", content: aiPrompt }],
+            temperature: 0.7,
+            max_tokens: 300,
+            response_format: { type: "json_object" }
+        });
+
+        const content = completion.choices[0].message.content;
+        return JSON.parse(content);
+    } catch (error) {
+        console.error('OpenAI Theme Generation Error:', error);
+        throw error;
+    }
+  },
+
+  // Generate complete catalog metadata from a prompt
+  generateCatalogDetails: async (prompt) => {
+    if (!openai) {
+      return {
+        name: "Auto-Generated Catalog",
+        description: "An auto-generated catalog based on: " + prompt,
+        categories: ["General"],
+        tags: ["auto-generated"],
+        design: {
+          template: 'modern-blocks',
+          backgroundColor: '#ffffff',
+          textColor: '#000000',
+          accentColor: '#25D366',
+          fontFamily: 'Inter'
+        },
+        blocks: [
+          {
+            "id": "hero-1",
+            "type": "hero",
+            "content": { "title": "Welcome to " + prompt, "subtitle": "Discover our amazing collection", "buttonText": "Shop Now" },
+            "settings": { "alignment": "center", "overlayOpacity": 0.5 }
+          },
+          {
+            "id": "grid-1",
+            "type": "product_grid",
+            "content": { "heading": "Featured Pieces" },
+            "settings": { "columns": 3, "showPrices": true }
+          },
+          {
+            "id": "feature-1",
+            "type": "features",
+            "content": { "heading": "Why Choose Us", "description": "We offer the best quality products for " + prompt },
+            "settings": { "layout": "image-right" }
+          }
+        ],
+        source: 'fallback'
+      };
+    }
+
+    try {
+      const aiPrompt = `You are an expert e-commerce merchandiser and web designer. The user wants to generate a product catalog based on this prompt: "${prompt}".
+Create the ideal catalog metadata. Return ONLY a valid JSON object that matches this schema perfectly:
+{
+  "name": "Catchy Catalog Name (e.g. Winter 2024 Collection)",
+  "description": "A 1-2 sentence compelling description of this catalog.",
+  "categories": ["Array of 1-3 broad product categories that relate to this prompt"],
+  "tags": ["Array of 3-5 specific search tags related to this prompt"],
+  "design": {
+    "template": "one of: modern-blocks",
+    "backgroundColor": "Hex color code matching the theme",
+    "textColor": "Hex color code matching",
+    "accentColor": "Hex color code complementing the theme"
+  },
+  "blocks": [
+    {
+      "id": "A unique lowercase string like 'hero-1'",
+      "type": "hero",
+      "content": { "title": "Big Catchy Headline", "subtitle": "Supporting text", "buttonText": "Shop Now" },
+      "settings": { "alignment": "center", "overlayOpacity": 0.5 }
+    },
+    {
+      "id": "A unique lowercase string like 'grid-1'",
+      "type": "product_grid",
+      "content": { "heading": "Featured Pieces" },
+      "settings": { "columns": 3, "showPrices": true }
+    },
+    {
+      "id": "A unique lowercase string like 'features-1'",
+      "type": "features",
+      "content": { "heading": "Why Choose Us", "description": "Highlight a specific vibe from the prompt" },
+      "settings": { "layout": "image-right" }
+    }
+  ]
+}`;
+
+      const completion = await openai.chat.completions.create({
+        model: "gpt-3.5-turbo",
+        messages: [{ role: "user", content: aiPrompt }],
+        temperature: 0.7,
+        max_tokens: 400,
+        response_format: { type: "json_object" }
+      });
+
+      const content = completion.choices[0].message.content;
+      return JSON.parse(content);
+    } catch (error) {
+      console.error('OpenAI Catalog generation Error:', error);
+      throw error;
+    }
+  },
+
   // Generate product description
   generateProductDescription: async (productData) => {
     if (!openai) {

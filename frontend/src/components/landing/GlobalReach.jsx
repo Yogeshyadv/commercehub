@@ -1,74 +1,116 @@
 import React from 'react';
 import { motion } from 'framer-motion';
+import { ArrowRightIcon } from 'lucide-react';
+import { Link } from 'react-router-dom';
+
+const steps = [
+  {
+    num: '01',
+    title: 'Add your first product',
+    desc: 'Upload products with images, prices, and descriptions in minutes. Import from WhatsApp, Excel, or add manually.',
+  },
+  {
+    num: '02',
+    title: 'Customise your store',
+    desc: 'Choose from beautiful themes, set your brand colors, and make your catalogue uniquely yours â€” no coding needed.',
+  },
+  {
+    num: '03',
+    title: 'Start selling',
+    desc: 'Share your catalogue on WhatsApp, social media, or your website. Customers order in 2 clicks.',
+  },
+];
 
 export function GlobalReach() {
   return (
-    <section className="py-20 bg-[#f8fafc] dark:bg-[#050c14] relative z-10 border-t border-gray-100 dark:border-gray-800">
-      <div className="max-w-7xl mx-auto px-4 md:px-8">
-        <div className="flex flex-col lg:flex-row bg-white dark:bg-gray-900 rounded-[3rem] shadow-2xl overflow-hidden border border-gray-100 dark:border-gray-800">
-          
-          <div className="lg:w-1/2 p-10 lg:p-16 bg-gradient-to-br from-[#25D366]/10 to-blue-500/5 dark:from-[#25D366]/5 dark:to-transparent flex flex-col justify-center">
-            <motion.img
-              initial={{ opacity: 0, scale: 0.9 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              viewport={{ once: true }}
-              src="https://dwtqm09zovi8z.cloudfront.net/assets/talk_to_an_expert.webp"
-              alt="Talk to an expert"
-              className="w-full max-w-sm mx-auto mb-8 drop-shadow-xl rounded-2xl"
-            />
-            <h2 className="text-3xl lg:text-4xl font-extrabold text-gray-900 dark:text-white mb-4">
-              Talk to an expert
+    <>
+      {/* How It Works */}
+      <section className="py-24 bg-white">
+        <div className="max-w-7xl mx-auto px-6">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="mb-20"
+          >
+            <h2 className="text-4xl md:text-5xl lg:text-6xl font-black text-gray-900 tracking-tight">
+              It's easy to start selling
             </h2>
-            <p className="text-lg text-gray-600 dark:text-gray-400 font-medium mb-8">
-              Let our experts guide you with using CommerceHub for your specific business case.
-            </p>
-            <div className="space-y-4">
-              <a href="mailto:sales@commercehub.com" className="flex items-center text-gray-900 dark:text-white hover:text-[#25D366] transition-colors font-semibold">
-                <span className="w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center mr-4">✉️</span>
-                sales@commercehub.com
-              </a>
-              <a href="tel:+919876543210" className="flex items-center text-gray-900 dark:text-white hover:text-[#25D366] transition-colors font-semibold">
-                <span className="w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center mr-4">📞</span>
-                +91 98765 43210
-              </a>
-            </div>
+          </motion.div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-12 md:gap-16">
+            {steps.map((step, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.12 }}
+              >
+                <div className="text-[#DC2626] font-black text-sm tracking-[0.2em] mb-6 uppercase">
+                  {step.num}
+                </div>
+                <h3 className="text-2xl md:text-3xl font-black text-gray-900 mb-4">{step.title}</h3>
+                <p className="text-gray-600 font-medium leading-relaxed">{step.desc}</p>
+              </motion.div>
+            ))}
           </div>
 
-          <div className="lg:w-1/2 p-10 lg:p-16 flex items-center justify-center bg-white dark:bg-gray-900">
-            <div className="w-full max-w-md">
-              <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-8">Book a personalized demo</h3>
-              <form className="space-y-6" onSubmit={(e) => e.preventDefault()}>
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Business Name</label>
-                  <input type="text" className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 focus:ring-2 focus:ring-[#25D366] outline-none transition-all dark:text-white" />
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">How many products do you have?</label>
-                  <select className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 focus:ring-2 focus:ring-[#25D366] outline-none transition-all dark:text-white">
-                    <option>1 - 50</option>
-                    <option>51 - 200</option>
-                    <option>201 - 1000</option>
-                    <option>1000+</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Phone Number</label>
-                  <div className="flex">
-                    <span className="inline-flex items-center px-4 rounded-l-xl border border-r-0 border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-800 text-gray-500 font-bold">
-                      +91
-                    </span>
-                    <input type="tel" className="flex-1 px-4 py-3 rounded-r-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 focus:ring-2 focus:ring-[#25D366] outline-none transition-all dark:text-white" />
-                  </div>
-                </div>
-                <button type="submit" className="w-full py-4 bg-gray-900 dark:bg-white text-white dark:text-gray-900 font-bold rounded-xl shadow-lg hover:bg-gray-800 dark:hover:bg-gray-100 transition-all">
-                  SUBMIT
-                </button>
-              </form>
-            </div>
-          </div>
-
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="mt-16"
+          >
+            <Link
+              to="/register"
+              className="inline-flex items-center gap-2 px-8 py-4 bg-[#DC2626] text-white font-bold rounded-xl hover:bg-[#B91C1C] transition-all shadow-lg text-sm"
+            >
+              Get started today <ArrowRightIcon className="w-4 h-4" />
+            </Link>
+          </motion.div>
         </div>
-      </div>
-    </section>
+      </section>
+
+      {/* Final CTA */}
+      <section className="py-28 bg-black text-white text-center relative overflow-hidden">
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{ backgroundImage: 'radial-gradient(ellipse 80% 55% at 50% 50%, rgba(220,38,38,0.18) 0%, transparent 70%)' }}
+        />
+        <div className="max-w-3xl mx-auto px-6 relative z-10">
+          <motion.h2
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-5xl md:text-7xl lg:text-8xl font-black leading-[0.95] tracking-tight mb-8"
+          >
+            Start your<br />free trial today
+          </motion.h2>
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.1 }}
+            className="text-gray-500 mb-12 text-lg font-medium"
+          >
+            No credit card required. Cancel anytime.
+          </motion.p>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.2 }}
+          >
+            <Link
+              to="/register"
+              className="inline-flex items-center gap-3 px-10 py-5 bg-[#DC2626] text-white font-black rounded-2xl hover:bg-[#B91C1C] active:scale-95 transition-all text-base shadow-[0_8px_40px_rgba(220,38,38,0.35)] hover:shadow-[0_8px_60px_rgba(220,38,38,0.5)]"
+            >
+              Get started free <ArrowRightIcon className="w-5 h-5" />
+            </Link>
+          </motion.div>
+        </div>
+      </section>
+    </>
   );
 }

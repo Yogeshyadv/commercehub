@@ -166,7 +166,7 @@ export default function ProductDetail() {
       <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Product not found</h2>
       <button 
         onClick={() => navigate('/')}
-        className="px-6 py-2.5 bg-[#25D366] text-white rounded-full hover:bg-[#128C7E] transition-colors font-medium mt-4"
+        className="px-6 py-2.5 bg-[#DC2626] text-white rounded-full hover:bg-[#128C7E] transition-colors font-medium mt-4"
       >
         Return to Shop
       </button>
@@ -204,7 +204,7 @@ export default function ProductDetail() {
                     {isAuthenticated ? (
                       <button 
                         onClick={() => setIsProfileOpen(!isProfileOpen)}
-                        className="flex items-center gap-2 py-1 px-3 hover:bg-[#25D366]/10 rounded-lg transition-colors border border-transparent hover:border-[#25D366]/20"
+                        className="flex items-center gap-2 py-1 px-3 hover:bg-[#DC2626]/10 rounded-lg transition-colors border border-transparent hover:border-[#DC2626]/20"
                       >
                         <User className="w-5 h-5 text-gray-700" />
                          <span className="text-sm font-semibold text-gray-700 whitespace-nowrap">{user?.firstName || 'Account'}</span>
@@ -213,7 +213,7 @@ export default function ProductDetail() {
                     ) : (
                       <button
                         onClick={() => navigate('/login')}
-                        className="px-6 py-2 bg-white text-[#128C7E] text-sm font-bold border border-[#25D366]/30 rounded-lg hover:bg-[#25D366] hover:text-white transition-all shadow-sm"
+                        className="px-6 py-2 bg-white text-[#128C7E] text-sm font-bold border border-[#DC2626]/30 rounded-lg hover:bg-[#DC2626] hover:text-white transition-all shadow-sm"
                       >
                         Login
                       </button>
@@ -224,7 +224,7 @@ export default function ProductDetail() {
                       <>
                         <div className="fixed inset-0 z-30" onClick={() => setIsProfileOpen(false)} />
                         <div className="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-[0_8px_16px_0_rgba(0,0,0,0.2)] border border-gray-100 z-40 py-1 animate-in fade-in zoom-in-95 duration-100 overflow-hidden">
-                           <div className="px-5 py-3 border-b border-gray-100 bg-[#25D366]/10">
+                           <div className="px-5 py-3 border-b border-gray-100 bg-[#DC2626]/10">
                              <p className="text-xs text-gray-500 font-medium">Signed in as</p>
                              <p className="text-sm font-bold text-gray-900 truncate">{user?.email}</p>
                            </div>
@@ -260,7 +260,7 @@ export default function ProductDetail() {
         
         {/* Breadcrumb */}
         <div className="flex items-center gap-2 text-sm text-gray-500 mb-6">
-            <button onClick={() => navigate('/')} className="hover:text-[#25D366] transition-colors">Home</button>
+            <button onClick={() => navigate('/')} className="hover:text-[#DC2626] transition-colors">Home</button>
             <span className="text-gray-300">/</span>
             <span className="text-[#128C7E] font-medium truncate max-w-[200px]">{product.name}</span>
         </div>
@@ -282,8 +282,8 @@ export default function ProductDetail() {
                                             onClick={() => setSelectedImageIndex(idx)}
                                             className={`relative w-16 h-16 shrink-0 rounded-sm overflow-hidden border-2 transition-all ${
                                                 selectedImageIndex === idx 
-                                                ? 'border-[#25D366]' 
-                                                : 'border-transparent hover:border-[#25D366]'
+                                                ? 'border-[#DC2626]' 
+                                                : 'border-transparent hover:border-[#DC2626]'
                                             }`}
                                         >
                                             <img src={img.url} alt="" className="w-full h-full object-contain p-1" />
@@ -318,7 +318,7 @@ export default function ProductDetail() {
                             <button 
                                 onClick={handleAddToCart}
                                 disabled={product.stock <= 0}
-                                className="flex-1 h-14 bg-white text-[#128C7E] border-2 border-[#128C7E] font-bold text-[16px] rounded-sm shadow-sm hover:bg-[#25D366]/10 transition-colors uppercase flex items-center justify-center gap-2"
+                                className="flex-1 h-14 bg-white text-[#128C7E] border-2 border-[#128C7E] font-bold text-[16px] rounded-sm shadow-sm hover:bg-[#DC2626]/10 transition-colors uppercase flex items-center justify-center gap-2"
                             >
                                 <ShoppingCart className="w-5 h-5" />
                                 Add to Cart
@@ -326,7 +326,7 @@ export default function ProductDetail() {
                             <button 
                                 onClick={handleBuyNow}
                                 disabled={product.stock <= 0}
-                                className="flex-1 h-14 bg-[#25D366] text-white font-bold text-[16px] rounded-sm shadow-sm hover:bg-[#128C7E] transition-colors uppercase flex items-center justify-center gap-2"
+                                className="flex-1 h-14 bg-[#DC2626] text-white font-bold text-[16px] rounded-sm shadow-sm hover:bg-[#128C7E] transition-colors uppercase flex items-center justify-center gap-2"
                             >
                                 <ArrowRight className="w-5 h-5" />
                                 Buy Now
@@ -356,7 +356,7 @@ export default function ProductDetail() {
                         </div>
                         <span className="text-gray-500 text-sm font-medium">{product.numReviews || 0} Ratings & Reviews</span>
                         {product.brand && (
-                             <div className="flex items-center gap-1 ml-2 bg-[#25D366]/5 px-2 py-0.5 rounded border border-[#25D366]/20">
+                             <div className="flex items-center gap-1 ml-2 bg-[#DC2626]/5 px-2 py-0.5 rounded border border-[#DC2626]/20">
                                 <ShieldCheck className="w-3 h-3 text-[#128C7E]" />
                                 <span className="text-xs font-bold text-[#128C7E]">CommerceHub Assured</span>
                              </div>
@@ -375,7 +375,7 @@ export default function ProductDetail() {
                                 </span>
                              )}
                              {discountPercentage > 0 && (
-                                <span className="text-[16px] text-[#25D366] font-bold">
+                                <span className="text-[16px] text-[#DC2626] font-bold">
                                     {discountPercentage}% off
                                 </span>
                              )}
@@ -405,13 +405,13 @@ export default function ProductDetail() {
                     <div className="flex gap-16 mb-6">
                          <div className="w-24 text-gray-500 font-medium text-sm">Delivery</div>
                          <div className="flex-1">
-                             <div className="border-b-2 border-[#25D366] inline-block pb-1 mb-2">
+                             <div className="border-b-2 border-[#DC2626] inline-block pb-1 mb-2">
                                 <span className="text-sm font-medium text-gray-800 flex items-center gap-2">
                                     <Truck className="w-4 h-4 text-[#128C7E]" />
                                     Check Delivery
                                 </span>
                              </div>
-                             <p className="text-xs text-gray-500">Delivery by 11 PM, Tomorrow | <span className="text-[#25D366]">Free</span> <span className="line-through text-gray-400">₹40</span></p>
+                             <p className="text-xs text-gray-500">Delivery by 11 PM, Tomorrow | <span className="text-[#DC2626]">Free</span> <span className="line-through text-gray-400">₹40</span></p>
                          </div>
                     </div>
 
@@ -489,7 +489,7 @@ export default function ProductDetail() {
         {/* Similar Products */}
         {similarProducts.length > 0 && (
             <div className="mb-16">
-                <h2 className="text-2xl font-bold text-gray-900 mb-8 border-l-4 border-[#25D366] pl-4">Similar Products</h2>
+                <h2 className="text-2xl font-bold text-gray-900 mb-8 border-l-4 border-[#DC2626] pl-4">Similar Products</h2>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
                     {similarProducts.map((p) => (
                     <div key={p._id} className="group bg-white border border-gray-100 rounded-xl overflow-hidden hover:shadow-lg hover:-translate-y-1 transition-all cursor-pointer"
@@ -504,9 +504,9 @@ export default function ProductDetail() {
                         )}
                         </div>
                         <div className="p-4">
-                            <h3 className="font-bold text-gray-900 text-sm mb-1 truncate hover:text-[#25D366] transition-colors">{p.name}</h3>
+                            <h3 className="font-bold text-gray-900 text-sm mb-1 truncate hover:text-[#DC2626] transition-colors">{p.name}</h3>
                             <div className="flex items-center justify-between mt-2">
-                                <span className="font-bold text-[#25D366]">{formatCurrency(p.price)}</span>
+                                <span className="font-bold text-[#DC2626]">{formatCurrency(p.price)}</span>
                             </div>
                         </div>
                     </div>

@@ -48,7 +48,7 @@ const features = [
 
 const colorClasses = {
   blue: 'bg-blue-50 text-blue-600',
-  green: 'bg-emerald-50 text-emerald-600',
+  green: 'bg-red-50 text-red-600',
   purple: 'bg-purple-50 text-purple-600',
   yellow: 'bg-orange-50 text-orange-600',
   pink: 'bg-rose-50 text-rose-600',
@@ -61,7 +61,7 @@ export default function Features() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section header */}
         <div className="text-center mb-16">
-          <span className="inline-block px-4 py-2 bg-emerald-100 text-emerald-700 rounded-full text-sm font-bold mb-4">
+          <span className="inline-block px-4 py-2 bg-red-100 text-red-700 rounded-full text-sm font-bold mb-4">
             POWERFUL FEATURES
           </span>
           <h2 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-4">
@@ -77,7 +77,7 @@ export default function Features() {
           {features.map((feature, index) => (
             <div
               key={index}
-              className="group bg-white p-8 rounded-2xl border border-gray-200 hover:border-emerald-300 hover:shadow-xl transition-all duration-300"
+              className="group bg-white p-8 rounded-2xl border border-gray-200 hover:border-red-300 hover:shadow-xl transition-all duration-300"
             >
               {/* Icon */}
               <div className={`inline-flex items-center justify-center w-14 h-14 ${colorClasses[feature.color]} rounded-xl mb-5 group-hover:scale-110 transition-transform duration-300`}>
@@ -100,7 +100,7 @@ export default function Features() {
           <p className="text-gray-600 mb-4 text-lg">Ready to transform your business?</p>
           <a
             href="#pricing"
-            className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-semibold rounded-xl hover:from-emerald-700 hover:to-teal-700 transition-all duration-200 shadow-xl shadow-emerald-500/25"
+            className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-red-600 to-teal-600 text-white font-semibold rounded-xl hover:from-red-700 hover:to-teal-700 transition-all duration-200 shadow-xl shadow-red-500/25"
           >
             View Pricing Plans
           </a>

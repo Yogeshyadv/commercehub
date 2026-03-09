@@ -37,8 +37,8 @@ function StockEditor({ product, onManage }) {
   const isOut = product.stock <= 0;
   const isLow = product.stock > 0 && product.stock <= 10;
   
-  const colorClass = isOut ? 'text-red-600 dark:text-red-400' : isLow ? 'text-yellow-600 dark:text-yellow-400' : 'text-green-600 dark:text-green-400';
-  const bgClass = isOut ? 'bg-red-50 dark:bg-red-900/10' : isLow ? 'bg-yellow-50 dark:bg-yellow-900/10' : 'bg-green-50 dark:bg-green-900/10';
+  const colorClass = isOut ? 'text-red-600 dark:text-red-400' : isLow ? 'text-yellow-600 dark:text-yellow-400' : 'text-red-600 dark:text-red-400';
+  const bgClass = isOut ? 'bg-red-50 dark:bg-red-900/10' : isLow ? 'bg-yellow-50 dark:bg-yellow-900/10' : 'bg-red-50 dark:bg-red-900/10';
 
   return (
     <div className="group flex items-center gap-3">
@@ -47,7 +47,7 @@ function StockEditor({ product, onManage }) {
       </div>
       <button
         onClick={() => onManage(product)}
-        className="opacity-0 group-hover:opacity-100 p-1.5 text-[#25D366] hover:bg-[#25D366]/10 dark:hover:bg-[#25D366]/20 rounded-lg transition-all"
+        className="opacity-0 group-hover:opacity-100 p-1.5 text-[#DC2626] hover:bg-[#DC2626]/10 dark:hover:bg-[#DC2626]/20 rounded-lg transition-all"
         title="Manage Stock"
       >
         <Edit3 className="w-4 h-4" />
@@ -147,7 +147,7 @@ export default function Inventory() {
           </button>
           <button
             onClick={() => navigate('/dashboard/products/new')}
-            className="flex items-center gap-2 px-5 py-2.5 bg-[#25D366] hover:bg-[#20bd5a] text-white rounded-xl font-medium shadow-lg shadow-[#25D366]/20 transition-all transform hover:scale-105 active:scale-95"
+            className="flex items-center gap-2 px-5 py-2.5 bg-[#DC2626] hover:bg-[#B91C1C] text-white rounded-xl font-medium shadow-lg shadow-[#DC2626]/20 transition-all transform hover:scale-105 active:scale-95"
           >
             <Package className="w-4 h-4" />
             <span>Add Product</span>
@@ -161,7 +161,7 @@ export default function Inventory() {
           title="Total Items"
           value={stats.total}
           icon={<Package className="w-6 h-6" />}
-          color={{ bg: 'bg-[#25D366]/10 dark:bg-[#25D366]/20', text: 'text-[#25D366] dark:text-[#25D366]' }}
+          color={{ bg: 'bg-[#DC2626]/10 dark:bg-[#DC2626]/20', text: 'text-[#DC2626] dark:text-[#DC2626]' }}
         />
         <StatsCard
           title="Low Stock Items"
@@ -190,7 +190,7 @@ export default function Inventory() {
                 className={`
                   whitespace-nowrap px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200
                   ${activeTab === tab.id
-                    ? 'bg-[#25D366] text-white shadow-sm'
+                    ? 'bg-[#DC2626] text-white shadow-sm'
                     : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
                   }
                 `}
@@ -208,7 +208,7 @@ export default function Inventory() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search inventory..."
-              className="w-full pl-10 pr-4 py-2.5 bg-gray-50 dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 rounded-xl focus:ring-2 focus:ring-[#25D366]/20 focus:border-transparent outline-none transition-all placeholder:text-gray-400 text-sm"
+              className="w-full pl-10 pr-4 py-2.5 bg-gray-50 dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 rounded-xl focus:ring-2 focus:ring-[#DC2626]/20 focus:border-transparent outline-none transition-all placeholder:text-gray-400 text-sm"
             />
           </div>
         </div>

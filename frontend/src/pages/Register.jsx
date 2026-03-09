@@ -1,652 +1,226 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
-import { 
-  MailIcon, 
-  LockIcon, 
-  UserIcon, 
-  PhoneIcon, 
-  BuildingIcon, 
-  EyeIcon, 
-  EyeOffIcon, 
-  ArrowRightIcon,
-  CheckCircleIcon 
-} from 'lucide-react';
+import { MailIcon, LockIcon, UserIcon, PhoneIcon, BuildingIcon, EyeIcon, EyeOffIcon, CheckCircleIcon } from 'lucide-react';
+
+function Field({ label, id, icon, rightEl, children }) {
+  return (
+    <div>
+      {(label || rightEl) && (
+        <div className="flex items-center justify-between mb-1.5">
+          {label && <label htmlFor={id} className="text-xs font-semibold text-gray-400">{label}</label>}
+          {rightEl}
+        </div>
+      )}
+      <div className="relative">
+        {icon && <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-600 pointer-events-none">{icon}</span>}
+        {children}
+      </div>
+    </div>
+  );
+}
+
+function SocialButton({ icon, label }) {
+  return (
+    <button type="button" className="w-full flex items-center justify-center gap-3 py-2.5 px-4 rounded-lg bg-white/[0.04] border border-white/[0.08] text-sm font-medium text-gray-300 hover:bg-white/[0.08] hover:border-white/[0.14] transition-all">
+      {icon}
+      {label}
+    </button>
+  );
+}
+
+const inputCls = "w-full pl-10 pr-4 py-2.5 bg-[#141414] border border-white/[0.1] rounded-lg text-white text-sm placeholder-gray-600 focus:outline-none focus:border-[#DC2626]/60 focus:ring-2 focus:ring-[#DC2626]/10 transition-all";
 
 export default function Register() {
   const [formData, setFormData] = useState({
-    firstName: '', lastName: '', email: '', phone: '', password: '',
-    confirmPassword: '', role: 'vendor', businessName: '',
+    firstName: '', lastName: '', email: '', phone: '',
+    password: '', confirmPassword: '', role: 'vendor', businessName: '',
   });
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [registered, setRegistered] = useState(false);
   const [registeredEmail, setRegisteredEmail] = useState('');
+  const [agreed, setAgreed] = useState(false);
   const { register } = useAuth();
-  const navigate = useNavigate();
 
-  const handleChange = (e) => {
-    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
-  };
+  const handleChange = (e) => setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (formData.password !== formData.confirmPassword) {
-      toast.error('Passwords do not match');
-      return;
-    }
-    if (formData.password.length < 8) {
-      toast.error('Password must be at least 8 characters');
-      return;
-    }
-    if (formData.role === 'vendor' && !formData.businessName.trim()) {
-      toast.error('Business name is required');
-      return;
-    }
-
+    if (!agreed) { toast.error('Please accept the terms and privacy policy'); return; }
+    if (formData.password !== formData.confirmPassword) { toast.error('Passwords do not match'); return; }
+    if (formData.password.length < 8) { toast.error('Password must be at least 8 characters'); return; }
+    if (formData.role === 'vendor' && !formData.businessName.trim()) { toast.error('Business name is required for vendors'); return; }
     setLoading(true);
     try {
-      const response = await register(formData);
-      toast.success(response.message || 'Account created successfully!');
+      await register(formData);
       setRegisteredEmail(formData.email);
       setRegistered(true);
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Registration failed');
+      toast.error(error.response?.data?.message || 'Registration failed. Please try again.');
     } finally {
       setLoading(false);
     }
   };
 
-  // Show success message after registration
   if (registered) {
     return (
-      <div className="min-h-screen w-full bg-gradient-to-br from-white via-[#E8FFF3]/30 to-white overflow-hidden relative flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-        {/* Decorative Background Blobs */}
-        <div className="fixed top-0 left-0 w-full h-full overflow-hidden pointer-events-none z-0">
-          <motion.div 
-            animate={{ 
-              scale: [1, 1.2, 1],
-              opacity: [0.3, 0.5, 0.3]
-            }}
-            transition={{ 
-              duration: 8,
-              repeat: Infinity,
-              ease: "easeInOut"
-            }}
-            className="absolute top-[-10%] right-[-5%] w-[500px] h-[500px] bg-gradient-to-br from-[#25D366]/30 to-[#1DB954]/20 rounded-full blur-3xl"
-          />
-          <motion.div
-            animate={{ 
-              scale: [1, 1.1, 1],
-              opacity: [0.2, 0.4, 0.2]
-            }}
-            transition={{ 
-              duration: 10,
-              repeat: Infinity,
-              ease: "easeInOut",
-              delay: 2
-            }}
-            className="absolute bottom-[-10%] left-[-5%] w-[600px] h-[600px] bg-gradient-to-tr from-[#128C7E]/30 to-green-100/30 rounded-full blur-3xl"
-          />
-        </div>
-
-        {/* Subtle Dot Pattern */}
-        <div 
-          className="fixed inset-0 z-0 opacity-[0.025]" 
-          style={{
-            backgroundImage: 'radial-gradient(circle, #1a1a2e 1px, transparent 1px)',
-            backgroundSize: '32px 32px'
-          }}
-        />
-
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.5 }}
-          className="relative z-10 w-full max-w-md"
-        >
-          <div className="bg-white/80 backdrop-blur-2xl border border-white/60 rounded-3xl shadow-[0_8px_32px_0_rgba(37,211,102,0.12),0_2px_8px_0_rgba(0,0,0,0.04)] p-8 sm:p-10">
-            <div className="text-center">
-              <motion.div
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ delay: 0.2, type: 'spring', stiffness: 200 }}
-                className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-[#25D366]/20 to-[#1DB954]/20 rounded-full mb-6 shadow-lg"
-              >
-                <CheckCircleIcon className="w-10 h-10 text-[#25D366]" />
-              </motion.div>
-              
-              <motion.h3
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3 }}
-                className="text-3xl font-extrabold mb-3 tracking-tight"
-                style={{ 
-                  background: 'linear-gradient(135deg, #1a1a2e 0%, #25D366 50%, #1DB954 100%)',
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
-                  backgroundClip: 'text',
-                  letterSpacing: '-0.02em'
-                }}
-              >
-                Check your email
-              </motion.h3>
-              
-              <motion.p
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.4 }}
-                className="text-gray-600 mb-6"
-              >
-                We've sent a verification link to <strong className="text-[#1a1a2e]">{registeredEmail}</strong>. 
-                Click the link to verify your account.
-              </motion.p>
-              
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.5 }}
-                className="bg-green-50 border border-green-200 rounded-xl p-4 mb-6"
-              >
-                <p className="text-sm text-green-800">
-                  💡 Check your spam folder if you don't see the email
-                </p>
-              </motion.div>
-              
-              <motion.button
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.6 }}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => {
-                  setRegistered(false);
-                  setFormData({
-                    firstName: '', lastName: '', email: '', phone: '', password: '',
-                    confirmPassword: '', role: 'vendor', businessName: '',
-                  });
-                }}
-                className="text-[#25D366] hover:text-[#128C7E] font-semibold transition-colors"
-              >
-                Register with a different email
-              </motion.button>
-
-              <div className="mt-6 pt-6 border-t border-gray-200">
-                <Link
-                  to="/login"
-                  className="text-sm text-gray-600 hover:text-[#1a1a2e] transition-colors"
-                >
-                  Already verified? <span className="font-semibold text-[#25D366]">Sign in</span>
-                </Link>
-              </div>
+      <div className="min-h-screen bg-[#0a0a0a] flex flex-col items-center justify-center px-4 py-12">
+        <div className="pointer-events-none fixed top-0 left-1/2 -translate-x-1/2 w-[600px] h-[260px]" style={{ background: 'radial-gradient(ellipse at 50% 0%, rgba(220,38,38,0.13) 0%, transparent 70%)' }} />
+        <motion.div initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.4 }} className="relative z-10 w-full max-w-[420px] text-center">
+          <Link to="/" className="inline-block mb-8">
+            <span className="text-2xl font-black tracking-tight text-white">Commerce<span className="text-[#DC2626]">Hub</span></span>
+          </Link>
+          <div className="flex items-center justify-center mb-5">
+            <div className="w-14 h-14 rounded-full bg-green-500/10 border border-green-500/20 flex items-center justify-center">
+              <CheckCircleIcon className="w-7 h-7 text-green-400" />
             </div>
           </div>
+          <h1 className="text-2xl font-black text-white mb-2">Check your inbox</h1>
+          <p className="text-sm text-gray-500 mb-1.5">We sent a verification link to</p>
+          <p className="text-sm font-semibold text-white mb-6">{registeredEmail}</p>
+          <p className="text-xs text-gray-600 mb-6">Click the link in the email to activate your account. Check your spam folder if you don't see it.</p>
+          <Link to="/login" className="inline-flex items-center justify-center w-full py-2.5 rounded-lg bg-[#DC2626] hover:bg-[#c41f1f] text-white font-bold text-sm transition-colors">
+            Go to sign in
+          </Link>
         </motion.div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen w-full bg-gradient-to-br from-white via-[#E8FFF3]/30 to-white overflow-hidden relative flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-      {/* Decorative Background Blobs */}
-      <div className="fixed top-0 left-0 w-full h-full overflow-hidden pointer-events-none z-0">
-        <motion.div 
-          animate={{ 
-            scale: [1, 1.2, 1],
-            opacity: [0.3, 0.5, 0.3]
-          }}
-          transition={{ 
-            duration: 8,
-            repeat: Infinity,
-            ease: "easeInOut"
-          }}
-          className="absolute top-[-10%] right-[-5%] w-[500px] h-[500px] bg-gradient-to-br from-[#25D366]/30 to-[#1DB954]/20 rounded-full blur-3xl"
-        />
-        <motion.div
-          animate={{ 
-            scale: [1, 1.1, 1],
-            opacity: [0.2, 0.4, 0.2]
-          }}
-          transition={{ 
-            duration: 10,
-            repeat: Infinity,
-            ease: "easeInOut",
-            delay: 2
-          }}
-          className="absolute bottom-[-10%] left-[-5%] w-[600px] h-[600px] bg-gradient-to-tr from-[#128C7E]/30 to-green-100/30 rounded-full blur-3xl"
-        />
-      </div>
+    <div className="min-h-screen bg-[#0a0a0a] flex flex-col items-center justify-center px-4 py-12">
+      <div className="pointer-events-none fixed top-0 left-1/2 -translate-x-1/2 w-[600px] h-[260px]" style={{ background: 'radial-gradient(ellipse at 50% 0%, rgba(220,38,38,0.13) 0%, transparent 70%)' }} />
 
-      {/* Subtle Dot Pattern */}
-      <div 
-        className="fixed inset-0 z-0 opacity-[0.025]" 
-        style={{
-          backgroundImage: 'radial-gradient(circle, #1a1a2e 1px, transparent 1px)',
-          backgroundSize: '32px 32px'
-        }}
-      />
+      <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }} className="relative z-10 w-full max-w-[480px]">
 
-      {/* Register Card */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="relative z-10 w-full max-w-2xl"
-      >
-        {/* Logo/Back Link */}
+        {/* Logo */}
         <div className="text-center mb-8">
-          <Link to="/" className="inline-flex items-center text-[#1a1a2e] hover:text-[#25D366] transition-all duration-200 mb-4 group">
-            <ArrowRightIcon className="w-5 h-5 mr-2 rotate-180 group-hover:-translate-x-1 transition-transform" />
-            <span className="font-bold text-2xl tracking-tight">
-              Commerce<span className="text-transparent bg-clip-text bg-gradient-to-r from-[#25D366] to-[#1DB954]">Hub</span>
-            </span>
+          <Link to="/" className="inline-block">
+            <span className="text-2xl font-black tracking-tight text-white">Commerce<span className="text-[#DC2626]">Hub</span></span>
           </Link>
         </div>
 
-        <motion.div 
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.1, duration: 0.4 }}
-          className="bg-white/80 backdrop-blur-2xl border border-white/60 rounded-3xl shadow-[0_8px_32px_0_rgba(37,211,102,0.12),0_2px_8px_0_rgba(0,0,0,0.04)] p-8 sm:p-10"
-        >
-          <div className="text-center mb-8">
-            <motion.h2
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.15 }}
-              className="text-4xl font-extrabold mb-3 tracking-tight"
-              style={{ 
-                background: 'linear-gradient(135deg, #1a1a2e 0%, #25D366 50%, #1DB954 100%)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                backgroundClip: 'text',
-                lineHeight: '1.2',
-                letterSpacing: '-0.02em'
-              }}
-            >
-              Create your account
-            </motion.h2>
-            <motion.p
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-              className="text-gray-600 text-base leading-relaxed"
-            >
-              Start selling on WhatsApp in minutes
-            </motion.p>
+        {/* Heading */}
+        <div className="text-center mb-7">
+          <h1 className="text-[1.65rem] font-black text-white tracking-tight mb-1.5">Create your account</h1>
+          <p className="text-sm text-gray-500">Start selling in minutes. No credit card required.</p>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-3.5">
+          {/* Role toggle */}
+          <div>
+            <p className="text-xs font-semibold text-gray-400 mb-2">Account type</p>
+            <div className="grid grid-cols-2 gap-2 p-1 bg-[#141414] border border-white/[0.08] rounded-lg">
+              {['vendor', 'customer'].map(r => (
+                <button
+                  key={r} type="button" onClick={() => setFormData(prev => ({ ...prev, role: r }))}
+                  className={`py-2 rounded-md text-xs font-bold capitalize transition-all ${formData.role === r ? 'bg-[#DC2626] text-white shadow' : 'text-gray-500 hover:text-gray-300'}`}
+                >
+                  {r === 'vendor' ? 'Vendor / Seller' : 'Customer / Buyer'}
+                </button>
+              ))}
+            </div>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-5">
-            {/* Account Type */}
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.25 }}
+          {/* First + Last name */}
+          <div className="grid grid-cols-2 gap-3">
+            <Field label="First name" id="firstName" icon={<UserIcon className="w-4 h-4" />}>
+              <input id="firstName" name="firstName" type="text" required value={formData.firstName} onChange={handleChange} className={inputCls} placeholder="Jane" />
+            </Field>
+            <Field label="Last name" id="lastName" icon={<UserIcon className="w-4 h-4" />}>
+              <input id="lastName" name="lastName" type="text" required value={formData.lastName} onChange={handleChange} className={inputCls} placeholder="Smith" />
+            </Field>
+          </div>
+
+          {/* Email */}
+          <Field label="Email address" id="email" icon={<MailIcon className="w-4 h-4" />}>
+            <input id="email" name="email" type="email" autoComplete="email" required value={formData.email} onChange={handleChange} className={inputCls} placeholder="you@example.com" />
+          </Field>
+
+          {/* Phone */}
+          <Field label="Phone (optional)" id="phone" icon={<PhoneIcon className="w-4 h-4" />}>
+            <input id="phone" name="phone" type="tel" value={formData.phone} onChange={handleChange} className={inputCls} placeholder="+1 (555) 000-0000" />
+          </Field>
+
+          {/* Business name (vendor only) */}
+          {formData.role === 'vendor' && (
+            <Field label="Business name" id="businessName" icon={<BuildingIcon className="w-4 h-4" />}>
+              <input id="businessName" name="businessName" type="text" required value={formData.businessName} onChange={handleChange} className={inputCls} placeholder="Acme Co." />
+            </Field>
+          )}
+
+          {/* Password + Confirm */}
+          <div className="grid grid-cols-2 gap-3">
+            <Field label="Password" id="password" icon={<LockIcon className="w-4 h-4" />}
+              rightEl={
+                <button type="button" onClick={() => setShowPassword(!showPassword)} className="text-xs text-gray-600 hover:text-gray-400 transition-colors">
+                  {showPassword ? 'Hide' : 'Show'}
+                </button>
+              }
             >
-              <label className="block text-sm font-bold text-[#1a1a2e] mb-3 tracking-wide">
-                I am a
-              </label>
-              <div className="grid grid-cols-2 gap-3">
-                {[
-                  { value: 'vendor', label: 'Business / Vendor', icon: '🏪' },
-                  { value: 'customer', label: 'Customer', icon: '🛒' },
-                ].map(({ value, label, icon }) => (
-                  <motion.label
-                    key={value}
-                    whileHover={{ scale: 1.02, y: -2 }}
-                    whileTap={{ scale: 0.98 }}
-                    className={`relative flex items-center justify-center px-4 py-4 rounded-2xl border-2 cursor-pointer transition-all duration-200 ${
-                      formData.role === value
-                        ? 'border-[#25D366] bg-gradient-to-br from-[#25D366]/10 to-[#1DB954]/5 text-[#1a1a2e] shadow-lg shadow-[#25D366]/20'
-                        : 'border-gray-200/60 hover:border-[#25D366]/40 hover:bg-white/80'
-                    }`}
-                  >
-                    <input
-                      type="radio"
-                      name="role"
-                      value={value}
-                      checked={formData.role === value}
-                      onChange={handleChange}
-                      className="sr-only"
-                    />
-                    <span className="text-2xl mr-2">{icon}</span>
-                    <span className="text-sm font-bold tracking-wide">{label}</span>
-                  </motion.label>
-                ))}
-              </div>
-            </motion.div>
-
-            {/* Name Fields */}
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.4 }}
-              className="grid grid-cols-1 sm:grid-cols-2 gap-4"
+              <input id="password" name="password" type={showPassword ? 'text' : 'password'} autoComplete="new-password" required value={formData.password} onChange={handleChange} className={inputCls + ' pr-4'} placeholder="Min 8 chars" />
+            </Field>
+            <Field label="Confirm password" id="confirmPassword" icon={<LockIcon className="w-4 h-4" />}
+              rightEl={
+                <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="text-xs text-gray-600 hover:text-gray-400 transition-colors">
+                  {showConfirmPassword ? 'Hide' : 'Show'}
+                </button>
+              }
             >
-              <div>
-                <label htmlFor="firstName" className="block text-sm font-bold text-[#1a1a2e] mb-2.5 tracking-wide">
-                  First name
-                </label>
-                <div className="relative group">
-                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none z-10">
-                    <motion.div
-                      whileHover={{ scale: 1.1, rotate: 5 }}
-                      transition={{ type: "spring", stiffness: 400 }}
-                    >
-                      <UserIcon className="h-5 w-5 text-gray-400 group-focus-within:text-[#25D366] transition-all duration-200" />
-                    </motion.div>
-                  </div>
-                  <input
-                    id="firstName"
-                    name="firstName"
-                    type="text"
-                    required
-                    value={formData.firstName}
-                    onChange={handleChange}
-                    className="block w-full pl-12 pr-4 py-4 bg-white/60 border-2 border-gray-200/60 rounded-2xl text-[#1a1a2e] placeholder-gray-400 shadow-inner focus:outline-none focus:ring-4 focus:ring-[#25D366]/30 focus:border-[#25D366] focus:bg-white focus:shadow-[0_0_0_3px_rgba(37,211,102,0.1),0_8px_16px_rgba(37,211,102,0.15)] transition-all duration-300"
-                    placeholder="John"
-                    style={{ letterSpacing: '0.01em' }}
-                  />
-                </div>
-              </div>
-              <div>
-                <label htmlFor="lastName" className="block text-sm font-bold text-[#1a1a2e] mb-2.5 tracking-wide">
-                  Last name
-                </label>
-                <div className="relative group">
-                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none z-10">
-                    <motion.div
-                      whileHover={{ scale: 1.1, rotate: -5 }}
-                      transition={{ type: "spring", stiffness: 400 }}
-                    >
-                      <UserIcon className="h-5 w-5 text-gray-400 group-focus-within:text-[#25D366] transition-all duration-200" />
-                    </motion.div>
-                  </div>
-                  <input
-                    id="lastName"
-                    name="lastName"
-                    type="text"
-                    required
-                    value={formData.lastName}
-                    onChange={handleChange}
-                    className="block w-full pl-12 pr-4 py-4 bg-white/60 border-2 border-gray-200/60 rounded-2xl text-[#1a1a2e] placeholder-gray-400 shadow-inner focus:outline-none focus:ring-4 focus:ring-[#25D366]/30 focus:border-[#25D366] focus:bg-white focus:shadow-[0_0_0_3px_rgba(37,211,102,0.1),0_8px_16px_rgba(37,211,102,0.15)] transition-all duration-300"
-                    placeholder="Doe"
-                    style={{ letterSpacing: '0.01em' }}
-                  />
-                </div>
-              </div>
-            </motion.div>
+              <input id="confirmPassword" name="confirmPassword" type={showConfirmPassword ? 'text' : 'password'} autoComplete="new-password" required value={formData.confirmPassword} onChange={handleChange} className={inputCls + ' pr-4'} placeholder="Repeat password" />
+            </Field>
+          </div>
 
-            {/* Email Field */}
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.45 }}
-            >
-              <label htmlFor="email" className="block text-sm font-bold text-[#1a1a2e] mb-2.5 tracking-wide">
-                Email address
-              </label>
-              <div className="relative group">
-                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none z-10">
-                  <motion.div
-                    whileHover={{ scale: 1.1, rotate: 5 }}
-                    transition={{ type: "spring", stiffness: 400 }}
-                  >
-                    <MailIcon className="h-5 w-5 text-gray-400 group-focus-within:text-[#25D366] transition-all duration-200" />
-                  </motion.div>
-                </div>
-                <input
-                  id="email"
-                  name="email"
-                  type="email"
-                  autoComplete="email"
-                  required
-                  value={formData.email}
-                  onChange={handleChange}
-                  className="block w-full pl-12 pr-4 py-4 bg-white/60 border-2 border-gray-200/60 rounded-2xl text-[#1a1a2e] placeholder-gray-400 shadow-inner focus:outline-none focus:ring-4 focus:ring-[#25D366]/30 focus:border-[#25D366] focus:bg-white focus:shadow-[0_0_0_3px_rgba(37,211,102,0.1),0_8px_16px_rgba(37,211,102,0.15)] transition-all duration-300"
-                  placeholder="you@example.com"
-                  style={{ letterSpacing: '0.01em' }}
-                />
-              </div>
-            </motion.div>
+          {/* Terms */}
+          <label className="flex items-start gap-2.5 cursor-pointer pt-0.5">
+            <input type="checkbox" checked={agreed} onChange={e => setAgreed(e.target.checked)} className="mt-0.5 w-3.5 h-3.5 accent-[#DC2626] shrink-0" />
+            <span className="text-xs text-gray-500 leading-relaxed">
+              I agree to the{' '}
+              <Link to="/terms-of-service" className="text-white hover:text-[#DC2626] transition-colors">Terms of Service</Link>
+              {' '}and{' '}
+              <Link to="/privacy-policy" className="text-white hover:text-[#DC2626] transition-colors">Privacy Policy</Link>
+            </span>
+          </label>
 
-            {/* Phone Field */}
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.55 }}
-            >
-              <label htmlFor="phone" className="block text-sm font-bold text-[#1a1a2e] mb-2.5 tracking-wide">
-                Phone number <span className="text-gray-400 font-normal">(optional)</span>
-              </label>
-              <div className="relative group">
-                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none z-10">
-                  <motion.div
-                    whileHover={{ scale: 1.1, rotate: -5 }}
-                    transition={{ type: "spring", stiffness: 400 }}
-                  >
-                    <PhoneIcon className="h-5 w-5 text-gray-400 group-focus-within:text-[#25D366] transition-all duration-200" />
-                  </motion.div>
-                </div>
-                <input
-                  id="phone"
-                  name="phone"
-                  type="tel"
-                  value={formData.phone}
-                  onChange={handleChange}
-                  className="block w-full pl-12 pr-4 py-4 bg-white/60 border-2 border-gray-200/60 rounded-2xl text-[#1a1a2e] placeholder-gray-400 shadow-inner focus:outline-none focus:ring-4 focus:ring-[#25D366]/30 focus:border-[#25D366] focus:bg-white focus:shadow-[0_0_0_3px_rgba(37,211,102,0.1),0_8px_16px_rgba(37,211,102,0.15)] transition-all duration-300"
-                  placeholder="+91 98765 43210"
-                  style={{ letterSpacing: '0.01em' }}
-                />
-              </div>
-            </motion.div>
-
-            {/* Business Name (Vendor only) */}
-            {formData.role === 'vendor' && (
-              <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
-                exit={{ opacity: 0, height: 0 }}
-                transition={{ duration: 0.3 }}
-              >
-                <label htmlFor="businessName" className="block text-sm font-bold text-[#1a1a2e] mb-2.5 tracking-wide">
-                  Business name
-                </label>
-                <div className="relative group">
-                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none z-10">
-                    <motion.div
-                      whileHover={{ scale: 1.1, rotate: 5 }}
-                      transition={{ type: "spring", stiffness: 400 }}
-                    >
-                      <BuildingIcon className="h-5 w-5 text-gray-400 group-focus-within:text-[#25D366] transition-all duration-200" />
-                    </motion.div>
-                  </div>
-                  <input
-                    id="businessName"
-                    name="businessName"
-                    type="text"
-                    required
-                    value={formData.businessName}
-                    onChange={handleChange}
-                    className="block w-full pl-12 pr-4 py-4 bg-white/60 border-2 border-gray-200/60 rounded-2xl text-[#1a1a2e] placeholder-gray-400 shadow-inner focus:outline-none focus:ring-4 focus:ring-[#25D366]/30 focus:border-[#25D366] focus:bg-white focus:shadow-[0_0_0_3px_rgba(37,211,102,0.1),0_8px_16px_rgba(37,211,102,0.15)] transition-all duration-300"
-                    placeholder="Your Business Name"
-                    style={{ letterSpacing: '0.01em' }}
-                  />
-                </div>
-              </motion.div>
-            )}
-
-            {/* Password Fields */}
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.65 }}
-              className="grid grid-cols-1 sm:grid-cols-2 gap-4"
-            >
-              <div>
-                <label htmlFor="password" className="block text-sm font-bold text-[#1a1a2e] mb-2.5 tracking-wide">
-                  Password
-                </label>
-                <div className="relative group">
-                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none z-10">
-                    <motion.div
-                      whileHover={{ scale: 1.1, rotate: -5 }}
-                      transition={{ type: "spring", stiffness: 400 }}
-                    >
-                      <LockIcon className="h-5 w-5 text-gray-400 group-focus-within:text-[#25D366] transition-all duration-200" />
-                    </motion.div>
-                  </div>
-                  <input
-                    id="password"
-                    name="password"
-                    type={showPassword ? 'text' : 'password'}
-                    autoComplete="new-password"
-                    required
-                    value={formData.password}
-                    onChange={handleChange}
-                    className="block w-full pl-12 pr-12 py-4 bg-white/60 border-2 border-gray-200/60 rounded-2xl text-[#1a1a2e] placeholder-gray-400 shadow-inner focus:outline-none focus:ring-4 focus:ring-[#25D366]/30 focus:border-[#25D366] focus:bg-white focus:shadow-[0_0_0_3px_rgba(37,211,102,0.1),0_8px_16px_rgba(37,211,102,0.15)] transition-all duration-300"
-                    placeholder="Min 8 characters"
-                    style={{ letterSpacing: '0.01em' }}
-                  />
-                  <motion.button
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.95 }}
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-[#1DB954] transition-colors z-10"
-                  >
-                    {showPassword ? <EyeOffIcon className="h-5 w-5" /> : <EyeIcon className="h-5 w-5" />}
-                  </motion.button>
-                </div>
-              </div>
-              <div>
-                <label htmlFor="confirmPassword" className="block text-sm font-bold text-[#1a1a2e] mb-2.5 tracking-wide">
-                  Confirm password
-                </label>
-                <div className="relative group">
-                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none z-10">
-                    <motion.div
-                      whileHover={{ scale: 1.1, rotate: 5 }}
-                      transition={{ type: "spring", stiffness: 400 }}
-                    >
-                      <LockIcon className="h-5 w-5 text-gray-400 group-focus-within:text-[#25D366] transition-all duration-200" />
-                    </motion.div>
-                  </div>
-                  <input
-                    id="confirmPassword"
-                    name="confirmPassword"
-                    type={showConfirmPassword ? 'text' : 'password'}
-                    autoComplete="new-password"
-                    required
-                    value={formData.confirmPassword}
-                    onChange={handleChange}
-                    className="block w-full pl-12 pr-12 py-4 bg-white/60 border-2 border-gray-200/60 rounded-2xl text-[#1a1a2e] placeholder-gray-400 shadow-inner focus:outline-none focus:ring-4 focus:ring-[#25D366]/30 focus:border-[#25D366] focus:bg-white focus:shadow-[0_0_0_3px_rgba(37,211,102,0.1),0_8px_16px_rgba(37,211,102,0.15)] transition-all duration-300"
-                    placeholder="Confirm password"
-                    style={{ letterSpacing: '0.01em' }}
-                  />
-                  <motion.button
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.95 }}
-                    type="button"
-                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-[#1DB954] transition-colors z-10"
-                  >
-                    {showConfirmPassword ? <EyeOffIcon className="h-5 w-5" /> : <EyeIcon className="h-5 w-5" />}
-                  </motion.button>
-                </div>
-              </div>
-            </motion.div>
-
-            {/* Terms & Conditions */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.8 }}
-              className="flex items-start"
-            >
-              <input
-                id="terms"
-                name="terms"
-                type="checkbox"
-                required
-                className="h-4 w-4 text-[#25D366] focus:ring-[#1DB954] border-gray-300 rounded mt-1 transition-all duration-200"
-              />
-              <label htmlFor="terms" className="ml-3 block text-sm font-medium text-gray-600 leading-relaxed">
-                I agree to the{' '}
-                <a href="#" className="font-bold text-transparent bg-clip-text bg-gradient-to-r from-[#25D366] to-[#1DB954] hover:from-[#1DB954] hover:to-[#25D366] transition-all duration-200">
-                  Terms of Service
-                </a>{' '}
-                and{' '}
-                <a href="#" className="font-bold text-transparent bg-clip-text bg-gradient-to-r from-[#25D366] to-[#1DB954] hover:from-[#1DB954] hover:to-[#25D366] transition-all duration-200">
-                  Privacy Policy
-                </a>
-              </label>
-            </motion.div>
-
-            {/* Submit Button */}
-            <motion.button
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.85 }}
-              whileHover={{ scale: 1.02, y: -2 }}
-              whileTap={{ scale: 0.98 }}
-              type="submit"
-              disabled={loading}
-              className="relative w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-[#25D366] via-[#1DB954] to-[#128C7E] text-white font-bold text-base shadow-[0_4px_16px_rgba(37,211,102,0.3),0_8px_32px_rgba(37,211,102,0.15)] hover:shadow-[0_8px_24px_rgba(37,211,102,0.4),0_12px_48px_rgba(37,211,102,0.2)] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center overflow-hidden group"
-              style={{ letterSpacing: '0.02em' }}
-            >
-              {/* Shimmer Effect */}
-              <span className="absolute inset-0 w-1/3 h-full bg-gradient-to-r from-transparent via-white/40 to-transparent skew-x-[-20deg] group-hover:animate-[shimmer_1.5s_ease-in-out] -translate-x-full" />
-              
-              {/* Subtle pulse on hover */}
-              <span className="absolute inset-0 bg-gradient-to-r from-[#1DB954] to-[#25D366] opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-              {loading ? (
-                <>
-                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white relative z-10" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  <span className="relative z-10">Creating account...</span>
-                </>
-              ) : (
-                <>
-                  <span className="relative z-10">Create account</span>
-                  <ArrowRightIcon className="ml-2 w-5 h-5 relative z-10 group-hover:translate-x-1 transition-transform duration-200" />
-                </>
-              )}
-            </motion.button>
-          </form>
-
-          {/* Sign In Link */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.95 }}
-            className="mt-8 pt-6 border-t border-gray-200/60 text-center"
+          {/* Submit */}
+          <button
+            type="submit" disabled={loading}
+            className="w-full py-2.5 rounded-lg bg-[#DC2626] hover:bg-[#c41f1f] text-white font-bold text-sm transition-colors disabled:opacity-50 flex items-center justify-center gap-2 mt-1"
           >
-            <p className="text-sm text-gray-600 leading-relaxed">
-              Already have an account?{' '}
-              <Link
-                to="/login"
-                className="font-bold text-transparent bg-clip-text bg-gradient-to-r from-[#25D366] to-[#1DB954] hover:from-[#1DB954] hover:to-[#25D366] transition-all duration-200 inline-flex items-center"
-              >
-                Sign in
-                <svg className="w-4 h-4 ml-1 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 7l5 5m0 0l-5 5m5-5H6" style={{ stroke: 'url(#gradient2)' }} />
-                  <defs>
-                    <linearGradient id="gradient2" x1="0%" y1="0%" x2="100%" y2="0%">
-                      <stop offset="0%" stopColor="#25D366" />
-                      <stop offset="100%" stopColor="#1DB954" />
-                    </linearGradient>
-                  </defs>
-                </svg>
-              </Link>
-            </p>
-          </motion.div>
-        </motion.div>
+            {loading
+              ? <><svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>Creating account...</>
+              : 'Create account'}
+          </button>
+        </form>
+
+        {/* Divider */}
+        <div className="flex items-center gap-3 my-5">
+          <div className="flex-1 h-px bg-white/[0.06]" />
+          <span className="text-xs text-gray-600">or</span>
+          <div className="flex-1 h-px bg-white/[0.06]" />
+        </div>
+
+        {/* Social */}
+        <div className="space-y-2.5">
+          <SocialButton
+            label="Continue with Google"
+            icon={<svg className="w-4 h-4" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>}
+          />
+          <SocialButton
+            label="Continue with Apple"
+            icon={<svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>}
+          />
+        </div>
+
+        {/* Footer */}
+        <p className="text-center text-xs text-gray-600 mt-7">
+          Already have an account?{' '}
+          <Link to="/login" className="text-white font-semibold hover:text-[#DC2626] transition-colors">Sign in</Link>
+        </p>
       </motion.div>
     </div>
   );

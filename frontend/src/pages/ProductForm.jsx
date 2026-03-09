@@ -257,7 +257,7 @@ export default function ProductForm() {
 
   if (fetching) return (
       <div className="flex items-center justify-center min-h-screen bg-gray-50 dark:bg-zinc-950">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#25D366]"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#DC2626]"></div>
       </div>
   );
 
@@ -283,7 +283,7 @@ export default function ProductForm() {
                     </span>
                   )}
                   {formData.status === 'active' && (
-                    <span className="px-2 py-0.5 rounded-full bg-green-100 text-green-700 text-xs font-medium dark:bg-green-900/30 dark:text-green-500">
+                    <span className="px-2 py-0.5 rounded-full bg-red-100 text-red-700 text-xs font-medium dark:bg-red-900/30 dark:text-red-500">
                       Active
                     </span>
                   )}
@@ -332,7 +332,7 @@ export default function ProductForm() {
                         onClick={() => setActiveTab(tab.id)}
                         className={`flex items-center gap-2 px-6 py-4 text-sm font-medium whitespace-nowrap border-b-2 transition-all ${
                         activeTab === tab.id
-                            ? 'border-[#25D366] text-[#25D366] dark:text-[#25D366]'
+                            ? 'border-[#DC2626] text-[#DC2626] dark:text-[#DC2626]'
                             : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:border-gray-300'
                         }`}
                     >
@@ -386,7 +386,7 @@ export default function ProductForm() {
                                         value={formData.category}
                                         onChange={handleChange}
                                         list="category-options"
-                                        className="w-full px-4 py-2 bg-gray-50 dark:bg-zinc-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-[#25D366] focus:border-transparent outline-none transition-all text-gray-900 dark:text-white placeholder-gray-400"
+                                        className="w-full px-4 py-2 bg-gray-50 dark:bg-zinc-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-[#DC2626] focus:border-transparent outline-none transition-all text-gray-900 dark:text-white placeholder-gray-400"
                                         placeholder="Select or type category..."
                                         required
                                     />
@@ -417,7 +417,7 @@ export default function ProductForm() {
                                 value={formData.description}
                                 onChange={handleChange}
                                 rows={6}
-                                className="w-full px-4 py-3 bg-gray-50 dark:bg-zinc-800 border-none rounded-xl focus:ring-2 focus:ring-[#25D366] text-gray-900 dark:text-white resize-y"
+                                className="w-full px-4 py-3 bg-gray-50 dark:bg-zinc-800 border-none rounded-xl focus:ring-2 focus:ring-[#DC2626] text-gray-900 dark:text-white resize-y"
                                 placeholder="Describe your product..."
                             />
                         </div>
@@ -448,16 +448,16 @@ export default function ProductForm() {
                                     value={tagInput}
                                     onChange={(e) => setTagInput(e.target.value)}
                                     onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addTag())}
-                                    className="flex-1 px-4 py-2 bg-gray-50 dark:bg-zinc-800 border-none rounded-xl focus:ring-2 focus:ring-[#25D366] text-gray-900 dark:text-white"
+                                    className="flex-1 px-4 py-2 bg-gray-50 dark:bg-zinc-800 border-none rounded-xl focus:ring-2 focus:ring-[#DC2626] text-gray-900 dark:text-white"
                                     placeholder="Add tag..."
                                 />
                                 <Button type="button" onClick={addTag} variant="secondary">Add</Button>
                             </div>
                             <div className="flex flex-wrap gap-2 mt-3">
                                 {formData.tags.map(tag => (
-                                    <span key={tag} className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-[#25D366]/10 text-[#25D366] dark:bg-[#25D366]/20 dark:text-[#25D366]">
+                                    <span key={tag} className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-[#DC2626]/10 text-[#DC2626] dark:bg-[#DC2626]/20 dark:text-[#DC2626]">
                                         {tag}
-                                        <button type="button" onClick={() => removeTag(tag)} className="ml-2 hover:text-green-700 hover:dark:text-green-300">
+                                        <button type="button" onClick={() => removeTag(tag)} className="ml-2 hover:text-red-700 hover:dark:text-red-300">
                                             <X className="w-3 h-3" />
                                         </button>
                                     </span>
@@ -496,7 +496,7 @@ export default function ProductForm() {
                         {/* Pricing Card */}
                         <div className="bg-white dark:bg-zinc-900 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 p-6">
                             <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-                                <DollarSign className="w-5 h-5 text-green-500" /> Pricing
+                                <DollarSign className="w-5 h-5 text-red-500" /> Pricing
                             </h3>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <Input
@@ -534,7 +534,7 @@ export default function ProductForm() {
                                         <div className="bg-gray-50 dark:bg-zinc-800/50 rounded-xl p-4 flex items-center justify-between">
                                             <div>
                                                 <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">Margin</p>
-                                                <p className={`text-xl font-bold ${margin < 15 ? 'text-red-500' : 'text-green-500'}`}>
+                                                <p className={`text-xl font-bold ${margin < 15 ? 'text-red-500' : 'text-red-500'}`}>
                                                     {isFinite(margin) ? margin : 0}%
                                                 </p>
                                             </div>
@@ -553,7 +553,7 @@ export default function ProductForm() {
                          {/* Inventory Card */}
                          <div className="bg-white dark:bg-zinc-900 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 p-6">
                             <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-                                <Package className="w-5 h-5 text-[#25D366]" /> Inventory
+                                <Package className="w-5 h-5 text-[#DC2626]" /> Inventory
                             </h3>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <Input
@@ -570,7 +570,7 @@ export default function ProductForm() {
                                             name="trackInventory"
                                             checked={formData.trackInventory}
                                             onChange={handleChange}
-                                            className="w-5 h-5 text-[#25D366] rounded focus:ring-[#25D366] border-gray-300"
+                                            className="w-5 h-5 text-[#DC2626] rounded focus:ring-[#DC2626] border-gray-300"
                                         />
                                         <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Track Quantity</span>
                                     </label>
@@ -648,7 +648,7 @@ export default function ProductForm() {
                                     value={formData.metaDescription}
                                     onChange={handleChange}
                                     rows={3}
-                                    className="w-full px-4 py-3 bg-gray-50 dark:bg-zinc-800 border-none rounded-xl focus:ring-2 focus:ring-[#25D366] text-gray-900 dark:text-white resize-none"
+                                    className="w-full px-4 py-3 bg-gray-50 dark:bg-zinc-800 border-none rounded-xl focus:ring-2 focus:ring-[#DC2626] text-gray-900 dark:text-white resize-none"
                                 />
                                 <p className="text-xs text-gray-500 mt-1">Recommended 160 characters max</p>
                             </div>
@@ -663,7 +663,7 @@ export default function ProductForm() {
                         </div>
                          <div className="flex justify-between items-center pt-6 mt-6 border-t border-gray-100 dark:border-gray-800">
                             <Button type="button" variant="secondary" onClick={() => setActiveTab('specifications')} size="lg">&larr; Back</Button>
-                            <Button type="button" onClick={() => { setFormData(p => ({ ...p, status: 'active' })); setTimeout(() => document.getElementById('product-form').requestSubmit(), 0); }} size="lg" className="bg-green-600 hover:bg-green-700 text-white shadow-lg shadow-green-600/20">
+                            <Button type="button" onClick={() => { setFormData(p => ({ ...p, status: 'active' })); setTimeout(() => document.getElementById('product-form').requestSubmit(), 0); }} size="lg" className="bg-red-600 hover:bg-red-700 text-white shadow-lg shadow-red-600/20">
                                 Save Product
                             </Button>
                         </div>
@@ -681,7 +681,7 @@ export default function ProductForm() {
                             name="status"
                             value={formData.status}
                             onChange={handleChange}
-                            className="w-full px-4 py-3 bg-gray-50 dark:bg-zinc-800 border-none rounded-xl focus:ring-2 focus:ring-[#25D366] text-gray-900 dark:text-white font-medium"
+                            className="w-full px-4 py-3 bg-gray-50 dark:bg-zinc-800 border-none rounded-xl focus:ring-2 focus:ring-[#DC2626] text-gray-900 dark:text-white font-medium"
                         >
                             <option value="draft">Draft</option>
                             <option value="active">Active</option>
@@ -696,8 +696,8 @@ export default function ProductForm() {
                 </div>
 
                 {/* Quick Completion Guide */}
-                <div className="bg-[#25D366]/5 dark:bg-[#25D366]/10 rounded-2xl p-6 border border-[#25D366]/20 dark:border-[#25D366]/20">
-                    <h3 className="text-green-900 dark:text-green-100 font-bold mb-3 flex items-center gap-2">
+                <div className="bg-[#DC2626]/5 dark:bg-[#DC2626]/10 rounded-2xl p-6 border border-[#DC2626]/20 dark:border-[#DC2626]/20">
+                    <h3 className="text-red-900 dark:text-red-100 font-bold mb-3 flex items-center gap-2">
                         <AlertCircle className="w-5 h-5" />
                         Completion
                     </h3>
@@ -709,10 +709,10 @@ export default function ProductForm() {
                              ['Inventory', !!formData.sku || !formData.trackInventory]
                          ].map(([label, active]) => (
                              <div key={label} className="flex items-center gap-2 text-sm">
-                                 <div className={`w-5 h-5 rounded-full flex items-center justify-center ${active ? 'bg-[#25D366] text-white' : 'bg-gray-200 dark:bg-gray-700 text-gray-500'}`}>
+                                 <div className={`w-5 h-5 rounded-full flex items-center justify-center ${active ? 'bg-[#DC2626] text-white' : 'bg-gray-200 dark:bg-gray-700 text-gray-500'}`}>
                                      {active && <Check className="w-3 h-3" />}
                                  </div>
-                                 <span className={active ? 'text-green-700 dark:text-green-300 font-medium' : 'text-gray-500 dark:text-gray-400'}>{label}</span>
+                                 <span className={active ? 'text-red-700 dark:text-red-300 font-medium' : 'text-gray-500 dark:text-gray-400'}>{label}</span>
                              </div>
                          ))}
                     </div>
