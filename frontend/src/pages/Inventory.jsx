@@ -1,321 +1,314 @@
-import { useState, useEffect, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+﻿import { useState, useEffect, useCallback, useRef } from 'react';
 import {
-  Package, Search, RefreshCw, TrendingDown,
-  Edit3, AlertTriangle
+  Search, X, Package, MoreHorizontal, AlertTriangle,
+  TrendingDown, CheckCircle2, Edit, Eye, ArrowUpDown
 } from 'lucide-react';
 import { productService } from '../services/productService';
 import Loader from '../components/common/Loader';
-import EmptyState from '../components/common/EmptyState';
+import Badge from '../components/common/Badge';
+import Pagination from '../components/common/Pagination';
+import ConfirmDialog from '../components/common/ConfirmDialog';
 import { useDebounce } from '../hooks/useDebounce';
 import { formatCurrency } from '../utils/formatters';
 import toast from 'react-hot-toast';
-import StockDetailsModal from '../components/inventory/StockDetailsModal';
 
-function StatsCard({ title, value, icon, color, subValue }) {
-  return (
-    <div className="bg-white dark:bg-zinc-900 p-6 rounded-2xl border border-gray-100 dark:border-zinc-800 shadow-sm">
-      <div className="flex items-center justify-between mb-4">
-        <div className={`p-3 rounded-xl ${color.bg} ${color.text}`}>
-          {icon}
-        </div>
-        {subValue && (
-          <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${color.bg} ${color.text}`}>
-            {subValue}
-          </span>
-        )}
-      </div>
-      <div>
-        <p className="text-sm font-medium text-gray-500 dark:text-gray-400">{title}</p>
-        <h3 className="text-2xl font-bold text-gray-900 dark:text-white mt-1">{value}</h3>
-      </div>
-    </div>
-  );
-}
+/* ── Polaris tokens ──────────────────────────────────────────── */
+const CARD = 'bg-white dark:bg-[#1a1a24] rounded-xl shadow-[0_0_0_1px_rgba(26,26,26,0.13),0_1px_0_0_rgba(26,26,26,0.07)] dark:shadow-[0_0_0_1px_rgba(255,255,255,0.10),0_1px_0_0_rgba(0,0,0,0.32)]';
+const DIV  = 'border-[#e1e3e5] dark:border-white/[0.08]';
+const SUB  = 'text-[#6d7175] dark:text-[#9898b8]';
 
-function StockEditor({ product, onManage }) {
-  const isOut = product.stock <= 0;
-  const isLow = product.stock > 0 && product.stock <= 10;
-  
-  const colorClass = isOut ? 'text-red-600 dark:text-red-400' : isLow ? 'text-yellow-600 dark:text-yellow-400' : 'text-red-600 dark:text-red-400';
-  const bgClass = isOut ? 'bg-red-50 dark:bg-red-900/10' : isLow ? 'bg-yellow-50 dark:bg-yellow-900/10' : 'bg-red-50 dark:bg-red-900/10';
-
-  return (
-    <div className="group flex items-center gap-3">
-      <div className={`px-3 py-1 rounded-lg font-bold text-sm ${colorClass} ${bgClass} w-16 text-center shadow-sm`}>
-        {product.stock}
-      </div>
-      <button
-        onClick={() => onManage(product)}
-        className="opacity-0 group-hover:opacity-100 p-1.5 text-[#DC2626] hover:bg-[#DC2626]/10 dark:hover:bg-[#DC2626]/20 rounded-lg transition-all"
-        title="Manage Stock"
-      >
-        <Edit3 className="w-4 h-4" />
-      </button>
-    </div>
-  );
-}
-
-const TABS = [
-  { id: 'all', label: 'All Items' },
-  { id: 'low_stock', label: 'Low Stock' },
-  { id: 'out_of_stock', label: 'Out of Stock' },
+const STOCK_TABS = [
+  { id: '',          label: 'All'          },
+  { id: 'low_stock', label: 'Low stock'    },
+  { id: 'out_stock', label: 'Out of stock' },
 ];
 
-export default function Inventory() {
-  const navigate = useNavigate();
-  const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [pagination, setPagination] = useState({ page: 1, limit: 20, total: 0, pages: 0 });
-  const [activeTab, setActiveTab] = useState('all');
-  const [search, setSearch] = useState('');
-  const [selectedProduct, setSelectedProduct] = useState(null);
-  const [stats, setStats] = useState({ total: 0, low: 0, out: 0 });
-  
-  const debouncedSearch = useDebounce(search, 400);
+function StockBadge({ qty, threshold = 10 }) {
+  if (qty <= 0)          return <Badge color="red">Out of stock</Badge>;
+  if (qty <= threshold)  return <Badge color="yellow">Low stock</Badge>;
+  return <Badge color="green">In stock</Badge>;
+}
 
-  // Fetch quick stats independently
-  useEffect(() => {
-    Promise.all([
-      productService.getProducts({ limit: 1 }),
-      productService.getProducts({ stockStatus: 'low_stock', limit: 1 }),
-      productService.getProducts({ stockStatus: 'out_of_stock', limit: 1 })
-    ]).then(([all, low, out]) => {
-      setStats({
-        total: all.pagination?.total || 0,
-        low: low.pagination?.total || 0,
-        out: out.pagination?.total || 0
-      });
-    }).catch(() => {});
-  }, []); // Run once on mount
+/* ── Quick stock editor modal ────────────────────────────────── */
+function StockEditor({ product, onClose, onSaved }) {
+  const [qty, setQty] = useState(String(product.stock ?? 0));
+  const [saving, setSaving] = useState(false);
 
-  const fetchProducts = useCallback(async (page = 1) => {
+  const handleSave = async () => {
+    const newQty = parseInt(qty, 10);
+    if (isNaN(newQty) || newQty < 0) { toast.error('Invalid quantity'); return; }
+    setSaving(true);
     try {
-      setLoading(true);
-      const params = { page, limit: 20 };
-      if (debouncedSearch) params.search = debouncedSearch;
-      
-      if (activeTab === 'low_stock') params.stockStatus = 'low_stock';
-      if (activeTab === 'out_of_stock') params.stockStatus = 'out_of_stock';
-      
-      const response = await productService.getProducts(params);
-      setProducts(response.data || []);
-      setPagination(response.pagination || { page: 1, limit: 20, total: 0, pages: 0 });
-    } catch {
-      toast.error('Failed to load inventory');
-    } finally {
-      setLoading(false);
-    }
-  }, [debouncedSearch, activeTab]);
-
-  useEffect(() => {
-    fetchProducts(1);
-  }, [fetchProducts]);
-
-  const handlePageChange = (newPage) => {
-    if (newPage >= 1 && newPage <= pagination.pages) {
-      fetchProducts(newPage);
-    }
+      await productService.updateProduct(product._id, { stock: newQty });
+      toast.success('Stock updated');
+      onSaved?.();
+      onClose();
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to update');
+    } finally { setSaving(false); }
   };
 
+  const adj = delta => setQty(v => String(Math.max(0, (parseInt(v, 10) || 0) + delta)));
+
   return (
-    <div className="space-y-8 animate-in fade-in duration-500 pb-20">
-      <StockDetailsModal 
-         isOpen={!!selectedProduct}
-         onClose={() => setSelectedProduct(null)}
-         product={selectedProduct}
-         onUpdate={() => {
-           fetchProducts(pagination.page);
-           // Refresh stats slightly delayed or triggered separately
-         }}
-      />
-
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-        <div>
-          <h1 className="text-3xl font-bold text-[#111827] dark:text-white tracking-tight">Inventory Management</h1>
-          <p className="text-gray-500 dark:text-gray-400 mt-2 text-sm sm:text-base">
-            Track stock levels, monitor low inventory, and manage adjustments.
-          </p>
-        </div>
-        <div className="flex gap-3">
-          <button
-            onClick={() => fetchProducts(pagination.page)}
-            className="p-2.5 text-gray-500 hover:text-gray-700 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-xl transition-all"
-          >
-            <RefreshCw className="w-5 h-5" />
-          </button>
-          <button
-            onClick={() => navigate('/dashboard/products/new')}
-            className="flex items-center gap-2 px-5 py-2.5 bg-[#DC2626] hover:bg-[#B91C1C] text-white rounded-xl font-medium shadow-lg shadow-[#DC2626]/20 transition-all transform hover:scale-105 active:scale-95"
-          >
-            <Package className="w-4 h-4" />
-            <span>Add Product</span>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="fixed inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
+      <div className={`relative w-full max-w-sm ${CARD} p-6 z-10`}>
+        <div className="flex items-center justify-between mb-5">
+          <p className="text-sm font-bold text-[#1a1a1a] dark:text-[#e3e3e3]">Update stock</p>
+          <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-[#f6f6f7] dark:hover:bg-white/[0.06] transition-colors">
+            <X className="w-4 h-4 text-[#6d7175]" />
           </button>
         </div>
-      </div>
-
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <StatsCard
-          title="Total Items"
-          value={stats.total}
-          icon={<Package className="w-6 h-6" />}
-          color={{ bg: 'bg-[#DC2626]/10 dark:bg-[#DC2626]/20', text: 'text-[#DC2626] dark:text-[#DC2626]' }}
-        />
-        <StatsCard
-          title="Low Stock Items"
-          value={stats.low}
-          icon={<TrendingDown className="w-6 h-6" />}
-          color={{ bg: 'bg-yellow-50 dark:bg-yellow-900/20', text: 'text-yellow-600 dark:text-yellow-400' }}
-        />
-        <StatsCard
-          title="Out of Stock"
-          value={stats.out}
-          icon={<AlertTriangle className="w-6 h-6" />}
-          color={{ bg: 'bg-red-50 dark:bg-red-900/20', text: 'text-red-600 dark:text-red-400' }}
-        />
-      </div>
-
-      {/* Main Content Area */}
-      <div className="bg-white dark:bg-zinc-900 rounded-3xl border border-gray-100 dark:border-zinc-800 shadow-sm overflow-hidden">
-        {/* Toolbar */}
-        <div className="p-6 border-b border-gray-100 dark:border-gray-800 flex flex-col sm:flex-row gap-6 justify-between items-center bg-white/50 dark:bg-zinc-900/50 backdrop-blur-xl">
-          {/* Tabs */}
-          <div className="flex p-1 bg-gray-100 dark:bg-zinc-800 rounded-xl self-start sm:self-auto overflow-x-auto max-w-full">
-            {TABS.map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`
-                  whitespace-nowrap px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200
-                  ${activeTab === tab.id
-                    ? 'bg-[#DC2626] text-white shadow-sm'
-                    : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
-                  }
-                `}
-              >
-                {tab.label}
-              </button>
-            ))}
+        <div className="flex items-center gap-2 mb-2">
+          <div className="w-10 h-10 bg-[#f6f6f7] dark:bg-white/[0.05] rounded-lg overflow-hidden shrink-0">
+            {product.images?.[0]
+              ? <img src={product.images[0]} alt={product.name} className="w-full h-full object-cover" />
+              : <div className="w-full h-full flex items-center justify-center"><Package className="w-5 h-5 text-[#c9cccf]" /></div>}
           </div>
-
-          {/* Search */}
-          <div className="relative w-full sm:w-72">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <div className="min-w-0">
+            <p className="text-sm font-semibold text-[#1a1a1a] dark:text-[#e3e3e3] truncate">{product.name}</p>
+            <p className={`text-xs ${SUB}`}>{product.sku || 'No SKU'}</p>
+          </div>
+        </div>
+        <div className="mt-4">
+          <label className="block text-xs font-semibold text-[#6d7175] dark:text-[#9898b8] mb-2">Quantity on hand</label>
+          <div className="flex items-center gap-2">
+            <button onClick={() => adj(-1)} className={`w-9 h-9 flex items-center justify-center rounded-lg border ${DIV} text-[#303030] dark:text-[#d4d4d4] hover:bg-[#f6f6f7] dark:hover:bg-white/[0.06] font-bold text-lg transition-colors`}>−</button>
             <input
-              type="text"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search inventory..."
-              className="w-full pl-10 pr-4 py-2.5 bg-gray-50 dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 rounded-xl focus:ring-2 focus:ring-[#DC2626]/20 focus:border-transparent outline-none transition-all placeholder:text-gray-400 text-sm"
+              type="number" min="0" value={qty} onChange={e => setQty(e.target.value)}
+              className={`flex-1 px-3 py-2 text-center text-sm font-bold border ${DIV} bg-white dark:bg-[#23233a] text-[#1a1a1a] dark:text-[#e3e3e3] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#DC2626]/20`}
             />
+            <button onClick={() => adj(1)} className={`w-9 h-9 flex items-center justify-center rounded-lg border ${DIV} text-[#303030] dark:text-[#d4d4d4] hover:bg-[#f6f6f7] dark:hover:bg-white/[0.06] font-bold text-lg transition-colors`}>+</button>
           </div>
         </div>
+        <div className="flex gap-2.5 mt-5">
+          <button onClick={onClose} className={`flex-1 py-2 text-sm font-semibold text-[#1a1a1a] dark:text-[#d4d4d4] border ${DIV} rounded-lg hover:bg-[#f6f6f7] dark:hover:bg-white/[0.05] transition-colors`}>Cancel</button>
+          <button onClick={handleSave} disabled={saving} className="flex-1 py-2 text-sm font-semibold text-white bg-[#DC2626] rounded-lg hover:bg-[#b91c1c] disabled:opacity-50 transition-colors shadow-[0_1px_0_rgba(0,0,0,0.2)]">
+            {saving ? 'Saving…' : 'Update stock'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
-        {/* Loading State */}
-        {loading ? (
-          <div className="p-20 flex justify-center">
-            <Loader text="Loading inventory data..." />
+/* ── Row action menu ─────────────────────────────────────────── */
+function RowMenu({ onEdit, onDetails }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef();
+  useEffect(() => {
+    const h = e => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
+    document.addEventListener('mousedown', h);
+    return () => document.removeEventListener('mousedown', h);
+  }, []);
+  return (
+    <div ref={ref} className="relative flex justify-end">
+      <button onClick={e => { e.stopPropagation(); setOpen(p => !p); }}
+        className="p-1.5 rounded-lg text-[#6d7175] hover:bg-[#f6f6f7] dark:hover:bg-white/[0.06] transition-colors">
+        <MoreHorizontal className="w-4 h-4" />
+      </button>
+      {open && (
+        <div className={`absolute right-0 top-8 z-20 w-40 ${CARD} py-1`}>
+          {[
+            { icon: Edit, label: 'Update stock', fn: onEdit   },
+            { icon: Eye,  label: 'View details', fn: onDetails },
+          ].map(({ icon: Icon, label, fn }) => (
+            <button key={label} onClick={e => { e.stopPropagation(); setOpen(false); fn?.(); }}
+              className="flex items-center gap-2 w-full px-3 py-2 text-sm text-[#303030] dark:text-[#d4d4d4] hover:bg-[#f6f6f7] dark:hover:bg-white/[0.05] transition-colors">
+              <Icon className="w-4 h-4" />{label}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   PAGE
+═══════════════════════════════════════════════════════════════ */
+export default function Inventory() {
+  const [products,    setProducts]    = useState([]);
+  const [loading,     setLoading]     = useState(true);
+  const [pg,          setPg]          = useState({ page: 1, limit: 20, total: 0, pages: 0 });
+  const [search,      setSearch]      = useState('');
+  const [stockFilter, setStockFilter] = useState('');
+  const [editTarget,  setEditTarget]  = useState(null);
+
+  const ds = useDebounce(search, 400);
+
+  const fetchProducts = useCallback(async (page = 1) => {
+    setLoading(true);
+    try {
+      const params = { page, limit: 20, inventory: true };
+      if (stockFilter) params.stockStatus = stockFilter;
+      if (ds) params.search = ds;
+      const r = await productService.getProducts(params);
+      setProducts(r.data?.products || r.data || []);
+      setPg(r.data?.pagination || r.pagination || { page: 1, limit: 20, total: 0, pages: 0 });
+    } catch { toast.error('Failed to load inventory'); }
+    finally { setLoading(false); }
+  }, [stockFilter, ds]);
+
+  useEffect(() => { fetchProducts(); }, [fetchProducts]);
+
+  const totals = products.reduce((acc, p) => {
+    acc.total++;
+    if ((p.stock || 0) <= 0) acc.out++;
+    else if ((p.stock || 0) <= 10) acc.low++;
+    return acc;
+  }, { total: 0, low: 0, out: 0 });
+
+  const KPIS = [
+    { label: 'Total products', val: pg.total,   icon: Package,       color: 'text-indigo-500'  },
+    { label: 'Low stock',      val: totals.low,  icon: TrendingDown,  color: 'text-amber-500'   },
+    { label: 'Out of stock',   val: totals.out,  icon: AlertTriangle, color: 'text-red-500'     },
+    { label: 'In stock',       val: totals.total - totals.low - totals.out, icon: CheckCircle2, color: 'text-emerald-500' },
+  ];
+
+  return (
+    <div className="max-w-[1200px] mx-auto space-y-5 pb-12">
+      {/* Header */}
+      <div className="flex items-center justify-between pt-1">
+        <h1 className="text-[1.375rem] font-bold text-[#1a1a1a] dark:text-[#e3e3e3]">Inventory</h1>
+      </div>
+
+      {/* KPI row */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        {KPIS.map(k => {
+          const Icon = k.icon;
+          return (
+            <div key={k.label} className={`${CARD} p-4`}>
+              <div className="flex items-center gap-2.5">
+                <div className={`w-8 h-8 rounded-lg bg-[#f6f6f7] dark:bg-white/[0.05] flex items-center justify-center ${k.color}`}>
+                  <Icon className="w-4 h-4" />
+                </div>
+                <p className={`text-xs font-semibold ${SUB}`}>{k.label}</p>
+              </div>
+              <p className="text-2xl font-black text-[#1a1a1a] dark:text-[#e3e3e3] mt-2.5">{k.val}</p>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Main card */}
+      <div className={CARD}>
+        {/* Tabs */}
+        <div className={`flex gap-0 border-b ${DIV} overflow-x-auto scrollbar-hide`}>
+          {STOCK_TABS.map(tab => (
+            <button
+              key={tab.id}
+              onClick={() => setStockFilter(tab.id)}
+              className={`px-4 py-3.5 text-sm font-medium whitespace-nowrap border-b-2 -mb-px transition-colors ${
+                stockFilter === tab.id
+                  ? 'border-[#DC2626] text-[#DC2626]'
+                  : `border-transparent ${SUB} hover:text-[#1a1a1a] dark:hover:text-[#e3e3e3]`
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Search */}
+        <div className={`flex items-center gap-3 px-4 py-3 border-b ${DIV}`}>
+          <div className="relative flex-1 max-w-sm">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#6d7175]" />
+            <input
+              value={search} onChange={e => setSearch(e.target.value)}
+              placeholder="Search products"
+              className={`w-full pl-9 pr-9 py-2 text-sm rounded-lg border ${DIV} bg-white dark:bg-[#23233a] text-[#1a1a1a] dark:text-[#e3e3e3] placeholder-[#6d7175] focus:outline-none focus:ring-2 focus:ring-[#DC2626]/20 transition-all`}
+            />
+            {search && <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#6d7175]"><X className="w-3.5 h-3.5" /></button>}
           </div>
-        ) : products.length > 0 ? (
+          <span className="ml-auto text-xs text-[#6d7175] dark:text-[#9898b8] whitespace-nowrap">{pg.total} item{pg.total !== 1 ? 's' : ''}</span>
+        </div>
+
+        {/* Table */}
+        {loading ? (
+          <div className="py-20 flex justify-center"><Loader text="Loading inventory..." /></div>
+        ) : products.length === 0 ? (
+          <div className="py-20 flex flex-col items-center gap-3">
+            <div className="w-14 h-14 bg-[#f6f6f7] dark:bg-white/[0.05] rounded-full flex items-center justify-center">
+              <Package className="w-7 h-7 text-[#c9cccf] dark:text-[#4a4a6a]" />
+            </div>
+            <p className="text-sm font-semibold text-[#1a1a1a] dark:text-[#e3e3e3]">No products found</p>
+            <p className={`text-xs ${SUB}`}>{search || stockFilter ? 'Try changing your filters.' : 'Add products to track inventory.'}</p>
+          </div>
+        ) : (
           <div className="overflow-x-auto">
-            <table className="w-full">
+            <table className="w-full min-w-[600px]">
               <thead>
-                <tr className="bg-gray-50/50 dark:bg-zinc-900/50 border-b border-gray-100 dark:border-zinc-800">
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Product Info</th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">SKU</th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Category</th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Stock Level</th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Unit Value</th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Total Value</th>
+                <tr className={`border-b ${DIV} bg-[#fafafa] dark:bg-white/[0.02]`}>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-[#6d7175] dark:text-[#9898b8] uppercase tracking-wider">Product</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-[#6d7175] dark:text-[#9898b8] uppercase tracking-wider hidden sm:table-cell">SKU</th>
+                  <th className="px-4 py-3 text-center text-xs font-semibold text-[#6d7175] dark:text-[#9898b8] uppercase tracking-wider">
+                    <span className="flex items-center justify-center gap-1"><ArrowUpDown className="w-3 h-3" />Stock</span>
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-[#6d7175] dark:text-[#9898b8] uppercase tracking-wider">Status</th>
+                  <th className="px-4 py-3 text-right text-xs font-semibold text-[#6d7175] dark:text-[#9898b8] uppercase tracking-wider hidden md:table-cell">Price</th>
+                  <th className="w-12" />
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-50 dark:divide-zinc-800/50">
-                {products.map((product) => (
-                  <tr 
-                    key={product._id}
-                    className="group hover:bg-gray-50/50 dark:hover:bg-zinc-800/50 transition-colors"
-                  >
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-4">
-                        <div className="h-10 w-10 min-w-[2.5rem] rounded-lg overflow-hidden bg-gray-100 dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700">
-                          {product.images?.[0]?.url ? (
-                            <img 
-                              src={product.images[0].url} 
-                              alt={product.name} 
-                              className="h-full w-full object-cover"
-                            />
-                          ) : (
-                            <div className="h-full w-full flex items-center justify-center text-gray-400">
-                              <Package className="w-5 h-5" />
-                            </div>
-                          )}
+              <tbody className={`divide-y ${DIV}`}>
+                {products.map(product => (
+                  <tr key={product._id} className="group hover:bg-[#f6f6f7] dark:hover:bg-white/[0.02] transition-colors">
+                    <td className="px-4 py-3.5">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-[#f6f6f7] dark:bg-white/[0.05] rounded-lg overflow-hidden shrink-0">
+                          {product.images?.[0]
+                            ? <img src={product.images[0]} alt={product.name} className="w-full h-full object-cover" />
+                            : <div className="w-full h-full flex items-center justify-center"><Package className="w-5 h-5 text-[#c9cccf]" /></div>}
                         </div>
                         <div className="min-w-0">
-                          <p className="font-semibold text-gray-900 dark:text-white truncate max-w-[200px]" title={product.name}>
-                            {product.name}
-                          </p>
+                          <p className="text-sm font-semibold text-[#1a1a1a] dark:text-[#e3e3e3] truncate max-w-[10rem] sm:max-w-[16rem]">{product.name}</p>
+                          <p className={`text-xs ${SUB}`}>{product.category || 'Uncategorized'}</p>
                         </div>
                       </div>
                     </td>
-                    <td className="px-6 py-4 text-sm font-mono text-gray-500 dark:text-gray-400">
-                      {product.sku || '—'}
+                    <td className="px-4 py-3.5 hidden sm:table-cell">
+                      <span className={`text-xs font-mono ${SUB}`}>{product.sku || '—'}</span>
                     </td>
-                    <td className="px-6 py-4">
-                      <span className="px-2.5 py-1 rounded-md bg-gray-100 dark:bg-zinc-800 text-xs font-medium text-gray-600 dark:text-gray-400">
-                        {product.category}
+                    <td className="px-4 py-3.5 text-center">
+                      <span className={`text-sm font-black ${(product.stock || 0) <= 0 ? 'text-red-500' : (product.stock || 0) <= 10 ? 'text-amber-500' : 'text-[#1a1a1a] dark:text-[#e3e3e3]'}`}>
+                        {product.stock ?? 0}
                       </span>
                     </td>
-                    <td className="px-6 py-4">
-                      <StockEditor product={product} onManage={setSelectedProduct} />
+                    <td className="px-4 py-3.5"><StockBadge qty={product.stock ?? 0} /></td>
+                    <td className="px-4 py-3.5 text-right hidden md:table-cell">
+                      <span className="text-sm font-bold text-[#1a1a1a] dark:text-[#e3e3e3]">{formatCurrency(product.price)}</span>
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-900 dark:text-white font-medium">
-                      {formatCurrency(product.price)}
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400 font-mono">
-                      {formatCurrency(product.price * (product.stock || 0))}
+                    <td className="pr-3">
+                      <RowMenu
+                        onEdit={() => setEditTarget(product)}
+                        onDetails={() => setEditTarget(product)}
+                      />
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
-        ) : (
-          <EmptyState
-            icon={Package}
-            title={debouncedSearch ? "No products found" : "Your inventory is empty"}
-            description={debouncedSearch ? "Try adjusting your search terms." : "Add products to start tracking inventory."}
-            actionLabel="Add Product"
-            onAction={() => navigate('/dashboard/products/new')}
-          />
         )}
-        
-        {/* Pagination */}
-        {pagination.pages > 1 && (
-          <div className="border-t border-gray-100 dark:border-zinc-800 p-4 flex items-center justify-between">
-            <span className="text-sm text-gray-500 dark:text-gray-400">
-              Page {pagination.page} of {pagination.pages}
-            </span>
-            <div className="flex gap-2">
-              <button
-                disabled={pagination.page === 1}
-                onClick={() => handlePageChange(pagination.page - 1)}
-                className="px-4 py-2 border border-gray-200 dark:border-zinc-700 rounded-lg text-sm font-medium hover:bg-gray-50 dark:hover:bg-zinc-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              >
-                Previous
-              </button>
-              <button
-                disabled={pagination.page === pagination.pages}
-                onClick={() => handlePageChange(pagination.page + 1)}
-                className="px-4 py-2 border border-gray-200 dark:border-zinc-700 rounded-lg text-sm font-medium hover:bg-gray-50 dark:hover:bg-zinc-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              >
-                Next
-              </button>
-            </div>
+
+        {pg.pages > 1 && (
+          <div className={`px-4 py-3.5 border-t ${DIV} flex items-center justify-between`}>
+            <p className="text-xs text-[#6d7175] dark:text-[#9898b8]">
+              Showing {((pg.page - 1) * pg.limit) + 1}–{Math.min(pg.page * pg.limit, pg.total)} of {pg.total}
+            </p>
+            <Pagination currentPage={pg.page} totalPages={pg.pages} onPageChange={p => fetchProducts(p)} />
           </div>
         )}
       </div>
+
+      {editTarget && (
+        <StockEditor
+          product={editTarget}
+          onClose={() => setEditTarget(null)}
+          onSaved={() => fetchProducts(pg.page)}
+        />
+      )}
     </div>
   );
 }

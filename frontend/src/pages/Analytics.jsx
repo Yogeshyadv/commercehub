@@ -1,361 +1,251 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import {
-  AreaChart, Area, BarChart, Bar, XAxis, YAxis,
-  CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend,
+  AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell,
+  XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend
 } from 'recharts';
 import {
-  TrendingUp, ShoppingCart, IndianRupee, Receipt,
-  Users, Star, BarChart2, Package, MapPin, Tag
+  TrendingUp, ShoppingCart, Users, DollarSign,
+  BarChart2, ChevronDown, RefreshCw
 } from 'lucide-react';
 import { analyticsService } from '../services/analyticsService';
 import Loader from '../components/common/Loader';
 import { formatCurrency } from '../utils/formatters';
 import toast from 'react-hot-toast';
-import StatsCard from '../components/dashboard/StatsCard';
 
-const COLORS = ['#DC2626', '#128C7E', '#34B7F1', '#3b82f6', '#8b5cf6', '#f59e0b', '#ec4899', '#6366f1'];
+/* ── Polaris tokens ──────────────────────────────────────────── */
+const CARD = 'bg-white dark:bg-[#1a1a24] rounded-xl shadow-[0_0_0_1px_rgba(26,26,26,0.13),0_1px_0_0_rgba(26,26,26,0.07)] dark:shadow-[0_0_0_1px_rgba(255,255,255,0.10),0_1px_0_0_rgba(0,0,0,0.32)]';
+const DIV  = 'border-[#e1e3e5] dark:border-white/[0.08]';
+const SUB  = 'text-[#6d7175] dark:text-[#9898b8]';
 
-const STATUS_MAP = {
-  pending: { label: 'Pending', color: '#f59e0b' },
-  confirmed: { label: 'Confirmed', color: '#3B82F6' },
-  processing: { label: 'Processing', color: '#8b5cf6' },
-  shipped: { label: 'Shipped', color: '#34B7F1' },
-  delivered: { label: 'Delivered', color: '#DC2626' },
-  cancelled: { label: 'Cancelled', color: '#ef4444' },
-  refunded: { label: 'Refunded', color: '#6b7280' },
-  returned: { label: 'Returned', color: '#f97316' },
-};
+const COLORS = ['#DC2626', '#6366f1', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899'];
 
+const PERIODS = [
+  { id: '7d',  label: 'Last 7 days'  },
+  { id: '30d', label: 'Last 30 days' },
+  { id: '90d', label: 'Last 90 days' },
+  { id: '1y',  label: 'Last year'    },
+];
 
-
-const CustomTooltip = ({ active, payload, label }) => {
+function CustomTooltip({ active, payload, label }) {
   if (!active || !payload?.length) return null;
   return (
-    <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-700 rounded-xl shadow-xl px-4 py-3 text-sm z-50">
-      <p className="text-gray-500 dark:text-gray-400 mb-1 text-xs">{label}</p>
-      {payload.map((entry, i) => (
-        <p key={i} className="font-semibold" style={{ color: entry.color }}>
-          {entry.name}: {typeof entry.value === 'number' && (entry.name?.toLowerCase().includes('revenue') || typeof entry.value === 'number' && entry.value > 1000) // loose check for currency
-            ? formatCurrency(entry.value)
-            : entry.value}
-        </p>
+    <div className={`${CARD} p-3 text-xs`}>
+      <p className="font-bold text-[#1a1a1a] dark:text-[#e3e3e3] mb-1.5">{label}</p>
+      {payload.map((p, i) => (
+        <div key={i} className="flex items-center gap-1.5">
+          <span className="w-2 h-2 rounded-full" style={{ backgroundColor: p.color }} />
+          <span className={SUB}>{p.name}:</span>
+          <span className="font-semibold text-[#303030] dark:text-[#d4d4d4]">
+            {typeof p.value === 'number' && p.name?.toLowerCase().includes('revenue')
+              ? formatCurrency(p.value) : p.value}
+          </span>
+        </div>
       ))}
     </div>
   );
-};
+}
 
+function PeriodPicker({ period, onChange }) {
+  const [open, setOpen] = useState(false);
+  const current = PERIODS.find(p => p.id === period) || PERIODS[1];
+  return (
+    <div className="relative">
+      <button
+        onClick={() => setOpen(p => !p)}
+        className={`flex items-center gap-2 px-3 py-2 text-sm font-semibold text-[#1a1a1a] dark:text-[#d4d4d4]
+          shadow-[0_0_0_1px_rgba(26,26,26,0.13),0_1px_0_0_rgba(26,26,26,0.07)] dark:shadow-[0_0_0_1px_rgba(255,255,255,0.10)]
+          bg-white dark:bg-[#1a1a24] rounded-lg hover:bg-[#f6f6f7] dark:hover:bg-white/[0.06] transition-colors`}
+      >
+        {current.label}<ChevronDown className="w-3.5 h-3.5 text-[#6d7175]" />
+      </button>
+      {open && (
+        <div className={`absolute right-0 top-10 z-20 w-44 ${CARD} py-1`}>
+          {PERIODS.map(p => (
+            <button key={p.id} onClick={() => { onChange(p.id); setOpen(false); }}
+              className={`flex items-center w-full px-3 py-2 text-sm transition-colors ${p.id === period ? 'text-[#DC2626] font-semibold bg-red-50 dark:bg-[#DC2626]/10' : `text-[#303030] dark:text-[#d4d4d4] hover:bg-[#f6f6f7] dark:hover:bg-white/[0.05]`}`}>
+              {p.label}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ── KPI card ────────────────────────────────────────────────── */
+function KpiCard({ icon: Icon, label, value, change, color }) {
+  const up = typeof change === 'number' ? change >= 0 : null;
+  return (
+    <div className={`${CARD} p-5`}>
+      <div className="flex items-center justify-between mb-3">
+        <div className={`w-9 h-9 rounded-lg bg-[#f6f6f7] dark:bg-white/[0.05] flex items-center justify-center ${color}`}>
+          <Icon className="w-4.5 h-4.5 w-[18px] h-[18px]" />
+        </div>
+        {up !== null && (
+          <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${up ? 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' : 'bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400'}`}>
+            {up ? '+' : ''}{change}%
+          </span>
+        )}
+      </div>
+      <p className="text-2xl font-black text-[#1a1a1a] dark:text-[#e3e3e3]">{value}</p>
+      <p className={`text-xs ${SUB} mt-0.5`}>{label}</p>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   PAGE
+═══════════════════════════════════════════════════════════════ */
 export default function Analytics() {
+  const [period,    setPeriod]    = useState('30d');
   const [salesData, setSalesData] = useState(null);
-  const [customerData, setCustomerData] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [period, setPeriod] = useState('30d');
+  const [custData,  setCustData]  = useState(null);
+  const [loading,   setLoading]   = useState(true);
+  const [refresh,   setRefresh]   = useState(0);
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        const [sales, customers] = await Promise.allSettled([
-          analyticsService.getSalesAnalytics({ period }),
-          analyticsService.getCustomerAnalytics(),
-        ]);
-        if (sales.status === 'fulfilled') setSalesData(sales.value.data);
-        if (customers.status === 'fulfilled') setCustomerData(customers.value.data);
-      } catch { toast.error('Failed to load analytics'); }
-      finally { setLoading(false); }
-    };
-    fetchData();
-  }, [period]);
+    let cancelled = false;
+    setLoading(true);
+    Promise.all([
+      analyticsService.getSalesAnalytics({ period }).catch(() => null),
+      analyticsService.getCustomerAnalytics({ period }).catch(() => null),
+    ]).then(([s, c]) => {
+      if (!cancelled) {
+        setSalesData(s?.data || s || null);
+        setCustData(c?.data  || c || null);
+        setLoading(false);
+      }
+    });
+    return () => { cancelled = true; };
+  }, [period, refresh]);
 
-  if (loading) return <Loader text="Loading analytics..." />;
+  const kpis = [
+    { icon: DollarSign,  label: 'Total revenue',  value: formatCurrency(salesData?.totalRevenue  || 0), change: salesData?.revenueGrowth,  color: 'text-[#DC2626]'     },
+    { icon: ShoppingCart,label: 'Total orders',   value: salesData?.totalOrders   || 0,                  change: salesData?.orderGrowth,    color: 'text-indigo-500'    },
+    { icon: Users,       label: 'Total customers',value: custData?.totalCustomers  || 0,                  change: custData?.customerGrowth,  color: 'text-emerald-500'   },
+    { icon: TrendingUp,  label: 'Avg order value', value: formatCurrency(salesData?.avgOrderValue || 0), change: salesData?.avgOrderGrowth, color: 'text-amber-500'     },
+  ];
 
-  const summary = salesData?.summary || {};
-  const chartData = salesData?.salesData || [];
-  const topProducts = salesData?.topProducts || [];
-  const statusBreakdown = salesData?.orderStatusBreakdown || [];
-  const salesByCategory = salesData?.salesByCategory || [];
-  const salesByRegion = salesData?.salesByRegion || [];
-
-  const pieData = statusBreakdown.length > 0
-    ? statusBreakdown.map(s => ({ name: STATUS_MAP[s._id]?.label || s._id, value: s.count, color: STATUS_MAP[s._id]?.color || '#aaa' }))
-    : [];
-
-  const categoryData = salesByCategory.map((c, i) => ({
-    name: c._id || 'Uncategorized',
-    value: c.revenue,
-    color: COLORS[i % COLORS.length]
-  }));
-
-  const regionData = salesByRegion.map((r, i) => ({
-    name: r._id || 'Unknown',
-    revenue: r.revenue,
-    count: r.count
-  }));
+  const revenueChart    = salesData?.revenueOverTime  || salesData?.dailyRevenue || [];
+  const orderChart      = salesData?.ordersOverTime   || salesData?.dailyOrders  || [];
+  const categoryChart   = salesData?.salesByCategory  || [];
+  const customerChart   = custData?.customerSegments  || custData?.segments      || [];
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-500 pb-10">
-      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold text-[#111827] dark:text-white tracking-tight">Analytics</h1>
-          <p className="text-gray-500 dark:text-gray-400 mt-2 text-sm">Track your business performance</p>
+    <div className="max-w-[1200px] mx-auto space-y-5 pb-12">
+      {/* Header */}
+      <div className="flex items-center justify-between pt-1">
+        <h1 className="text-[1.375rem] font-bold text-[#1a1a1a] dark:text-[#e3e3e3]">Analytics</h1>
+        <div className="flex items-center gap-2.5">
+          <button onClick={() => setRefresh(r => r + 1)}
+            className={`p-2 rounded-lg text-[#6d7175] shadow-[0_0_0_1px_rgba(26,26,26,0.13)] dark:shadow-[0_0_0_1px_rgba(255,255,255,0.10)] bg-white dark:bg-[#1a1a24] hover:bg-[#f6f6f7] dark:hover:bg-white/[0.06] transition-colors`}>
+            <RefreshCw className="w-4 h-4" />
+          </button>
+          <PeriodPicker period={period} onChange={setPeriod} />
         </div>
-        <select
-          value={period}
-          onChange={e => setPeriod(e.target.value)}
-          className="px-4 py-2.5 rounded-xl border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-[#DC2626]/20 transition-colors cursor-pointer"
-        >
-          <option value="today">Today</option>
-          <option value="7d">Last 7 Days</option>
-          <option value="30d">Last 30 Days</option>
-          <option value="90d">Last 90 Days</option>
-          <option value="1y">Last Year</option>
-        </select>
       </div>
 
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        <StatsCard icon={IndianRupee} title="Total Revenue" value={formatCurrency(summary.totalRevenue || 0)} color="green" />
-        <StatsCard icon={ShoppingCart} title="Total Orders" value={summary.totalOrders || 0} color="blue" />
-        <StatsCard icon={TrendingUp} title="Avg Order Value" value={formatCurrency(summary.averageOrderValue || 0)} color="purple" />
-        <StatsCard icon={Receipt} title="Total Tax" value={formatCurrency(summary.totalTax || 0)} color="yellow" />
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Revenue Chart - Main Feature */}
-        <div className="lg:col-span-2 bg-white dark:bg-zinc-950 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm p-6">
-          <div className="flex items-center gap-2 mb-6">
-            <BarChart2 className="w-5 h-5 text-blue-500" />
-            <h3 className="text-lg font-bold text-gray-900 dark:text-white">Revenue Trend</h3>
+      {loading ? (
+        <div className={`${CARD} py-32 flex justify-center`}><Loader text="Loading analytics..." /></div>
+      ) : (
+        <>
+          {/* KPIs */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+            {kpis.map(k => <KpiCard key={k.label} {...k} />)}
           </div>
-          <div className="h-80">
-            {chartData.length > 0 ? (
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={chartData}>
+
+          {/* Revenue area chart */}
+          <div className={`${CARD} p-5`}>
+            <div className={`flex items-center justify-between pb-4 mb-4 border-b ${DIV}`}>
+              <p className="text-sm font-bold text-[#1a1a1a] dark:text-[#e3e3e3]">Revenue over time</p>
+              <BarChart2 className={`w-4 h-4 ${SUB}`} />
+            </div>
+            {revenueChart.length > 0 ? (
+              <ResponsiveContainer width="100%" height={240}>
+                <AreaChart data={revenueChart} margin={{ top: 4, right: 4, left: 0, bottom: 0 }}>
                   <defs>
                     <linearGradient id="revGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.3} />
-                      <stop offset="95%" stopColor="#3B82F6" stopOpacity={0} />
+                      <stop offset="5%"  stopColor="#DC2626" stopOpacity={0.15} />
+                      <stop offset="95%" stopColor="#DC2626" stopOpacity={0.01} />
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(100,100,100,0.15)" vertical={false} />
-                  <XAxis dataKey="_id" tick={{ fontSize: 11, fill: '#9ca3af' }}
-                    tickFormatter={v => { try { const d = new Date(v); return `${d.getDate()}/${d.getMonth() + 1}`; } catch { return v; } }}
-                    axisLine={false} tickLine={false} dy={10} />
-                  <YAxis tick={{ fontSize: 11, fill: '#9ca3af' }} axisLine={false} tickLine={false}
-                    tickFormatter={v => `₹${v >= 1000 ? `${(v / 1000).toFixed(0)}k` : v}`} />
-                  <Tooltip content={<CustomTooltip />} cursor={{ stroke: '#3B82F6', strokeWidth: 1, strokeDasharray: '4 4' }} />
-                  <Area type="monotone" dataKey="revenue" name="Revenue" stroke="#3B82F6" fill="url(#revGrad)" strokeWidth={3} dot={false} activeDot={{ r: 6, strokeWidth: 0 }} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.04)" vertical={false} />
+                  <XAxis dataKey="date" tick={{ fontSize: 11, fill: '#6d7175' }} axisLine={false} tickLine={false} />
+                  <YAxis tick={{ fontSize: 11, fill: '#6d7175' }} axisLine={false} tickLine={false} tickFormatter={v => `$${(v/1000).toFixed(0)}k`} width={44} />
+                  <Tooltip content={<CustomTooltip />} />
+                  <Area type="monotone" dataKey="revenue" name="Revenue" stroke="#DC2626" strokeWidth={2} fill="url(#revGrad)" dot={false} activeDot={{ r: 4, fill: '#DC2626' }} />
                 </AreaChart>
               </ResponsiveContainer>
             ) : (
-              <div className="h-full flex flex-col items-center justify-center text-gray-400">
-                <TrendingUp className="w-12 h-12 mb-2 opacity-30" />
-                <p className="text-sm">No revenue data for this period</p>
+              <div className="h-60 flex items-center justify-center">
+                <p className={`text-sm ${SUB}`}>No revenue data for this period</p>
               </div>
             )}
           </div>
-        </div>
 
-        {/* Sales by Category (New) */}
-        <div className="lg:col-span-1 bg-white dark:bg-zinc-950 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm p-6">
-          <div className="flex items-center gap-2 mb-4">
-            <Tag className="w-5 h-5 text-[#DC2626]" />
-            <h3 className="text-lg font-bold text-gray-900 dark:text-white">Sales by Category</h3>
-          </div>
-          <div className="h-60 relative">
-            {categoryData.length > 0 ? (
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie 
-                      data={categoryData} 
-                      cx="50%" cy="50%" 
-                      innerRadius={60} 
-                      outerRadius={80} 
-                      paddingAngle={5} 
-                      dataKey="value"
-                      stroke="none"
-                    >
-                      {categoryData.map((entry, i) => <Cell key={i} fill={entry.color} />)}
-                    </Pie>
+          {/* Orders bar + Customer pie */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {/* Orders bar */}
+            <div className={`${CARD} p-5`}>
+              <p className={`text-sm font-bold text-[#1a1a1a] dark:text-[#e3e3e3] pb-4 mb-4 border-b ${DIV}`}>Orders by day</p>
+              {orderChart.length > 0 ? (
+                <ResponsiveContainer width="100%" height={220}>
+                  <BarChart data={orderChart} margin={{ top: 4, right: 4, left: 0, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.04)" vertical={false} />
+                    <XAxis dataKey="date" tick={{ fontSize: 11, fill: '#6d7175' }} axisLine={false} tickLine={false} />
+                    <YAxis tick={{ fontSize: 11, fill: '#6d7175' }} axisLine={false} tickLine={false} width={32} />
                     <Tooltip content={<CustomTooltip />} />
-                  </PieChart>
-                </ResponsiveContainer>
-            ) : (
-                <div className="absolute inset-0 flex items-center justify-center text-gray-400 text-sm">No category data</div>
-            )}
-             {/* Center Text for Donut */}
-             {categoryData.length > 0 && (
-                <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                    <span className="text-xs text-gray-500 font-medium">Top Category</span>
-                    <span className="text-lg font-bold text-gray-900 dark:text-white truncate max-w-[100px]">{categoryData[0]?.name}</span>
-                </div>
-             )}
-          </div>
-          <div className="mt-4 space-y-2 max-h-40 overflow-y-auto pr-1 custom-scrollbar">
-            {categoryData.map((d, i) => (
-               <div key={i} className="flex items-center justify-between text-sm">
-                 <div className="flex items-center gap-2">
-                   <div className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: d.color }} />
-                   <span className="text-gray-600 dark:text-gray-400 truncate max-w-[120px]">{d.name}</span>
-                 </div>
-                 <span className="font-semibold text-gray-900 dark:text-white">{formatCurrency(d.value)}</span>
-               </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-         {/* Sales by Region (New) */}
-         <div className="bg-white dark:bg-zinc-950 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm p-6">
-           <div className="flex items-center gap-2 mb-5">
-             <MapPin className="w-5 h-5 text-[#128C7E]" />
-             <h3 className="text-lg font-bold text-gray-900 dark:text-white">Top Regions</h3>
-           </div>
-           {regionData.length > 0 ? (
-             <div className="h-64">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={regionData} layout="vertical" margin={{ top: 5, right: 30, left: 40, bottom: 5 }}>
-                    <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} stroke="rgba(100,100,100,0.1)" />
-                    <XAxis type="number" hide />
-                    <YAxis dataKey="name" type="category" width={100} tick={{ fontSize: 12, fill: '#6b7280' }} axisLine={false} tickLine={false} />
-                    <Tooltip 
-                        cursor={{fill: 'rgba(0,0,0,0.05)'}}
-                        content={({ active, payload }) => {
-                            if (active && payload && payload.length) {
-                            return (
-                                <div className="bg-white dark:bg-zinc-900 p-2 border border-gray-200 dark:border-zinc-700 shadow-lg rounded-lg text-xs">
-                                <p className="font-bold mb-1">{payload[0].payload.name}</p>
-                                <p>Revenue: {formatCurrency(payload[0].value)}</p>
-                                <p>Orders: {payload[0].payload.count}</p>
-                                </div>
-                            );
-                            }
-                            return null;
-                        }}
-                    />
-                    <Bar dataKey="revenue" name="Revenue" fill="#DC2626" radius={[0, 4, 4, 0]} barSize={20} />
+                    <Bar dataKey="orders" name="Orders" fill="#6366f1" radius={[4, 4, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
-             </div>
-           ) : (
-             <div className="h-64 flex flex-col items-center justify-center text-gray-400">
-                <MapPin className="w-10 h-10 mb-2 opacity-30" />
-                <p className="text-sm">No location data available</p>
-             </div>
-           )}
-         </div>
-
-        {/* Top Products */}
-        <div className="bg-white dark:bg-zinc-950 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm p-6">
-          <div className="flex items-center gap-2 mb-5">
-            <Package className="w-5 h-5 text-[#DC2626]" />
-            <h3 className="text-lg font-bold text-gray-900 dark:text-white">Top Products</h3>
-          </div>
-          {topProducts.length > 0 ? (
-            <div className="space-y-3">
-              {topProducts.slice(0, 6).map((p, i) => (
-                <div key={p._id} className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 dark:bg-zinc-900 hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors">
-                  <span className="h-7 w-7 rounded-xl flex items-center justify-center text-xs font-bold shrink-0"
-                    style={{ backgroundColor: COLORS[i % COLORS.length] + '20', color: COLORS[i % COLORS.length] }}>
-                    {i + 1}
-                  </span>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-gray-900 dark:text-white truncate">{p.name}</p>
-                    <p className="text-xs text-gray-400">{p.totalQuantity} units sold</p>
-                  </div>
-                  <span className="text-sm font-bold text-gray-900 dark:text-white">{formatCurrency(p.totalRevenue)}</span>
+              ) : (
+                <div className="h-56 flex items-center justify-center">
+                  <p className={`text-sm ${SUB}`}>No order data for this period</p>
                 </div>
-              ))}
+              )}
             </div>
-          ) : (
-            <div className="flex flex-col items-center justify-center py-12 text-gray-400">
-              <Package className="w-10 h-10 mb-2 opacity-30" />
-              <p className="text-sm">No product data yet</p>
-            </div>
-          )}
-        </div>
-      </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Order Status Pie */}
-        <div className="bg-white dark:bg-zinc-950 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm p-6">
-            <div className="flex items-center gap-2 mb-4">
-            <ShoppingCart className="w-5 h-5 text-[#34B7F1]" />
-            <h3 className="text-base font-bold text-gray-900 dark:text-white">Order Status</h3>
-            </div>
-            <div className="flex items-center gap-4">
-            <div className="h-48 w-48 shrink-0 relative">
-                <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                    <Pie data={pieData} cx="50%" cy="50%" innerRadius={40} outerRadius={70} paddingAngle={2} dataKey="value" stroke="none">
-                    {pieData.map((entry, i) => <Cell key={i} fill={entry.color} />)}
+            {/* Customer segments pie */}
+            <div className={`${CARD} p-5`}>
+              <p className={`text-sm font-bold text-[#1a1a1a] dark:text-[#e3e3e3] pb-4 mb-4 border-b ${DIV}`}>Customer segments</p>
+              {customerChart.length > 0 ? (
+                <ResponsiveContainer width="100%" height={220}>
+                  <PieChart>
+                    <Pie data={customerChart} cx="50%" cy="50%" innerRadius={55} outerRadius={85}
+                      dataKey="value" nameKey="name" paddingAngle={2}>
+                      {customerChart.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
                     </Pie>
                     <Tooltip content={<CustomTooltip />} />
-                </PieChart>
+                    <Legend iconType="circle" iconSize={8} formatter={(v) => <span className="text-xs text-[#303030] dark:text-[#d4d4d4]">{v}</span>} />
+                  </PieChart>
                 </ResponsiveContainer>
-                {/* Center Stats */}
-                <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                    <span className="text-2xl font-bold text-gray-900 dark:text-white">{summary.totalOrders || 0}</span>
-                    <span className="text-[10px] text-gray-400 uppercase tracking-widest">Orders</span>
+              ) : (
+                <div className="h-56 flex items-center justify-center">
+                  <p className={`text-sm ${SUB}`}>No segment data for this period</p>
                 </div>
+              )}
             </div>
-            <div className="flex-1 grid grid-cols-2 gap-x-4 gap-y-2">
-                {pieData.map(d => (
-                <div key={d.name} className="flex items-center justify-between text-xs p-1.5 rounded-lg bg-gray-50 dark:bg-zinc-900/50">
-                    <div className="flex items-center gap-1.5">
-                    <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: d.color }} />
-                    <span className="text-gray-600 dark:text-gray-400 truncate max-w-[80px]">{d.name}</span>
-                    </div>
-                    <span className="font-bold text-gray-900 dark:text-white">{d.value}</span>
-                </div>
-                ))}
-            </div>
-            </div>
-        </div>
+          </div>
 
-        {/* Customer Overview */}
-        <div className="bg-white dark:bg-zinc-950 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm p-6">
-        <div className="flex items-center gap-2 mb-4">
-            <Users className="w-5 h-5 text-red-500" />
-            <h3 className="text-base font-bold text-gray-900 dark:text-white">Customer Overview</h3>
-        </div>
-        <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-                <div className="p-4 rounded-xl bg-blue-50 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-900/20">
-                    <span className="text-xs text-blue-600 dark:text-blue-400 font-medium uppercase tracking-wider">Total Customers</span>
-                    <p className="text-2xl font-bold text-blue-700 dark:text-blue-300 mt-1">{customerData?.totalCustomers || 0}</p>
-                </div>
-                <div className="p-4 rounded-xl bg-red-50 dark:bg-red-900/10 border border-red-100 dark:border-red-900/20">
-                    <span className="text-xs text-red-600 dark:text-red-400 font-medium uppercase tracking-wider">New This Month</span>
-                    <p className="text-2xl font-bold text-red-700 dark:text-red-300 mt-1">{customerData?.newThisMonth || 0}</p>
-                </div>
+          {/* Top categories */}
+          {categoryChart.length > 0 && (
+            <div className={`${CARD} p-5`}>
+              <p className={`text-sm font-bold text-[#1a1a1a] dark:text-[#e3e3e3] pb-4 mb-4 border-b ${DIV}`}>Sales by category</p>
+              <ResponsiveContainer width="100%" height={220}>
+                <BarChart data={categoryChart} layout="vertical" margin={{ top: 4, right: 12, left: 0, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.04)" horizontal={false} />
+                  <XAxis type="number" tick={{ fontSize: 11, fill: '#6d7175' }} axisLine={false} tickLine={false} tickFormatter={v => `$${(v/1000).toFixed(0)}k`} />
+                  <YAxis type="category" dataKey="category" tick={{ fontSize: 11, fill: '#6d7175' }} axisLine={false} tickLine={false} width={80} />
+                  <Tooltip content={<CustomTooltip />} />
+                  <Bar dataKey="revenue" name="Revenue" radius={[0, 4, 4, 0]}>
+                    {categoryChart.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
             </div>
-
-            {customerData?.topCustomers?.length > 0 && (
-            <div>
-                <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3 px-1">Top Spenders</p>
-                <div className="space-y-2">
-                {customerData.topCustomers.slice(0, 3).map((c, i) => (
-                    <div key={c._id} className="flex items-center justify-between text-sm p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-zinc-900 transition-colors">
-                    <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0 shadow-sm"
-                        style={{ background: `linear-gradient(135deg, ${COLORS[i % COLORS.length]}, ${COLORS[(i + 2) % COLORS.length]})` }}>
-                        {c.name?.[0]?.toUpperCase() || '?'}
-                        </div>
-                        <div>
-                             <p className="font-semibold text-gray-900 dark:text-white truncate max-w-[120px]">{c.name}</p>
-                             <p className="text-xs text-gray-400">{c.email}</p>
-                        </div>
-                    </div>
-                    <span className="font-bold text-gray-900 dark:text-white bg-gray-100 dark:bg-zinc-800 px-2 py-1 rounded-md">{formatCurrency(c.stats?.totalSpent || 0)}</span>
-                    </div>
-                ))}
-                </div>
-            </div>
-            )}
-        </div>
-        </div>
-      </div>
+          )}
+        </>
+      )}
     </div>
   );
 }

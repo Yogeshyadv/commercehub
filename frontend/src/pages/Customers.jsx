@@ -1,274 +1,330 @@
-import { useState, useEffect, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+﻿import { useState, useEffect, useCallback, useRef } from 'react';
 import {
-  Users, Mail, Phone, Search, TrendingUp,
-  ShoppingBag, Crown, Filter, Plus, UserPlus,
-  MoreVertical, Edit, Trash2, ArrowUpDown
+  Search, X, Users, MoreHorizontal, Plus,
+  Eye, Edit, Trash2, Mail, Phone, ShoppingBag
 } from 'lucide-react';
 import { customerService } from '../services/customerService';
 import Loader from '../components/common/Loader';
-import EmptyState from '../components/common/EmptyState';
-import ConfirmDialog from '../components/common/ConfirmDialog';
-import Pagination from '../components/common/Pagination';
-import CustomerModal from '../components/customers/CustomerModal';
-import StatsCard from '../components/dashboard/StatsCard';
 import Badge from '../components/common/Badge';
+import Pagination from '../components/common/Pagination';
+import ConfirmDialog from '../components/common/ConfirmDialog';
 import { useDebounce } from '../hooks/useDebounce';
 import { formatCurrency, formatDate } from '../utils/formatters';
 import toast from 'react-hot-toast';
 
+/* ── Polaris tokens ──────────────────────────────────────────── */
+const CARD = 'bg-white dark:bg-[#1a1a24] rounded-xl shadow-[0_0_0_1px_rgba(26,26,26,0.13),0_1px_0_0_rgba(26,26,26,0.07)] dark:shadow-[0_0_0_1px_rgba(255,255,255,0.10),0_1px_0_0_rgba(0,0,0,0.32)]';
+const DIV  = 'border-[#e1e3e5] dark:border-white/[0.08]';
+const SUB  = 'text-[#6d7175] dark:text-[#9898b8]';
+
 const GROUP_CONFIG = {
-  regular: { label: 'Regular', color: 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300' },
-  vip: { label: 'VIP', color: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400' },
-  wholesale: { label: 'Wholesale', color: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' },
-  new: { label: 'New', color: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' },
+  regular:   { label: 'Regular',   color: 'gray'  },
+  vip:       { label: 'VIP',       color: 'purple' },
+  wholesale: { label: 'Wholesale', color: 'blue'   },
+  new:       { label: 'New',       color: 'green'  },
 };
 
+const STATUS_TABS = [
+  { id: '', label: 'All' },
+  { id: 'vip',       label: 'VIP'       },
+  { id: 'wholesale', label: 'Wholesale' },
+  { id: 'new',       label: 'New'       },
+];
+
+/* ── Row action menu ─────────────────────────────────────────── */
+function RowMenu({ onView, onEdit, onDelete }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef();
+  useEffect(() => {
+    const h = e => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
+    document.addEventListener('mousedown', h);
+    return () => document.removeEventListener('mousedown', h);
+  }, []);
+  return (
+    <div ref={ref} className="relative flex justify-end">
+      <button
+        onClick={e => { e.stopPropagation(); setOpen(p => !p); }}
+        className="p-1.5 rounded-lg text-[#6d7175] hover:bg-[#f6f6f7] dark:hover:bg-white/[0.06] hover:text-[#1a1a1a] dark:hover:text-white transition-colors"
+      >
+        <MoreHorizontal className="w-4 h-4" />
+      </button>
+      {open && (
+        <div className={`absolute right-0 top-8 z-20 w-40 ${CARD} py-1 animate-scale-in`}>
+          {[
+            { icon: Eye,   label: 'View',   fn: onView,   cls: '' },
+            { icon: Edit,  label: 'Edit',   fn: onEdit,   cls: '' },
+            { icon: Trash2,label: 'Delete', fn: onDelete, cls: 'text-red-600' },
+          ].map(({ icon: Icon, label, fn, cls }) => (
+            <button
+              key={label}
+              onClick={e => { e.stopPropagation(); setOpen(false); fn?.(); }}
+              className={`flex items-center gap-2 w-full px-3 py-2 text-sm hover:bg-[#f6f6f7] dark:hover:bg-white/[0.05] transition-colors ${cls || 'text-[#303030] dark:text-[#d4d4d4]'}`}
+            >
+              <Icon className="w-4 h-4" />{label}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ── Customer modal ──────────────────────────────────────────── */
+function CustomerModal({ customer, mode, onClose, onSaved }) {
+  const isEdit = mode === 'edit' || mode === 'view';
+  const readOnly = mode === 'view';
+  const [form, setForm] = useState({
+    firstName: customer?.firstName || '',
+    lastName:  customer?.lastName  || '',
+    email:     customer?.email     || '',
+    phone:     customer?.phone     || '',
+    group:     customer?.group     || 'regular',
+  });
+  const [saving, setSaving] = useState(false);
+
+  const up = k => e => setForm(p => ({ ...p, [k]: e.target.value }));
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      if (isEdit && customer?._id) {
+        await customerService.updateCustomer(customer._id, form);
+        toast.success('Customer updated');
+      } else {
+        await customerService.createCustomer(form);
+        toast.success('Customer created');
+      }
+      onSaved?.();
+      onClose();
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to save');
+    } finally { setSaving(false); }
+  };
+
+  const fields = [
+    { key: 'firstName', label: 'First name',   type: 'text'  },
+    { key: 'lastName',  label: 'Last name',    type: 'text'  },
+    { key: 'email',     label: 'Email',        type: 'email' },
+    { key: 'phone',     label: 'Phone',        type: 'tel'   },
+  ];
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="fixed inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
+      <div className={`relative w-full max-w-md ${CARD} p-6 z-10 max-h-[90vh] overflow-y-auto`}>
+        <div className="flex items-center justify-between mb-5">
+          <p className="text-sm font-bold text-[#1a1a1a] dark:text-[#e3e3e3]">
+            {mode === 'view' ? 'Customer details' : isEdit ? 'Edit customer' : 'Add customer'}
+          </p>
+          <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-[#f6f6f7] dark:hover:bg-white/[0.06] transition-colors">
+            <X className="w-4 h-4 text-[#6d7175]" />
+          </button>
+        </div>
+        <div className="space-y-3">
+          <div className="grid grid-cols-2 gap-3">
+            {fields.slice(0, 2).map(f => (
+              <div key={f.key}>
+                <label className="block text-xs font-semibold text-[#6d7175] dark:text-[#9898b8] mb-1">{f.label}</label>
+                <input type={f.type} value={form[f.key]} onChange={up(f.key)} disabled={readOnly}
+                  className={`w-full px-3 py-2 text-sm border ${DIV} bg-white dark:bg-[#23233a] text-[#1a1a1a] dark:text-[#e3e3e3] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#DC2626]/20 transition-all disabled:opacity-60`} />
+              </div>
+            ))}
+          </div>
+          {fields.slice(2).map(f => (
+            <div key={f.key}>
+              <label className="block text-xs font-semibold text-[#6d7175] dark:text-[#9898b8] mb-1">{f.label}</label>
+              <input type={f.type} value={form[f.key]} onChange={up(f.key)} disabled={readOnly}
+                className={`w-full px-3 py-2 text-sm border ${DIV} bg-white dark:bg-[#23233a] text-[#1a1a1a] dark:text-[#e3e3e3] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#DC2626]/20 transition-all disabled:opacity-60`} />
+            </div>
+          ))}
+          <div>
+            <label className="block text-xs font-semibold text-[#6d7175] dark:text-[#9898b8] mb-1">Customer group</label>
+            <select value={form.group} onChange={up('group')} disabled={readOnly}
+              className={`w-full px-3 py-2 text-sm border ${DIV} bg-white dark:bg-[#23233a] text-[#1a1a1a] dark:text-[#e3e3e3] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#DC2626]/20 transition-all disabled:opacity-60`}>
+              {Object.entries(GROUP_CONFIG).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
+            </select>
+          </div>
+
+          {mode === 'view' && customer && (
+            <div className={`grid grid-cols-2 gap-3 pt-2 mt-2 border-t ${DIV}`}>
+              {[
+                { icon: ShoppingBag, label: 'Orders',        val: customer.totalOrders ?? 0      },
+                { icon: null,        label: 'Total spent',   val: formatCurrency(customer.totalSpent || 0) },
+              ].map(({ icon: Ic, label, val }) => (
+                <div key={label} className="bg-[#f6f6f7] dark:bg-white/[0.04] rounded-lg p-3">
+                  <p className={`text-xs ${SUB} mb-0.5`}>{label}</p>
+                  <p className="text-sm font-bold text-[#1a1a1a] dark:text-[#e3e3e3]">{val}</p>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+        {!readOnly && (
+          <div className="flex gap-2.5 mt-5">
+            <button onClick={onClose} className={`flex-1 py-2 text-sm font-semibold text-[#1a1a1a] dark:text-[#d4d4d4] border ${DIV} rounded-lg hover:bg-[#f6f6f7] dark:hover:bg-white/[0.05] transition-colors`}>Cancel</button>
+            <button onClick={handleSave} disabled={saving} className="flex-1 py-2 text-sm font-semibold text-white bg-[#DC2626] rounded-lg hover:bg-[#b91c1c] disabled:opacity-50 transition-colors shadow-[0_1px_0_rgba(0,0,0,0.2)]">
+              {saving ? 'Saving…' : isEdit ? 'Save changes' : 'Add customer'}
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   PAGE
+═══════════════════════════════════════════════════════════════ */
 export default function Customers() {
-  const navigate = useNavigate();
-  const [customers, setCustomers] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [pg, setPg] = useState({ page: 1, limit: 15, total: 0, pages: 0 });
-  const [search, setSearch] = useState('');
-  const [groupFilter, setGroupFilter] = useState('');
-  
-  // Action States
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedCustomer, setSelectedCustomer] = useState(null);
+  const [customers,    setCustomers]    = useState([]);
+  const [loading,      setLoading]      = useState(true);
+  const [pg,           setPg]           = useState({ page: 1, limit: 20, total: 0, pages: 0 });
+  const [search,       setSearch]       = useState('');
+  const [groupFilter,  setGroupFilter]  = useState('');
+  const [modal,        setModal]        = useState(null); // { mode, customer }
   const [deleteTarget, setDeleteTarget] = useState(null);
-  const [deleting, setDeleting] = useState(false);
-  const [activeMenu, setActiveMenu] = useState(null);
 
   const ds = useDebounce(search, 400);
 
   const fetchCustomers = useCallback(async (page = 1) => {
+    setLoading(true);
     try {
-      setLoading(true);
-      const params = { page, limit: 15 };
-      if (ds) params.search = ds;
+      const params = { page, limit: 20 };
       if (groupFilter) params.group = groupFilter;
+      if (ds) params.search = ds;
       const r = await customerService.getCustomers(params);
       setCustomers(r.data || []);
-      setPg(r.pagination || { page: 1, limit: 15, total: 0, pages: 0 });
+      setPg(r.pagination || { page: 1, limit: 20, total: 0, pages: 0 });
     } catch { toast.error('Failed to load customers'); }
     finally { setLoading(false); }
-  }, [ds, groupFilter]);
+  }, [groupFilter, ds]);
 
   useEffect(() => { fetchCustomers(); }, [fetchCustomers]);
 
-  // Close menus on click outside
-  useEffect(() => {
-    const handleClick = () => setActiveMenu(null);
-    document.addEventListener('click', handleClick);
-    return () => document.removeEventListener('click', handleClick);
-  }, []);
-
-  const handleSave = async (data) => {
-    if (selectedCustomer) {
-      await customerService.updateCustomer(selectedCustomer._id, data);
-      toast.success('Customer updated successfully');
-    } else {
-      await customerService.createCustomer(data);
-      toast.success('Customer created successfully');
-    }
-    fetchCustomers(pg.page);
-  };
-
   const handleDelete = async () => {
     if (!deleteTarget) return;
-    setDeleting(true);
     try {
       await customerService.deleteCustomer(deleteTarget._id);
-      toast.success('Customer deleted successfully');
-      setDeleteTarget(null);
+      toast.success('Customer deleted');
       fetchCustomers(pg.page);
-    } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to delete customer');
-    } finally {
-      setDeleting(false);
-    }
+    } catch { toast.error('Failed to delete customer'); }
+    finally { setDeleteTarget(null); }
   };
 
-  const groupTabs = [
-    { key: '', label: 'All' },
-    { key: 'vip', label: 'VIP', icon: Crown },
-    { key: 'wholesale', label: 'Wholesale', icon: ShoppingBag },
-    { key: 'regular', label: 'Regular', icon: Users },
-    { key: 'new', label: 'New', icon: UserPlus },
-  ];
+  const initials = c => `${c.firstName?.[0] || ''}${c.lastName?.[0] || ''}`.toUpperCase() || 'U';
+  const AVATAR_COLORS = ['from-[#DC2626] to-[#9b1c1c]','from-indigo-500 to-indigo-700','from-emerald-500 to-emerald-700','from-amber-500 to-amber-700','from-violet-500 to-violet-700'];
+  const avatarColor = c => AVATAR_COLORS[(c.firstName?.charCodeAt(0) || 0) % AVATAR_COLORS.length];
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-500 pb-20">
+    <div className="max-w-[1200px] mx-auto space-y-5 pb-12">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-        <div>
-          <h1 className="text-3xl font-bold text-[#111827] dark:text-white tracking-tight">Customers</h1>
-          <p className="text-gray-500 dark:text-gray-400 mt-2 text-sm sm:text-base">
-            Manage your customer base, track orders, and engagement.
-          </p>
-        </div>
-        
-        <button 
-          onClick={() => { setSelectedCustomer(null); setIsModalOpen(true); }}
-          className="flex items-center gap-2 px-5 py-3 bg-[#DC2626] hover:bg-[#B91C1C] text-white rounded-xl font-bold shadow-lg shadow-[#DC2626]/20 transition-all transform hover:scale-105 active:scale-95"
+      <div className="flex items-center justify-between pt-1">
+        <h1 className="text-[1.375rem] font-bold text-[#1a1a1a] dark:text-[#e3e3e3]">Customers</h1>
+        <button
+          onClick={() => setModal({ mode: 'add', customer: null })}
+          className="flex items-center gap-2 px-3.5 py-2 text-sm font-semibold text-white bg-[#DC2626] rounded-lg hover:bg-[#b91c1c] transition-colors shadow-[0_1px_0_rgba(0,0,0,0.2)]"
         >
-          <Plus className="w-5 h-5" strokeWidth={2.5} />
-          <span>Add Customer</span>
+          <Plus className="w-4 h-4" /> Add customer
         </button>
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        <StatsCard icon={Users} title="Total Customers" value={pg.total} color="blue" subtitle="Across all groups" />
-        <StatsCard icon={Crown} title="VIP Customers" value={customers.filter(c => c.group === 'vip').length} color="purple" subtitle="High value clients" />
-        <StatsCard icon={ShoppingBag} title="Wholesale" value={customers.filter(c => c.group === 'wholesale').length} color="yellow" subtitle="Bulk buyers" />
-        <StatsCard icon={TrendingUp} title="New Customers" value={customers.filter(c => c.group === 'new').length} color="green" subtitle="Joined this month" />
-      </div>
-
-      {/* Toolbar */}
-      <div className="flex flex-col xl:flex-row gap-4 bg-white dark:bg-zinc-950 p-2 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm">
-        <div className="relative flex-1">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-          <input
-            type="text"
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            placeholder="Search customers by name, email, phone..."
-            className="w-full pl-11 pr-4 py-3 bg-transparent border-none focus:ring-2 focus:ring-[#DC2626]/20 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none rounded-xl"
-          />
-        </div>
-        <div className="h-px xl:h-auto xl:w-px bg-gray-100 dark:bg-gray-700 mx-2" />
-        <div className="flex gap-2 overflow-x-auto pb-2 xl:pb-0 no-scrollbar px-2 xl:px-0">
-          {groupTabs.map(tab => (
+      {/* Main card */}
+      <div className={CARD}>
+        {/* Group tabs */}
+        <div className={`flex gap-0 border-b ${DIV} overflow-x-auto scrollbar-hide`}>
+          {STATUS_TABS.map(tab => (
             <button
-              key={tab.key}
-              onClick={() => setGroupFilter(tab.key)}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all whitespace-nowrap border ${
-                groupFilter === tab.key
-                  ? 'bg-[#DC2626] text-white border-transparent shadow-lg shadow-[#DC2626]/20'
-                  : 'bg-transparent border-transparent hover:bg-gray-50 dark:hover:bg-zinc-800 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
+              key={tab.id}
+              onClick={() => setGroupFilter(tab.id)}
+              className={`px-4 py-3.5 text-sm font-medium whitespace-nowrap border-b-2 -mb-px transition-colors ${
+                groupFilter === tab.id
+                  ? 'border-[#DC2626] text-[#DC2626]'
+                  : `border-transparent ${SUB} hover:text-[#1a1a1a] dark:hover:text-[#e3e3e3]`
               }`}
             >
-              {tab.icon && <tab.icon className="w-4 h-4" />}
               {tab.label}
             </button>
           ))}
         </div>
-      </div>
 
-      {/* Table */}
-      {loading ? (
-        <div className="flex justify-center py-24"><Loader text="Loading customers..." /></div>
-      ) : customers.length === 0 ? (
-        <EmptyState 
-          icon={Users} 
-          title="No customers found" 
-          description={search ? `No customers match "${search}"` : "Start by adding your first customer."} 
-          actionLabel={!search ? "Add Customer" : undefined}
-          onAction={!search ? () => setIsModalOpen(true) : undefined}
-          actionIcon={Plus}
-        />
-      ) : (
-        <div className="bg-white dark:bg-zinc-950 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm overflow-hidden">
+        {/* Search */}
+        <div className={`flex items-center gap-3 px-4 py-3 border-b ${DIV}`}>
+          <div className="relative flex-1 max-w-sm">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#6d7175]" />
+            <input
+              value={search} onChange={e => setSearch(e.target.value)}
+              placeholder="Search customers"
+              className={`w-full pl-9 pr-9 py-2 text-sm rounded-lg border ${DIV} bg-white dark:bg-[#23233a] text-[#1a1a1a] dark:text-[#e3e3e3] placeholder-[#6d7175] focus:outline-none focus:ring-2 focus:ring-[#DC2626]/20 transition-all`}
+            />
+            {search && <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#6d7175]"><X className="w-3.5 h-3.5" /></button>}
+          </div>
+          <span className="ml-auto text-xs text-[#6d7175] dark:text-[#9898b8] whitespace-nowrap">{pg.total} customer{pg.total !== 1 ? 's' : ''}</span>
+        </div>
+
+        {/* Table */}
+        {loading ? (
+          <div className="py-20 flex justify-center"><Loader text="Loading customers..." /></div>
+        ) : customers.length === 0 ? (
+          <div className="py-20 flex flex-col items-center gap-3">
+            <div className="w-14 h-14 bg-[#f6f6f7] dark:bg-white/[0.05] rounded-full flex items-center justify-center">
+              <Users className="w-7 h-7 text-[#c9cccf] dark:text-[#4a4a6a]" />
+            </div>
+            <p className="text-sm font-semibold text-[#1a1a1a] dark:text-[#e3e3e3]">No customers found</p>
+            <p className={`text-xs ${SUB}`}>{search || groupFilter ? 'Try changing your filters.' : 'Customers will appear here after their first order.'}</p>
+          </div>
+        ) : (
           <div className="overflow-x-auto">
-            <table className="w-full">
+            <table className="w-full min-w-[640px]">
               <thead>
-                <tr className="border-b border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-zinc-900/50">
-                  <th className="px-6 py-4 text-left text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider">Customer</th>
-                  <th className="px-6 py-4 text-left text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider">Contact</th>
-                  <th className="px-6 py-4 text-left text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider">Group</th>
-                  <th className="px-6 py-4 text-left text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider">Orders / Spent</th>
-                  <th className="px-6 py-4 text-left text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider">Last Order</th>
-                  <th className="px-6 py-4 text-right text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider">Actions</th>
+                <tr className={`border-b ${DIV} bg-[#fafafa] dark:bg-white/[0.02]`}>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-[#6d7175] dark:text-[#9898b8] uppercase tracking-wider">Customer</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-[#6d7175] dark:text-[#9898b8] uppercase tracking-wider hidden sm:table-cell">Contact</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-[#6d7175] dark:text-[#9898b8] uppercase tracking-wider">Group</th>
+                  <th className="px-4 py-3 text-center text-xs font-semibold text-[#6d7175] dark:text-[#9898b8] uppercase tracking-wider hidden md:table-cell">Orders</th>
+                  <th className="px-4 py-3 text-right text-xs font-semibold text-[#6d7175] dark:text-[#9898b8] uppercase tracking-wider hidden lg:table-cell">Spent</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-[#6d7175] dark:text-[#9898b8] uppercase tracking-wider hidden xl:table-cell">Joined</th>
+                  <th className="w-12" />
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-50 dark:divide-gray-800/60">
-                {customers.map(c => {
-                  const groupCfg = GROUP_CONFIG[c.group] || GROUP_CONFIG.regular;
-                  const initials = c.name?.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() || '?';
+              <tbody className={`divide-y ${DIV}`}>
+                {customers.map(cust => {
+                  const gc = GROUP_CONFIG[cust.group] || GROUP_CONFIG.regular;
                   return (
-                    <tr 
-                      key={c._id} 
-                      onClick={() => navigate(`/dashboard/customers/${c._id}`)}
-                      className="hover:bg-gray-50/50 dark:hover:bg-zinc-900/50 transition-colors group cursor-pointer"
-                    >
-                      <td className="px-6 py-4">
+                    <tr key={cust._id} className="group hover:bg-[#f6f6f7] dark:hover:bg-white/[0.02] transition-colors">
+                      <td className="px-4 py-3.5">
                         <div className="flex items-center gap-3">
-                          <div className="h-10 w-10 rounded-xl bg-[#DC2626]/10 dark:bg-[#DC2626]/20 flex items-center justify-center shrink-0 text-[#128C7E] dark:text-[#DC2626] font-bold text-sm">
-                            {initials}
+                          <div className={`w-8 h-8 bg-gradient-to-br ${avatarColor(cust)} rounded-lg flex items-center justify-center text-white text-xs font-black shrink-0`}>
+                            {initials(cust)}
                           </div>
-                          <div>
-                            <p className="font-bold text-sm text-gray-900 dark:text-white group-hover:text-[#DC2626] transition-colors">{c.name}</p>
-                            {c.company && <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">{c.company}</p>}
+                          <div className="min-w-0">
+                            <p className="text-sm font-semibold text-[#1a1a1a] dark:text-[#e3e3e3] truncate">{cust.firstName} {cust.lastName}</p>
+                            <p className={`text-xs ${SUB} truncate`}>{cust.email}</p>
                           </div>
                         </div>
                       </td>
-                      <td className="px-6 py-4">
-                        <div className="space-y-1">
-                          {c.email && (
-                            <div className="flex items-center gap-2 text-xs font-medium text-gray-500 dark:text-gray-400">
-                              <Mail className="h-3.5 w-3.5" /> {c.email}
-                            </div>
-                          )}
-                          {c.phone && (
-                            <div className="flex items-center gap-2 text-xs font-medium text-gray-500 dark:text-gray-400">
-                              <Phone className="h-3.5 w-3.5" /> {c.phone}
-                            </div>
-                          )}
-                        </div>
+                      <td className="px-4 py-3.5 hidden sm:table-cell">
+                        {cust.phone && (
+                          <div className="flex items-center gap-1.5 text-xs text-[#303030] dark:text-[#d4d4d4]">
+                            <Phone className="w-3 h-3 text-[#6d7175]" />{cust.phone}
+                          </div>
+                        )}
                       </td>
-                      <td className="px-6 py-4">
-                        <span className={`inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold ring-1 ring-inset ${groupCfg.color} bg-opacity-10 ring-opacity-20`}>
-                          {groupCfg.label}
-                        </span>
+                      <td className="px-4 py-3.5"><Badge color={gc.color}>{gc.label}</Badge></td>
+                      <td className="px-4 py-3.5 text-center hidden md:table-cell">
+                        <span className="text-sm font-semibold text-[#303030] dark:text-[#d4d4d4]">{cust.totalOrders ?? 0}</span>
                       </td>
-                      <td className="px-6 py-4">
-                        <div>
-                          <p className="text-sm font-bold text-gray-900 dark:text-white">{formatCurrency(c.stats?.totalSpent || 0)}</p>
-                          <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{c.stats?.totalOrders || 0} orders</p>
-                        </div>
+                      <td className="px-4 py-3.5 text-right hidden lg:table-cell">
+                        <span className="text-sm font-bold text-[#1a1a1a] dark:text-[#e3e3e3]">{formatCurrency(cust.totalSpent || 0)}</span>
                       </td>
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400">
-                          {c.stats?.lastOrderDate ? (
-                            <>
-                              <ShoppingBag className="w-3.5 h-3.5" />
-                              {formatDate(c.stats.lastOrderDate)}
-                            </>
-                          ) : (
-                            <span className="text-gray-400 italic">Never</span>
-                          )}
-                        </div>
+                      <td className="px-4 py-3.5 hidden xl:table-cell">
+                        <span className={`text-xs ${SUB}`}>{formatDate(cust.createdAt)}</span>
                       </td>
-                      <td className="px-6 py-4 text-right">
-                        <div className="relative inline-block text-left">
-                          <button 
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setActiveMenu(activeMenu === c._id ? null : c._id);
-                            }}
-                            className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors"
-                          >
-                            <MoreVertical className="w-4 h-4" />
-                          </button>
-                          
-                          {activeMenu === c._id && (
-                            <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-zinc-900 rounded-xl shadow-xl border border-gray-100 dark:border-zinc-800 z-10 py-1 animate-in zoom-in-95 duration-200">
-                              <button
-                                onClick={() => { setSelectedCustomer(c); setIsModalOpen(true); setActiveMenu(null); }}
-                                className="w-full text-left px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-zinc-800 flex items-center gap-2"
-                              >
-                                <Edit className="w-4 h-4" /> Edit Details
-                              </button>
-                              <button
-                                onClick={() => { setDeleteTarget(c); setActiveMenu(null); }}
-                                className="w-full text-left px-4 py-2.5 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/10 flex items-center gap-2"
-                              >
-                                <Trash2 className="w-4 h-4" /> Delete Customer
-                              </button>
-                            </div>
-                          )}
-                        </div>
+                      <td className="pr-3">
+                        <RowMenu
+                          onView={() => setModal({ mode: 'view', customer: cust })}
+                          onEdit={() => setModal({ mode: 'edit', customer: cust })}
+                          onDelete={() => setDeleteTarget(cust)}
+                        />
                       </td>
                     </tr>
                   );
@@ -276,38 +332,38 @@ export default function Customers() {
               </tbody>
             </table>
           </div>
+        )}
 
-          {/* Pagination */}
-          {pg.pages > 1 && (
-            <div className="flex justify-center p-4 border-t border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-zinc-900/30">
-              <Pagination
-                page={pg.page}
-                totalPages={pg.pages}
-                total={pg.total}
-                limit={pg.limit}
-                onPageChange={(p) => fetchCustomers(p)}
-              />
-            </div>
-          )}
-        </div>
+        {pg.pages > 1 && (
+          <div className={`px-4 py-3.5 border-t ${DIV} flex items-center justify-between`}>
+            <p className="text-xs text-[#6d7175] dark:text-[#9898b8]">
+              Showing {((pg.page - 1) * pg.limit) + 1}–{Math.min(pg.page * pg.limit, pg.total)} of {pg.total}
+            </p>
+            <Pagination currentPage={pg.page} totalPages={pg.pages} onPageChange={p => fetchCustomers(p)} />
+          </div>
+        )}
+      </div>
+
+      {modal && (
+        <CustomerModal
+          mode={modal.mode}
+          customer={modal.customer}
+          onClose={() => setModal(null)}
+          onSaved={() => fetchCustomers(pg.page)}
+        />
       )}
 
-      {/* Modals */}
-      <CustomerModal 
-        isOpen={isModalOpen} 
-        onClose={() => { setIsModalOpen(false); setSelectedCustomer(null); }} 
-        customer={selectedCustomer}
-        onSuccess={handleSave}
-      />
-
-      <ConfirmDialog
-        isOpen={!!deleteTarget}
-        onClose={() => setDeleteTarget(null)}
-        onConfirm={handleDelete}
-        title="Delete Customer"
-        message={`Are you sure you want to delete ${deleteTarget?.name}? This action cannot be undone.`}
-        loading={deleting}
-      />
+      {deleteTarget && (
+        <ConfirmDialog
+          isOpen
+          title="Delete customer"
+          message={`Delete ${deleteTarget.firstName} ${deleteTarget.lastName}? This cannot be undone.`}
+          confirmLabel="Delete"
+          confirmVariant="danger"
+          onConfirm={handleDelete}
+          onCancel={() => setDeleteTarget(null)}
+        />
+      )}
     </div>
   );
 }
