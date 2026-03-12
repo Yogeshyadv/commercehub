@@ -5,8 +5,8 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://commercehub-backen
 const api = axios.create({
   baseURL: API_BASE_URL,
   headers: { 'Content-Type': 'application/json' },
-  withCredentials: false, // Temporarily disabled for Vercel deployment
-  timeout: 10000, // Reduced timeout
+  withCredentials: true, // Restored for production
+  timeout: 30000, // Restored normal timeout
 });
 
 // ─── Request interceptor ────────────────────────────────────────────────────
@@ -61,7 +61,7 @@ api.interceptors.response.use(
         const { data } = await axios.post(
           `${API_BASE_URL}/auth/refresh-token`,
           {},
-          { withCredentials: false } // Disabled for Vercel deployment
+          { withCredentials: true } // Restored for production
         );
         const newToken = data.token;
         localStorage.setItem('token', newToken);

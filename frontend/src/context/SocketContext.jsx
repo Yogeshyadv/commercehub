@@ -16,7 +16,7 @@ export function SocketProvider({ children }) {
   useEffect(() => {
     let newSocket;
 
-    if (isAuthenticated && user && false) { // Temporarily disabled
+    if (isAuthenticated && user) { // Restored
       // Connect to backend
       const SOCKET_URL = import.meta.env.VITE_API_URL || 'https://commercehub-backend.onrender.com';
       newSocket = io(SOCKET_URL);
