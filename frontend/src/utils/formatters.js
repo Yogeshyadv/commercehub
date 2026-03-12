@@ -46,14 +46,10 @@ export const formatDateTime = (date) => {
   });
 };
 
-export const generateInitials = (name) => {
-  if (!name) return '??';
-  return name
-    .split(' ')
-    .map((n) => n[0])
-    .join('')
-    .toUpperCase()
-    .slice(0, 2);
+export const generateInitials = (firstName, lastName) => {
+  const f = (firstName || '')[0] || '';
+  const l = (lastName  || '')[0] || '';
+  return (f + l).toUpperCase() || '??';
 };
 
 export const truncateText = (text, maxLength = 50) => {

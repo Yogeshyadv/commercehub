@@ -11,6 +11,8 @@ dotenv.config();
 
 const { errorHandler } = require('./middleware/errorHandler');
 const routes = require('./routes');
+const swaggerUi = require('swagger-ui-express');
+const swaggerSpec = require('./config/swagger');
 
 const app = express();
 
@@ -49,7 +51,7 @@ app.use(hpp());
 // Rate limiting
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 100,
+  max: process.env.NODE_ENV === 'development' ? 5000 : 100, // 5000 in dev
   message: 'Too many requests from this IP, please try again after 15 minutes'
 });
 app.use('/api', limiter);
@@ -58,6 +60,25 @@ app.use('/api', limiter);
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(cookieParser());
+
+// NoSQL injection sanitizer — strips keys that start with '$' or contain '.'
+// Protects against queries like { "email": { "$gt": "" } }
+function sanitizeObject(obj) {
+  if (!obj || typeof obj !== 'object') return;
+  for (const key of Object.keys(obj)) {
+    if (key.startsWith('$') || key.includes('.')) {
+      delete obj[key];
+    } else {
+      sanitizeObject(obj[key]);
+    }
+  }
+}
+app.use((req, _res, next) => {
+  sanitizeObject(req.body);
+  sanitizeObject(req.query);
+  sanitizeObject(req.params);
+  next();
+});
 
 // Logging
 if (process.env.NODE_ENV === 'development') {
@@ -68,6 +89,9 @@ if (process.env.NODE_ENV === 'development') {
 app.get('/health', (req, res) => {
   res.status(200).json({ status: 'OK', timestamp: new Date().toISOString() });
 });
+
+// API Docs (Swagger)
+app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, { explorer: true }));
 
 // API Routes
 app.use('/api/v1', routes);

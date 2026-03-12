@@ -15,6 +15,10 @@ const reviewRoutes = require('./reviewRoutes');
 const invoiceRoutes = require('./invoiceRoutes');
 const paymentRoutes = require('./paymentRoutes');
 const wishlistRoutes = require('./wishlistRoutes');
+const auditLogRoutes = require('./auditLogRoutes');
+
+const cartRoutes = require('./cartRoutes');
+const subscriptionRoutes = require('./subscriptionRoutes');
 
 router.use('/auth', authRoutes);
 router.use('/customers', customerRoutes);
@@ -30,5 +34,8 @@ router.use('/payments', paymentRoutes);
 router.use('/reviews', reviewRoutes);
 router.use('/notifications', notificationRoutes);
 router.use('/wishlist', wishlistRoutes);
+router.use('/audit-logs', auditLogRoutes);
+router.use('/cart', cartRoutes);
+router.use('/subscriptions', subscriptionRoutes);
 
 module.exports = router;

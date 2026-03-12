@@ -1,5 +1,4 @@
-﻿/* ...existing code... */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap');
 
 @import "tailwindcss";
 
@@ -15,9 +14,17 @@
   --color-primary-800: #991b1b;
   --color-primary-900: #7f1d1d;
   --color-primary-950: #450a0a;
+
+  /* Balanced SaaS Palette */
+  --color-bg-white: #ffffff;
+  --color-bg-soft: #f8fafc;
+  --color-bg-dark: #000000;
   
-  --color-whatsapp-light: #DC2626;
-  --color-whatsapp-dark: #128C7E;
+  --color-text-black: #000000;
+  --color-text-gray-600: #4b5563;
+  --color-text-gray-500: #6b7280;
+  
+  --color-accent-red: #dc2626;
 }
 
 @plugin "@tailwindcss/forms";
@@ -27,94 +34,67 @@
 html, body {
   margin: 0;
   padding: 0;
-}
-
-html {
-  background-color: #f8fafc;
-}
-
-.dark html {
-  background-color: #13131f;
+  scroll-behavior: smooth;
 }
 
 body {
   font-family: 'Inter', sans-serif;
-  background-color: #f8fafc;
-  color: #111827;
-  transition: background-color 0.3s ease, color 0.3s ease;
+  background-color: var(--color-bg-white);
+  color: var(--color-text-gray-600);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-.dark body {
-  background-color: #13131f; /* zinc-950: Deeper, richer dark */
-  color: #f4f4f5; /* zinc-100: Softer white for better contrast without eye strain */
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  color: var(--color-text-black);
 }
 
 @layer utilities {
-  .custom-scrollbar::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
+  .text-balance {
+    text-wrap: balance;
   }
   
-  .custom-scrollbar::-webkit-scrollbar-track {
-    background: transparent;
-  }
-  
-  .custom-scrollbar::-webkit-scrollbar-thumb {
-    background-color: #cbd5e1;
-    border-radius: 9999px;
+  .glass {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(0, 0, 0, 0.05);
   }
 
-  .dark .custom-scrollbar::-webkit-scrollbar-thumb {
-    background-color: #475569; 
+  .shadow-premium {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 10px 30px -5px rgba(0, 0, 0, 0.05);
   }
 }
 
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-bg-soft);
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
 
 /* Animation Utilities */
 .animate-in {
-  animation-duration: 0.5s;
-  animation-timing-function: ease-out;
-  animation-fill-mode: both;
-}
-
-.fade-in {
-  animation-name: fade-in;
-}
-
-.zoom-in-95 {
-  animation-name: scale-in;
-}
-
-.slide-in-from-bottom-2 {
-  animation-name: slide-up;
+  animation: fade-in 0.5s ease-out forwards;
 }
 
 @keyframes fade-in {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-@keyframes scale-in {
-  from { opacity: 0; transform: scale(0.95); }
-  to { opacity: 1; transform: scale(1); }
-}
-
-@keyframes slide-up {
   from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
-@keyframes shimmer {
-  from { transform: translateX(-100%); }
-  to { transform: translateX(200%); }
-}
-
-@keyframes slideInRight {
-  from { opacity: 0; transform: translateX(100%); }
-  to   { opacity: 1; transform: translateX(0); }
-}
-
-@keyframes scaleIn {
-  from { opacity: 0; transform: scale(0.93); }
-  to   { opacity: 1; transform: scale(1); }
+@keyframes slide-up {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
 }

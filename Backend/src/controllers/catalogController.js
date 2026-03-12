@@ -67,12 +67,38 @@ exports.getCatalog = async (req, res) => {
 
 exports.getPublicCatalog = async (req, res) => {
   try {
-    const catalog = await Catalog.findOne({ 'sharing.shareableLink': req.params.shareableLink, 'sharing.isPublic': true, status: 'published' })
+    const catalog = await Catalog.findOne({
+      'sharing.shareableLink': req.params.shareableLink,
+      status: 'published'
+    })
       .populate('products.product', 'name price compareAtPrice images shortDescription stock status category')
       .populate({ path: 'tenant', select: 'name logo branding contactInfo socialLinks owner', populate: { path: 'owner', select: 'phone' } });
 
     if (!catalog) return res.status(404).json({ success: false, message: 'Catalog not found' });
-    if (catalog.sharing.expiresAt && catalog.sharing.expiresAt < new Date()) return res.status(410).json({ success: false, message: 'Catalog link expired' });
+
+    if (catalog.sharing.expiresAt && catalog.sharing.expiresAt < new Date()) {
+      return res.status(410).json({ success: false, message: 'This catalog link has expired' });
+    }
+
+    // Password-protected: require password header
+    if (catalog.sharing.password) {
+      const submitted = req.headers['x-catalog-password'] || req.query.password;
+      if (!submitted) {
+        return res.status(200).json({
+          success: true,
+          requiresPassword: true,
+          data: { name: catalog.name, coverImage: catalog.coverImage }
+        });
+      }
+      if (submitted !== catalog.sharing.password) {
+        return res.status(401).json({ success: false, message: 'Incorrect password' });
+      }
+    }
+
+    // Fully private (no password, isPublic false)
+    if (!catalog.sharing.isPublic && !catalog.sharing.password) {
+      return res.status(403).json({ success: false, message: 'This catalog is private' });
+    }
 
     catalog.analytics.viewCount += 1;
     catalog.analytics.lastViewedAt = new Date();
@@ -206,6 +232,101 @@ exports.syncProducts = async (req, res) => {
     res.status(200).json({ success: true, message: 'Products synced', data: catalog });
   } catch (error) {
     console.error('SyncProducts error:', error);
+    return res.status(500).json({ success: false, message: 'Server error' });
+  }
+};
+
+// @desc    Track a catalog engagement event (product click, whatsapp click)
+// @route   POST /api/v1/catalogs/public/:shareableLink/track
+// @access  Public (fire-and-forget, never blocks the user)
+exports.trackEvent = async (req, res) => {
+  // Always respond immediately — tracking is best-effort
+  res.status(202).json({ success: true });
+
+  try {
+    const { eventType, productId } = req.body;
+    // eventType: 'product_click' | 'whatsapp_click' | 'share'
+    const catalog = await Catalog.findOne({ 'sharing.shareableLink': req.params.shareableLink });
+    if (!catalog) return;
+
+    if (eventType === 'product_click' && productId) {
+      const prev = catalog.analytics.productClickData?.get(productId) || 0;
+      catalog.analytics.productClickData = catalog.analytics.productClickData || new Map();
+      catalog.analytics.productClickData.set(productId, prev + 1);
+      catalog.markModified('analytics.productClickData');
+    } else if (eventType === 'whatsapp_click') {
+      catalog.analytics.whatsappClicks = (catalog.analytics.whatsappClicks || 0) + 1;
+      if (productId) {
+        const prev = catalog.analytics.productWhatsappData?.get(productId) || 0;
+        catalog.analytics.productWhatsappData = catalog.analytics.productWhatsappData || new Map();
+        catalog.analytics.productWhatsappData.set(productId, prev + 1);
+        catalog.markModified('analytics.productWhatsappData');
+      }
+    } else if (eventType === 'share') {
+      catalog.analytics.shareCount = (catalog.analytics.shareCount || 0) + 1;
+    }
+
+    await catalog.save({ validateBeforeSave: false });
+  } catch (err) {
+    // Silent — tracking failures must never surface to users
+    console.error('TrackEvent silent error:', err.message);
+  }
+};
+
+// @desc    Get detailed analytics for a catalog (vendor-facing)
+// @route   GET /api/v1/catalogs/:id/analytics
+// @access  Protected (vendor)
+exports.getCatalogAnalytics = async (req, res) => {
+  try {
+    const catalog = await Catalog.findOne({ _id: req.params.id, tenant: req.tenantId })
+      .populate('products.product', 'name images price')
+      .lean();
+
+    if (!catalog) return res.status(404).json({ success: false, message: 'Catalog not found' });
+
+    const { analytics, products } = catalog;
+
+    // Build per-product analytics
+    const productClickMap = analytics.productClickData || {};
+    const productWAMap = analytics.productWhatsappData || {};
+
+    const productStats = (products || []).map(p => {
+      const prod = p.product;
+      if (!prod) return null;
+      const id = prod._id.toString();
+      return {
+        _id:           id,
+        name:          prod.name,
+        image:         prod.images?.[0]?.url,
+        price:         prod.price,
+        clicks:        productClickMap[id] || 0,
+        whatsappClicks: productWAMap[id] || 0,
+      };
+    }).filter(Boolean).sort((a, b) => (b.clicks + b.whatsappClicks) - (a.clicks + a.whatsappClicks));
+
+    const totalClicks = productStats.reduce((s, p) => s + p.clicks, 0);
+    const totalWA     = analytics.whatsappClicks || 0;
+    const views       = analytics.viewCount || 0;
+    const convRate    = views > 0 ? ((totalWA / views) * 100).toFixed(1) : '0.0';
+
+    res.status(200).json({
+      success: true,
+      data: {
+        summary: {
+          views,
+          totalClicks,
+          whatsappClicks: totalWA,
+          shareCount:     analytics.shareCount || 0,
+          conversionRate: convRate,
+          lastViewedAt:   analytics.lastViewedAt,
+        },
+        productStats,
+        catalogName: catalog.name,
+        catalogStatus: catalog.status,
+      }
+    });
+  } catch (error) {
+    console.error('GetCatalogAnalytics error:', error);
     return res.status(500).json({ success: false, message: 'Server error' });
   }
 };

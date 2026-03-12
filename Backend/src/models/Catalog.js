@@ -91,10 +91,15 @@ const catalogSchema = new mongoose.Schema({
     default: 'draft'
   },
   analytics: {
-    viewCount: { type: Number, default: 0 },
-    shareCount: { type: Number, default: 0 },
-    uniqueVisitors: { type: Number, default: 0 },
-    lastViewedAt: Date,
+    viewCount:       { type: Number, default: 0 },
+    shareCount:      { type: Number, default: 0 },
+    uniqueVisitors:  { type: Number, default: 0 },
+    lastViewedAt:    Date,
+    whatsappClicks:  { type: Number, default: 0 },
+    // productId (string) → total product-card clicks
+    productClickData: { type: Map, of: Number, default: () => ({}) },
+    // productId (string) → WhatsApp order button clicks per product
+    productWhatsappData: { type: Map, of: Number, default: () => ({}) },
   },
   isWhatsAppEnabled: { type: Boolean, default: true },
   language: { type: String, default: 'en' },

@@ -4,7 +4,8 @@ const {
   getCustomer,
   createCustomer,
   updateCustomer,
-  deleteCustomer
+  deleteCustomer,
+  bulkUpdateGroup
 } = require('../controllers/customerController');
 const { protect } = require('../middleware/auth');
 const { authorize } = require('../middleware/rbac');
@@ -21,6 +22,8 @@ router
   .route('/')
   .get(getCustomers)
   .post(createCustomer);
+
+router.patch('/bulk-group', bulkUpdateGroup);
 
 router
   .route('/:id')

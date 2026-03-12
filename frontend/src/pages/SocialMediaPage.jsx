@@ -106,7 +106,7 @@ export default function SocialMediaPage() {
   const navigate = useNavigate();
 
   return (
-    <div className="bg-black text-white min-h-screen font-sans">
+    <div className="bg-white text-black min-h-screen font-sans">
       <Navbar />
 
       {/* ── HERO ── */}
@@ -148,7 +148,7 @@ export default function SocialMediaPage() {
                 className="flex items-center gap-2.5 bg-[#0a0a0a] border border-white/[0.08] rounded-2xl px-5 py-3 hover:border-white/20 transition-all duration-200"
               >
                 <span style={{ color: ch.color }}>{ch.icon}</span>
-                <span className="text-sm font-semibold text-gray-300">{ch.name}</span>
+                <span className="text-sm font-semibold text-gray-400">{ch.name}</span>
               </div>
             ))}
           </motion.div>
@@ -168,7 +168,7 @@ export default function SocialMediaPage() {
       </section>
 
       {/* ── CHANNELS DEEP DIVE ── */}
-      <section className="py-20 bg-black">
+      <section className="py-20 bg-white">
         <div className="max-w-6xl mx-auto px-6">
           <div className="text-center mb-12">
             <h2 className="text-4xl font-black mb-3">Every channel, one dashboard</h2>
@@ -211,10 +211,10 @@ export default function SocialMediaPage() {
                 <span className="inline-flex items-center justify-center w-14 h-14 rounded-2xl mb-6" style={{ background: `${f.color}14`, color: f.color }}>
                   {f.icon}
                 </span>
-                <h2 className="text-3xl sm:text-4xl font-black text-white mb-4 leading-tight">{f.heading}</h2>
-                <p className="text-gray-400 text-lg leading-relaxed">{f.desc}</p>
+                <h2 className="text-3xl sm:text-4xl font-black text-black mb-4 leading-tight">{f.heading}</h2>
+                <p className="text-gray-600 text-lg leading-relaxed">{f.desc}</p>
               </div>
-              <div className="rounded-3xl overflow-hidden border border-white/[0.07] bg-[#0a0a0a]">
+              <div className="rounded-3xl overflow-hidden border border-gray-200 bg-white shadow-lg">
                 <img src={f.img} alt={f.heading} className="w-full h-64 object-cover" />
               </div>
             </motion.div>
@@ -223,14 +223,14 @@ export default function SocialMediaPage() {
       </section>
 
       {/* ── CONTENT FORMATS ── */}
-      <section className="py-20 bg-black">
+      <section className="py-20 bg-white">
         <div className="max-w-4xl mx-auto px-6 text-center">
           <h2 className="text-3xl font-black mb-10">Every content format, made shoppable</h2>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
             {formats.map((fmt) => (
-              <div key={fmt.label} className="bg-[#0a0a0a] border border-white/[0.06] rounded-2xl px-5 py-4 flex items-center gap-3">
+              <div key={fmt.label} className="bg-gray-50 border border-gray-200 rounded-2xl px-5 py-4 flex items-center gap-3">
                 <span className="shrink-0" style={{ color: fmt.color }}>{fmt.icon}</span>
-                <span className="text-sm font-semibold text-gray-300 text-left">{fmt.label}</span>
+                <span className="text-sm font-semibold text-gray-600 text-left">{fmt.label}</span>
               </div>
             ))}
           </div>
@@ -238,20 +238,20 @@ export default function SocialMediaPage() {
       </section>
 
       {/* ── TESTIMONIALS ── */}
-      <section className="py-20 bg-[#060606]">
+      <section className="py-20 bg-gray-50">
         <div className="max-w-6xl mx-auto px-6">
-          <h2 className="text-3xl font-black text-white text-center mb-12">Merchants selling on social</h2>
+          <h2 className="text-3xl font-black text-black text-center mb-12">Merchants selling on social</h2>
           <div className="grid md:grid-cols-3 gap-6">
             {testimonials.map((t) => (
-              <div key={t.name} className="bg-[#0a0a0a] border border-white/[0.06] rounded-2xl p-7">
+              <div key={t.name} className="bg-white border border-gray-200 rounded-2xl p-7 shadow-lg">
                 <div className="flex gap-0.5 mb-5">
                   {[...Array(t.stars)].map((_, i) => <StarIcon key={i} className="w-4 h-4 fill-[#DC2626] text-[#DC2626]" />)}
                 </div>
-                <blockquote className="text-gray-300 text-sm leading-relaxed italic mb-6">"{t.quote}"</blockquote>
+                <blockquote className="text-gray-600 text-sm leading-relaxed italic mb-6">"{t.quote}"</blockquote>
                 <div className="flex items-center gap-3">
                   <div className="w-9 h-9 rounded-full bg-[#DC2626]/20 flex items-center justify-center text-[#DC2626] font-black text-sm">{t.avatar}</div>
                   <div>
-                    <p className="text-white font-bold text-sm">{t.name}</p>
+                    <p className="text-black font-bold text-sm">{t.name}</p>
                     <p className="text-gray-600 text-xs">{t.title}</p>
                   </div>
                 </div>
@@ -262,15 +262,15 @@ export default function SocialMediaPage() {
       </section>
 
       {/* ── FINAL CTA ── */}
-      <section className="relative py-32 bg-black overflow-hidden text-center">
+      <section className="relative py-32 bg-gray-50 overflow-hidden text-center">
         <div className="pointer-events-none absolute inset-0" style={{ background: 'radial-gradient(ellipse 55% 45% at 50% 100%, rgba(220,38,38,0.2) 0%, transparent 70%)' }} />
         <div className="relative max-w-2xl mx-auto px-6">
           <h2 className="text-5xl sm:text-6xl font-black leading-tight mb-6">
             Start selling social,<br />
             <span className="text-[#DC2626]">today.</span>
           </h2>
-          <p className="text-gray-400 text-lg mb-10">Connect your first channel in under 10 minutes.</p>
-          <button onClick={() => navigate('/register')} className="inline-flex items-center gap-2 bg-white hover:bg-gray-100 text-black font-black text-lg px-10 py-4 rounded-full transition-all duration-200 shadow-xl shadow-white/5">
+          <p className="text-gray-600 text-lg mb-10">Connect your first channel in under 10 minutes.</p>
+          <button onClick={() => navigate('/register')} className="inline-flex items-center gap-2 bg-red-500 hover:bg-red-600 text-white font-black text-lg px-10 py-4 rounded-full transition-all duration-200 shadow-xl">
             Start free <ArrowRightIcon className="w-5 h-5" />
           </button>
         </div>

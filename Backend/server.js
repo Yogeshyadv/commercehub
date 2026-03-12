@@ -14,6 +14,10 @@ process.on('uncaughtException', (err) => {
 // Connect to database
 connectDB();
 
+// Start background jobs
+const abandonedCartJob = require('./src/jobs/abandonedCartJob');
+abandonedCartJob.start();
+
 const PORT = process.env.PORT || 5000;
 
 const server = http.createServer(app);

@@ -79,7 +79,7 @@ export default function InvestorsPage() {
   const [openFaq, setOpenFaq] = useState(null);
 
   return (
-    <div className="bg-black text-white min-h-screen font-sans">
+    <div className="bg-white text-black min-h-screen font-sans">
       <Navbar />
 
       {/* ── HERO ── */}
@@ -123,7 +123,7 @@ export default function InvestorsPage() {
       </section>
 
       {/* ── FINANCIALS KPIs ── */}
-      <section className="py-20 bg-black">
+      <section className="py-20 bg-white">
         <div className="max-w-5xl mx-auto px-6">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-black mb-2">Key performance metrics</h2>
@@ -180,7 +180,7 @@ export default function InvestorsPage() {
       </section>
 
       {/* ── COMPETITIVE MOATS ── */}
-      <section className="py-20 bg-black">
+      <section className="py-20 bg-white">
         <div className="max-w-6xl mx-auto px-6">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-black mb-2">Why CommerceHub wins</h2>
@@ -301,9 +301,9 @@ export default function InvestorsPage() {
       </section>
 
       {/* ── CONTACT IR ── */}
-      <section className="py-20 bg-black">
+      <section className="py-20 bg-white">
         <div className="max-w-5xl mx-auto px-6">
-          <div className="bg-[#0a0a0a] border border-white/[0.07] rounded-3xl p-10 sm:p-14 grid md:grid-cols-2 gap-10 items-center">
+          <div className="bg-gray-50 border border-gray-200 rounded-3xl p-10 sm:p-14 grid md:grid-cols-2 gap-10 items-center">
             <div>
               <span className="inline-flex items-center gap-2 text-xs font-black uppercase tracking-[0.18em] text-[#DC2626] mb-5 px-3 py-1.5 rounded-full border border-[#DC2626]/30 bg-[#DC2626]/10">
                 <TrendingUpIcon className="w-3.5 h-3.5" /> Investor Relations

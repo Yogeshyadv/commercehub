@@ -76,6 +76,10 @@ const userSchema = new mongoose.Schema({
   emailVerificationExpire: Date,
   resetPasswordToken: String,
   resetPasswordExpire: Date,
+  loyaltyPoints: {
+    type: Number,
+    default: 0
+  },
   twoFactorEnabled: {
     type: Boolean,
     default: false
@@ -105,7 +109,7 @@ userSchema.pre('save', async function () {
   this.password = await bcrypt.hash(this.password, salt);
 });
 
-// Sign JWT and return
+// Sign short-lived access JWT and return
 userSchema.methods.getSignedJwtToken = function () {
   return jwt.sign(
     {
@@ -115,8 +119,25 @@ userSchema.methods.getSignedJwtToken = function () {
       email: this.email
     },
     process.env.JWT_SECRET,
-    { expiresIn: process.env.JWT_EXPIRE || '7d' }
+    { expiresIn: process.env.JWT_EXPIRE || '15m' }
   );
+};
+
+// Issue a long-lived refresh token, store hashed version, return raw token
+userSchema.methods.createRefreshToken = function (device = 'unknown') {
+  const raw = crypto.randomBytes(40).toString('hex');
+  const hashed = crypto.createHash('sha256').update(raw).digest('hex');
+  const expiresAt = new Date(
+    Date.now() + (parseInt(process.env.REFRESH_TOKEN_EXPIRE_DAYS) || 30) * 24 * 60 * 60 * 1000
+  );
+
+  // Prune expired tokens and keep at most 5 active sessions
+  this.refreshTokens = (this.refreshTokens || [])
+    .filter(t => t.expiresAt > new Date())
+    .slice(-4); // keep last 4 before adding the new one
+
+  this.refreshTokens.push({ token: hashed, expiresAt, device });
+  return raw; // send this to the client
 };
 
 // Match password

@@ -246,7 +246,7 @@ export default function CatalogDetail() {
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
 
         <button onClick={() => navigate('/dashboard/catalogs')}
-          className="absolute top-4 left-4 flex items-center gap-1.5 px-3 py-2 bg-white/20 backdrop-blur-md text-white rounded-xl text-sm font-semibold hover:bg-white/30 transition-colors border border-white/20">
+          className="absolute top-4 left-4 flex items-center gap-1.5 px-3 py-2 bg-black/50 backdrop-blur-md text-white rounded-xl text-sm font-semibold hover:bg-black/70 transition-colors border border-white/20">
           <ArrowLeft className="w-4 h-4" /> Catalogs
         </button>
 

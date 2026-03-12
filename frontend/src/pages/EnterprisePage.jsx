@@ -186,10 +186,10 @@ const partnerLogos = [
 function ContactModal({ onClose }) {
   const [form, setForm] = useState({ name: '', company: '', email: '', message: '' });
   const set = (k) => (e) => setForm(f => ({ ...f, [k]: e.target.value }));
-  const inputCls = 'w-full px-4 py-3 rounded-xl bg-white/[0.07] border border-white/[0.1] text-white placeholder-gray-600 focus:outline-none focus:border-[#DC2626] transition-all text-sm font-medium';
+  const inputCls = 'w-full px-4 py-3 rounded-xl bg-white border border-gray-200 text-black placeholder-gray-400 focus:outline-none focus:border-red-500 transition-all text-sm font-medium';
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm" onClick={onClose}>
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-gray-900/80 backdrop-blur-sm" onClick={onClose}>
       <motion.div
         initial={{ opacity: 0, scale: 0.95, y: 16 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -249,12 +249,12 @@ export default function EnterprisePage() {
   });
 
   return (
-    <div className="min-h-screen bg-black">
+    <div className="min-h-screen bg-white">
       <Navbar />
       <AnimatePresence>{showContact && <ContactModal onClose={() => setShowContact(false)} />}</AnimatePresence>
 
       {/* ══ 1. HERO — cinematic full-screen with rotating store screenshots ══ */}
-      <section className="relative min-h-screen flex flex-col justify-center bg-black text-white overflow-hidden">
+      <section className="relative min-h-screen flex flex-col justify-center bg-gray-50 text-black overflow-hidden">
 
         {/* Rotating store screenshot background */}
         <AnimatePresence mode="wait">
@@ -267,7 +267,7 @@ export default function EnterprisePage() {
             className="absolute inset-0 z-0"
           >
             <img src={storeImgs[heroImgIdx]} alt="" className="w-full h-full object-cover" />
-            <div className="absolute inset-0 bg-black/86" />
+            <div className="absolute inset-0 bg-gray-900/40" />
           </motion.div>
         </AnimatePresence>
 
@@ -328,7 +328,7 @@ export default function EnterprisePage() {
         </div>
 
         {/* Bottom fade */}
-        <div className="absolute bottom-0 left-0 right-0 h-28 bg-gradient-to-t from-black to-transparent z-10" />
+        <div className="absolute bottom-0 left-0 right-0 h-28 bg-gradient-to-t from-gray-50 to-transparent z-10" />
       </section>
 
       {/* ══ 2. RECOGNITION CARDS — editorial, mixed light/dark ══ */}
@@ -436,16 +436,16 @@ export default function EnterprisePage() {
       </section>
 
       {/* ══ 4. ADVANTAGES — tabbed with big live screenshot ══ */}
-      <section className="bg-black py-28 px-6">
+      <section className="bg-gray-50 py-28 px-6">
         <div className="max-w-7xl mx-auto">
           <motion.div {...fadeUp()} className="text-center max-w-2xl mx-auto mb-16">
             <span className="inline-block text-[11px] font-black uppercase tracking-[0.25em] text-[#DC2626] mb-5">
               CommerceHub advantages
             </span>
-            <h2 className="text-4xl md:text-5xl lg:text-6xl font-black text-white leading-tight">
+            <h2 className="text-4xl md:text-5xl lg:text-6xl font-black text-black leading-tight">
               The platform built for future-proofing
             </h2>
-            <p className="mt-5 text-gray-400 text-lg font-medium leading-relaxed">
+            <p className="mt-5 text-gray-600 text-lg font-medium leading-relaxed">
               Designed to optimise resources and maximise returns — keeping you ahead of shifting customer needs.
             </p>
           </motion.div>
@@ -460,25 +460,25 @@ export default function EnterprisePage() {
                   onClick={() => setActiveTab(tab.id)}
                   className={`w-full text-left rounded-2xl p-5 transition-all border ${
                     activeTab === tab.id
-                      ? 'bg-white/[0.08] border-[#DC2626]/60 shadow-lg shadow-[#DC2626]/10'
-                      : 'bg-white/[0.02] border-white/[0.06] hover:bg-white/[0.05] hover:border-white/[0.12]'
+                      ? 'bg-gray-100 border-red-500/60 shadow-lg shadow-red-500/10'
+                      : 'bg-gray-50 border-gray-200 hover:bg-gray-100 hover:border-gray-300'
                   }`}
                 >
                   <div className="flex items-start gap-4">
                     <span className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-all ${
-                      activeTab === tab.id ? 'bg-[#DC2626] text-white' : 'bg-white/[0.07] text-gray-500'
+                      activeTab === tab.id ? 'bg-red-500 text-white' : 'bg-gray-200 text-gray-600'
                     }`}>
                       {tab.icon}
                     </span>
                     <div>
                       <p className={`font-black text-sm mb-1 ${
-                        activeTab === tab.id ? 'text-white' : 'text-gray-400'
+                        activeTab === tab.id ? 'text-black' : 'text-gray-700'
                       }`}>{tab.heading}</p>
                       {activeTab === tab.id && (
                         <motion.p
                           initial={{ opacity: 0, height: 0 }}
                           animate={{ opacity: 1, height: 'auto' }}
-                          className="text-gray-400 text-xs font-medium leading-relaxed"
+                          className="text-gray-600 text-xs font-medium leading-relaxed"
                         >
                           {tab.desc}
                         </motion.p>

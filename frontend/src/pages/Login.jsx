@@ -11,7 +11,7 @@ function SocialButton({ icon, label, onClick }) {
     <button
       type="button"
       onClick={onClick}
-      className="w-full flex items-center justify-center gap-3 py-2.5 px-4 rounded-lg bg-white/[0.04] border border-white/[0.08] text-sm font-medium text-gray-300 hover:bg-white/[0.08] hover:border-white/[0.14] transition-all"
+      className="w-full flex items-center justify-center gap-3 py-2.5 px-4 rounded-lg bg-white border border-gray-200 text-sm font-medium text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-all shadow-sm"
     >
       {icon}
       {label}
@@ -67,35 +67,35 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] flex flex-col items-center justify-center px-4 py-12">
+    <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center px-4 py-12">
       {/* Subtle top glow */}
-      <div className="pointer-events-none fixed top-0 left-1/2 -translate-x-1/2 w-[600px] h-[260px]" style={{ background: 'radial-gradient(ellipse at 50% 0%, rgba(220,38,38,0.13) 0%, transparent 70%)' }} />
+      <div className="pointer-events-none fixed top-0 left-1/2 -translate-x-1/2 w-[600px] h-[260px]" style={{ background: 'radial-gradient(ellipse at 50% 0%, rgba(220,38,38,0.08) 0%, transparent 70%)' }} />
 
       <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }} className="relative z-10 w-full max-w-[420px]">
 
         {/* Logo */}
         <div className="text-center mb-8">
           <Link to="/" className="inline-block">
-            <span className="text-2xl font-black tracking-tight text-white">Commerce<span className="text-[#DC2626]">Hub</span></span>
+            <span className="text-2xl font-black tracking-tight text-black">Commerce<span className="text-[#DC2626]">Hub</span></span>
           </Link>
         </div>
 
         {/* Heading */}
         <div className="text-center mb-7">
-          <h1 className="text-[1.65rem] font-black text-white tracking-tight mb-1.5">Log in to your account</h1>
+          <h1 className="text-[1.65rem] font-black text-black tracking-tight mb-1.5">Log in to your account</h1>
           <p className="text-sm text-gray-500">Enter your credentials to continue</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-3.5">
           {/* Email */}
           <div>
-            <label htmlFor="email" className="block text-xs font-semibold text-gray-400 mb-1.5">Email address</label>
+            <label htmlFor="email" className="block text-xs font-semibold text-gray-600 mb-1.5">Email address</label>
             <div className="relative">
-              <MailIcon className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-600 pointer-events-none" />
+              <MailIcon className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
               <input
                 id="email" name="email" type="email" autoComplete="email" required
                 value={formData.email} onChange={handleChange}
-                className="w-full pl-10 pr-4 py-2.5 bg-[#141414] border border-white/[0.1] rounded-lg text-white text-sm placeholder-gray-600 focus:outline-none focus:border-[#DC2626]/60 focus:ring-2 focus:ring-[#DC2626]/10 transition-all"
+                className="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded-lg text-black text-sm placeholder-gray-400 focus:outline-none focus:border-red-500 focus:ring-2 focus:ring-red-500/10 transition-all shadow-sm"
                 placeholder="you@example.com"
               />
             </div>
@@ -104,18 +104,18 @@ export default function Login() {
           {/* Password */}
           <div>
             <div className="flex items-center justify-between mb-1.5">
-              <label htmlFor="password" className="text-xs font-semibold text-gray-400">Password</label>
+              <label htmlFor="password" className="text-xs font-semibold text-gray-600">Password</label>
               <Link to="/forgot-password" className="text-xs text-[#DC2626] hover:text-red-400 transition-colors font-medium">Forgot password?</Link>
             </div>
             <div className="relative">
-              <LockIcon className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-600 pointer-events-none" />
+              <LockIcon className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
               <input
                 id="password" name="password" type={showPassword ? 'text' : 'password'} autoComplete="current-password" required
                 value={formData.password} onChange={handleChange}
-                className="w-full pl-10 pr-11 py-2.5 bg-[#141414] border border-white/[0.1] rounded-lg text-white text-sm placeholder-gray-600 focus:outline-none focus:border-[#DC2626]/60 focus:ring-2 focus:ring-[#DC2626]/10 transition-all"
+                className="w-full pl-10 pr-11 py-2.5 bg-white border border-gray-200 rounded-lg text-black text-sm placeholder-gray-400 focus:outline-none focus:border-red-500 focus:ring-2 focus:ring-red-500/10 transition-all shadow-sm"
                 placeholder="••••••••"
               />
-              <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-600 hover:text-gray-300 transition-colors">
+              <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors">
                 {showPassword ? <EyeOffIcon className="w-4 h-4" /> : <EyeIcon className="w-4 h-4" />}
               </button>
             </div>
@@ -123,9 +123,9 @@ export default function Login() {
 
           {/* Email not verified warning */}
           {needsVerification && (
-            <div className="p-3 bg-amber-500/8 border border-amber-500/20 rounded-lg">
-              <p className="text-xs text-amber-400 mb-1.5">Your email address has not been verified.</p>
-              <button type="button" onClick={handleResendVerification} disabled={resendingEmail} className="text-xs font-semibold text-amber-400 hover:underline disabled:opacity-50">
+            <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg">
+              <p className="text-xs text-amber-800 mb-1.5">Your email address has not been verified.</p>
+              <button type="button" onClick={handleResendVerification} disabled={resendingEmail} className="text-xs font-semibold text-amber-700 hover:underline disabled:opacity-50">
                 {resendingEmail ? 'Sending...' : 'Resend verification email'}
               </button>
             </div>
@@ -134,7 +134,7 @@ export default function Login() {
           {/* Remember me */}
           <label className="flex items-center gap-2.5 cursor-pointer pt-0.5">
             <input type="checkbox" checked={rememberMe} onChange={e => setRememberMe(e.target.checked)} className="w-3.5 h-3.5 accent-[#DC2626]" />
-            <span className="text-xs text-gray-500">Keep me logged in</span>
+            <span className="text-xs text-gray-600">Keep me logged in</span>
           </label>
 
           {/* Submit */}
@@ -150,9 +150,9 @@ export default function Login() {
 
         {/* Divider */}
         <div className="flex items-center gap-3 my-5">
-          <div className="flex-1 h-px bg-white/[0.06]" />
+          <div className="flex-1 h-px bg-gray-200" />
           <span className="text-xs text-gray-600">or</span>
-          <div className="flex-1 h-px bg-white/[0.06]" />
+          <div className="flex-1 h-px bg-gray-200" />
         </div>
 
         {/* Social */}
@@ -170,7 +170,7 @@ export default function Login() {
         {/* Footer */}
         <p className="text-center text-xs text-gray-600 mt-7">
           Don't have an account?{' '}
-          <Link to="/register" className="text-white font-semibold hover:text-[#DC2626] transition-colors">Create account</Link>
+          <Link to="/register" className="text-red-600 font-semibold hover:text-red-700 transition-colors">Create account</Link>
         </p>
       </motion.div>
     </div>

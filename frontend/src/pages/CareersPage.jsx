@@ -81,7 +81,7 @@ export default function CareersPage() {
   });
 
   return (
-    <div className="bg-black text-white min-h-screen font-sans">
+    <div className="bg-white text-black min-h-screen font-sans">
       <Navbar />
 
       {/* ── HERO ── */}
@@ -125,7 +125,7 @@ export default function CareersPage() {
       </section>
 
       {/* ── LIFE AT CH ── */}
-      <section className="py-24 bg-black">
+      <section className="py-24 bg-white">
         <div className="max-w-6xl mx-auto px-6">
           <div className="text-center mb-14">
             <h2 className="text-4xl font-black mb-3">Life at CommerceHub</h2>
@@ -238,7 +238,7 @@ export default function CareersPage() {
                     </div>
                     <div className="flex items-center gap-3 shrink-0">
                       <span className="text-xs font-bold px-2.5 py-1 rounded-full" style={{ background: `${role.color}14`, color: role.color }}>{role.dept}</span>
-                      <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-white/[0.05] text-gray-400">{role.level}</span>
+                      <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-gray-100 text-gray-600">{role.level}</span>
                       <ArrowRightIcon className="w-4 h-4 text-gray-600 group-hover:text-[#DC2626] group-hover:translate-x-1 transition-all" />
                     </div>
                   </div>
@@ -307,12 +307,12 @@ export default function CareersPage() {
       </section>
 
       {/* ── FINAL CTA ── */}
-      <section className="relative py-28 bg-[#060606] overflow-hidden text-center">
+      <section className="relative py-28 bg-gray-50 overflow-hidden text-center">
         <div className="pointer-events-none absolute inset-0" style={{ background: 'radial-gradient(ellipse 55% 45% at 50% 100%, rgba(220,38,38,0.2) 0%, transparent 70%)' }} />
         <div className="relative max-w-2xl mx-auto px-6">
           <h2 className="text-5xl font-black leading-tight mb-5">Your work will reach<br /><span className="text-[#DC2626]">2 million merchants.</span></h2>
-          <p className="text-gray-400 text-lg mb-10">If that sounds like the right scale for your ambitions, we would love to talk.</p>
-          <a href="#open-roles" className="inline-flex items-center gap-2 bg-white hover:bg-gray-100 text-black font-black text-lg px-10 py-4 rounded-full transition-all duration-200">
+          <p className="text-gray-600 text-lg mb-10">If that sounds like the right scale for your ambitions, we would love to talk.</p>
+          <a href="#open-roles" className="inline-flex items-center gap-2 bg-red-500 hover:bg-red-600 text-white font-black text-lg px-10 py-4 rounded-full transition-all duration-200">
             Browse open roles <ArrowRightIcon className="w-5 h-5" />
           </a>
         </div>

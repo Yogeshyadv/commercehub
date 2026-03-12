@@ -8,7 +8,7 @@ export default function ConfirmDialog({
 }) {
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={title} size="sm">
-      <p className="text-gray-600">{message}</p>
+      <p className="text-gray-600 dark:text-[#a0a0c0] leading-relaxed">{message}</p>
       <div className="flex justify-end gap-3 mt-6">
         <Button variant="secondary" onClick={onClose} disabled={loading}>{cancelLabel}</Button>
         <Button variant={variant} onClick={onConfirm} loading={loading}>{confirmLabel}</Button>

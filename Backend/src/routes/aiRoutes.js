@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { generateDescription, generateTags, generateSEO, applyToProduct, getRecommendations, getSimilarProducts, generateTheme, generateCatalog } = require('../controllers/aiController');
+const { generateDescription, generateTags, generateSEO, applyToProduct, getRecommendations, getSimilarProducts, generateTheme, generateCatalog, chat } = require('../controllers/aiController');
 const { protect } = require('../middleware/auth');
 const { authorize } = require('../middleware/rbac');
 const { resolveTenant, requireTenant } = require('../middleware/tenantResolver');
@@ -10,6 +10,7 @@ router.use(requireTenant);
 
 // Public routes
 router.get('/similar/:productId', getSimilarProducts);
+router.post('/chat', chat);
 
 // Protected routes
 router.use(protect);

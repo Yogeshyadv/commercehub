@@ -31,6 +31,7 @@ const inventorySchema = new mongoose.Schema({
   reorderQuantity: { type: Number, default: 50 },
   batchNumber: String,
   expiryDate: Date,
+  manufactureDate: Date,
   costPrice: Number,
   lastRestockedAt: Date,
   movements: [{

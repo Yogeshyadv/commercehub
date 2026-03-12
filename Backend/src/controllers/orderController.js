@@ -4,16 +4,23 @@ const Inventory = require('../models/Inventory');
 const Customer = require('../models/Customer');
 const Tenant = require('../models/Tenant'); // Moved to top
 const Notification = require('../models/Notification'); // Import Notification model
+const User = require('../models/User');
+const notificationService = require('../services/notificationService');
 const { getPagination } = require('../utils/helpers');
 
 // @desc    Create customer order (from public store)
 exports.createCustomerOrder = async (req, res) => {
   try {
-    const { items, shippingAddress, billingAddress, paymentMethod, customerNotes } = req.body;
+    const { items, shippingAddress, billingAddress, paymentMethod, customerNotes, loyaltyPointsRedeemed = 0 } = req.body;
     if (!items || items.length === 0) return res.status(400).json({ success: false, message: 'Order must have items' });
 
-    // Validate request data
-    if (!shippingAddress) return res.status(400).json({ success: false, message: 'Shipping address is required' });
+    // Validate loyalty points if provided
+    if (loyaltyPointsRedeemed > 0) {
+      const userRecord = await User.findById(req.user._id, 'loyaltyPoints');
+      if (!userRecord || userRecord.loyaltyPoints < loyaltyPointsRedeemed) {
+        return res.status(400).json({ success: false, message: 'Insufficient loyalty points' });
+      }
+    }
     if (!paymentMethod) return res.status(400).json({ success: false, message: 'Payment method is required' });
 
     // Get tenant from first product
@@ -55,7 +62,7 @@ exports.createCustomerOrder = async (req, res) => {
       taxAmount += itemTax;
     }
 
-    const total = subtotal + taxAmount + (req.body.shippingCost || 0) - (req.body.discount || 0);
+    const total = subtotal + taxAmount + (req.body.shippingCost || 0) - (req.body.discount || 0) - loyaltyPointsRedeemed;
 
     const order = await Order.create({
       tenant: tenantId, 
@@ -66,8 +73,9 @@ exports.createCustomerOrder = async (req, res) => {
       subtotal, 
       taxAmount,
       shippingCost: req.body.shippingCost || 0, 
-      discount: req.body.discount || 0,
-      total, 
+      discount: (req.body.discount || 0) + loyaltyPointsRedeemed,
+      loyaltyPointsRedeemed,
+      total: Math.max(0, total), 
       paymentMethod, 
       customerNotes, 
       source: req.body.source || 'web',
@@ -88,6 +96,11 @@ exports.createCustomerOrder = async (req, res) => {
     }
 
     await Tenant.findByIdAndUpdate(tenantId, { $inc: { 'metadata.totalOrders': 1, 'metadata.totalRevenue': total } });
+
+    // Deduct redeemed loyalty points
+    if (loyaltyPointsRedeemed > 0) {
+      await User.findByIdAndUpdate(req.user._id, { $inc: { loyaltyPoints: -loyaltyPointsRedeemed } });
+    }
     
     // Notify Vendor (Tenant Owner)
     try {
@@ -319,7 +332,14 @@ exports.updateOrderStatus = async (req, res) => {
     order.statusHistory.push({ status, note: note || `Status updated to ${status}`, updatedBy: req.user._id });
     if (trackingNumber) order.trackingNumber = trackingNumber;
     if (trackingUrl) order.trackingUrl = trackingUrl;
-    if (status === 'delivered') order.deliveredAt = new Date();
+    if (status === 'delivered') {
+      order.deliveredAt = new Date();
+      // Award loyalty points: 1 point per ₹10 spent
+      const pointsToAward = Math.floor((order.total || 0) / 10);
+      if (pointsToAward > 0) {
+        await User.findByIdAndUpdate(order.customer, { $inc: { loyaltyPoints: pointsToAward } });
+      }
+    }
 
     // Create Notification
     const notificationMessages = {
@@ -357,6 +377,23 @@ exports.updateOrderStatus = async (req, res) => {
     }
 
     await order.save();
+
+    // Send SMS to customer on meaningful status changes
+    if (notificationMessages[status]) {
+      try {
+        const customerUser = await User.findById(order.customer, 'phone firstName').lean();
+        if (customerUser?.phone) {
+          const smsMsg = notificationService.getOrderNotification(
+            { orderNumber: order.orderNumber || order._id.toString().slice(-8).toUpperCase(), total: order.total, trackingNumber: order.trackingNumber },
+            status
+          );
+          await notificationService.sendSMS(customerUser.phone, smsMsg);
+        }
+      } catch (smsErr) {
+        console.error('SMS notification failed (non-fatal):', smsErr.message);
+      }
+    }
+
     res.status(200).json({ success: true, message: `Status updated to ${status}`, data: order });
   } catch (error) {
     console.error('UpdateOrderStatus error:', error);
@@ -434,5 +471,125 @@ exports.cancelOrder = async (req, res) => {
   } catch (error) {
     console.error('Cancel order error:', error);
     res.status(500).json({ success: false, message: 'Server error' });
+  }
+};
+
+// @desc    Create order from WhatsApp catalog (public — no auth required)
+// @route   POST /api/v1/orders/whatsapp
+// Accepts cart from the public catalog page after customer clicks
+// "Order on WhatsApp". Customer lands on the URL, we record the order.
+exports.createWhatsAppOrder = async (req, res) => {
+  try {
+    const { tenantId, catalogName, customerName, customerPhone, items } = req.body;
+
+    if (!tenantId) return res.status(400).json({ success: false, message: 'tenantId is required' });
+    if (!items || items.length === 0) return res.status(400).json({ success: false, message: 'items array is required' });
+
+    const mongoose = require('mongoose');
+    if (!mongoose.Types.ObjectId.isValid(tenantId)) {
+      return res.status(400).json({ success: false, message: 'Invalid tenantId' });
+    }
+
+    // Verify the tenant exists
+    const tenant = await Tenant.findById(tenantId).lean();
+    if (!tenant) return res.status(404).json({ success: false, message: 'Store not found' });
+
+    // Find or create a guest user keyed by phone, so repeat customer are recognised
+    const phone = (customerPhone || '').replace(/\D/g, '').slice(-10);
+    const guestEmail = `wa_${phone || 'guest'}@whatsapp.local`;
+    const guestFirstName = customerName?.split(' ')[0] || 'WhatsApp';
+    const guestLastName  = customerName?.split(' ').slice(1).join(' ') || 'Customer';
+
+    let guestUser = await User.findOne({ email: guestEmail }).lean();
+    if (!guestUser) {
+      const bcrypt = require('bcryptjs');
+      const randomPwd = await bcrypt.hash(Math.random().toString(36), 10);
+      guestUser = await User.create({
+        firstName: guestFirstName,
+        lastName:  guestLastName,
+        email:     guestEmail,
+        phone:     phone || undefined,
+        password:  randomPwd,
+        role:      'customer',
+        isEmailVerified: false,
+      });
+    }
+
+    // Resolve items from DB (validate products belong to this tenant)
+    let subtotal = 0;
+    const orderItems = [];
+
+    for (const item of items) {
+      if (!item.productId || !mongoose.Types.ObjectId.isValid(item.productId)) continue;
+      const product = await Product.findOne({ _id: item.productId, tenant: tenantId }).lean();
+      if (!product) continue;
+      const qty = Math.max(1, parseInt(item.quantity, 10) || 1);
+      const lineTotal = product.price * qty;
+      orderItems.push({
+        product: product._id,
+        name:    product.name,
+        sku:     product.sku,
+        image:   product.images?.[0]?.url,
+        price:   product.price,
+        quantity: qty,
+        tax:     0,
+        total:   lineTotal,
+      });
+      subtotal += lineTotal;
+    }
+
+    if (orderItems.length === 0) {
+      return res.status(400).json({ success: false, message: 'No valid products found' });
+    }
+
+    const order = await Order.create({
+      tenant:        tenantId,
+      customer:      guestUser._id,
+      items:         orderItems,
+      subtotal,
+      taxAmount:     0,
+      shippingCost:  0,
+      discount:      0,
+      total:         subtotal,
+      paymentMethod: 'whatsapp',
+      source:        'whatsapp',
+      customerNotes: catalogName ? `Via catalog: ${catalogName}` : 'WhatsApp order',
+      statusHistory: [{ status: 'pending', note: 'WhatsApp order received' }],
+    });
+
+    // Emit real-time notification to vendor
+    try {
+      if (tenant.owner) {
+        const notif = await Notification.create({
+          recipient: tenant.owner,
+          type:      'NEW_ORDER',
+          title:     'New WhatsApp Order',
+          message:   `New order from ${customerName || phone || 'WhatsApp customer'} — ₹${subtotal}`,
+          relatedId: order._id,
+        });
+        const io = req.app.get('io');
+        if (io) {
+          io.to(tenant.owner.toString()).emit('notification', notif);
+          io.to(tenantId.toString()).emit('new_order', {
+            orderId: order._id,
+            customer: customerName || phone || 'WhatsApp',
+            amount: subtotal,
+            status: 'pending',
+            source: 'whatsapp',
+          });
+        }
+      }
+    } catch (notifErr) {
+      console.error('WhatsApp order notification error (non-fatal):', notifErr.message);
+    }
+
+    res.status(201).json({
+      success: true,
+      message: 'Order recorded successfully',
+      data: { orderId: order._id, orderNumber: order.orderNumber, total: subtotal }
+    });
+  } catch (error) {
+    console.error('CreateWhatsAppOrder error:', error);
+    res.status(500).json({ success: false, message: 'Failed to record order' });
   }
 };

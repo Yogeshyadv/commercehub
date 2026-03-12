@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, Loader2, ArrowLeft } from 'lucide-react';
+import { Search, Loader2, ArrowLeft, LayoutTemplate, Image, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { catalogService } from '../../../services/catalogService';
 import toast from 'react-hot-toast';
@@ -1818,7 +1818,7 @@ export default function TemplateSelect() {
         }
       }
       toast.success('Catalogue created! Opening editor...');
-      navigate('/dashboard/catalogues/' + catalogId + '/edit');
+      navigate('/dashboard/catalogs/' + catalogId + '/edit');
     } catch (err) {
       const msg =
         (err && err.response && err.response.data && err.response.data.message) ||
@@ -1831,63 +1831,61 @@ export default function TemplateSelect() {
 
   return (
     <>
-    <div className="bg-[#f4f6f8] min-h-screen w-full">
+    <div className="min-h-screen bg-[#f4f6f8] dark:bg-[#000000] w-full transition-colors duration-200">
 
       {/* ── Page Header ───────────────────────────────────────────────── */}
-      <div className="bg-white border-b border-gray-200 shadow-sm">
-        <div className="max-w-7xl mx-auto px-6 sm:px-10 py-8 flex flex-col sm:flex-row sm:items-center justify-between gap-5">
+      <div className="bg-white dark:bg-[#0d0d0d] border-b border-gray-200 dark:border-white/[0.07] shadow-sm">
+        <div className="max-w-7xl mx-auto px-6 sm:px-10 py-10 flex flex-col sm:flex-row sm:items-center justify-between gap-5">
           <div>
             <button
               onClick={() => navigate('/dashboard/catalogs')}
-              className="group text-xs text-gray-400 hover:text-gray-700 mb-2 flex items-center gap-1.5 cursor-pointer transition-colors"
+              className="flex items-center gap-2 text-[11px] font-black uppercase tracking-widest text-[#dc2626] mb-3 hover:opacity-80 transition-opacity cursor-pointer"
             >
-              <ArrowLeft className="w-3.5 h-3.5 group-hover:-translate-x-0.5 transition-transform" />
-              Back to Catalogues
+              <ArrowLeft className="w-3.5 h-3.5" /> Back to Directory
             </button>
-            <h1 className="text-2xl font-extrabold text-gray-900 tracking-tight">Choose a Template</h1>
-            <p className="text-gray-500 text-sm mt-1">
-              {TEMPLATES.length} professionally designed starting points — all fully customizable.
-            </p>
+            <h1 className="text-3xl font-black text-gray-900 dark:text-white tracking-tight uppercase">Select Architecture</h1>
+            <p className="text-sm font-medium text-gray-500 dark:text-[#5a5a7a] mt-1">Choose a visual framework to manifest your digital storefront.</p>
           </div>
 
           {/* Search */}
-          <div className="relative w-72">
-            <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+          <div className="relative w-full sm:w-80">
+            <Search className="w-4.5 h-4.5 text-gray-400 dark:text-[#3a3a5a] absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none" />
             <input
               type="text"
               placeholder="Search templates..."
               value={search}
               onChange={e => setSearch(e.target.value)}
-              className="w-full pl-9 pr-4 py-2.5 border border-gray-200 bg-gray-50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#008060]/20 focus:border-[#008060] transition-all"
+              className="w-full pl-11 pr-5 py-3 text-sm font-semibold border border-gray-100 dark:border-white/[0.08] bg-gray-50 dark:bg-white/[0.02] rounded-2xl text-gray-900 dark:text-white focus:outline-none focus:ring-4 focus:ring-[#dc2626]/10 focus:border-[#dc2626]/30 transition-all shadow-sm"
             />
           </div>
         </div>
       </div>
 
       {/* ── Body ──────────────────────────────────────────────────────── */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-10 pt-8 pb-20 flex flex-col xl:flex-row gap-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-10 pt-10 pb-20 flex flex-col xl:flex-row gap-10">
 
         {/* Sidebar */}
-        <aside className="w-full xl:w-52 flex-shrink-0">
-          <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-4 xl:sticky xl:top-6">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-3 px-1">Category</p>
-            <ul className="space-y-0.5">
+        <aside className="w-full xl:w-56 flex-shrink-0">
+          <div className="bg-white dark:bg-[#0d0d0d] rounded-[32px] border border-gray-200 dark:border-white/[0.07] shadow-sm p-5 xl:sticky xl:top-6">
+            <p className="text-[10px] font-black uppercase tracking-[0.25em] text-gray-400 dark:text-[#3a3a5a] mb-5 px-1">Design Systems</p>
+            <ul className="space-y-1">
               {ALL_CATEGORIES.map(cat => {
                 const count = cat === 'All'
                   ? TEMPLATES.length
                   : TEMPLATES.filter(t => t.category === cat).length;
+                const active = activeCategory === cat;
                 return (
                   <li key={cat}>
                     <button
                       onClick={() => setActiveCategory(cat)}
-                      className={`w-full text-left px-3 py-2 rounded-xl text-sm font-medium transition-all cursor-pointer flex items-center justify-between ${
-                        activeCategory === cat
-                          ? 'bg-[#008060]/10 text-[#008060] font-semibold'
-                          : 'text-gray-600 hover:bg-gray-50'
+                      className={`w-full text-left px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all cursor-pointer flex items-center justify-between group ${
+                        active
+                          ? 'bg-[#dc2626] text-white shadow-lg shadow-red-500/20'
+                          : 'text-gray-500 dark:text-[#5a5a7a] hover:bg-gray-50 dark:hover:bg-white/[0.03] hover:text-[#dc2626]'
                       }`}
                     >
                       <span>{cat}</span>
-                      <span className={`text-xs tabular-nums ${activeCategory === cat ? 'text-[#008060]' : 'text-gray-400'}`}>
+                      <span className={`text-[10px] tabular-nums font-bold ${active ? 'text-white/80' : 'text-gray-400 dark:text-[#2a2a4a] group-hover:text-[#dc2626]'}`}>
                         {count}
                       </span>
                     </button>
@@ -1901,11 +1899,11 @@ export default function TemplateSelect() {
         {/* Template Grid */}
         <div className="flex-1">
           {filtered.length === 0 ? (
-            <div className="text-center text-gray-400 py-24 text-sm">
-              No templates match your search.
+            <div className="text-center py-24 bg-white dark:bg-[#0d0d0d] rounded-[32px] border border-dashed border-gray-200 dark:border-white/10">
+              <p className="text-[10px] font-black text-gray-400 dark:text-[#3a3a5a] uppercase tracking-widest">No architectures found</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-8">
               {filtered.map(template => {
                 const isHovered = hoveredId === template.id;
                 const isCreating = creatingId === template.id;
@@ -1915,30 +1913,34 @@ export default function TemplateSelect() {
                     key={template.id}
                     onMouseEnter={() => setHoveredId(template.id)}
                     onMouseLeave={() => setHoveredId(null)}
-                    className="bg-white rounded-2xl border border-gray-200 shadow-sm hover:shadow-2xl hover:-translate-y-1.5 transition-all duration-300 overflow-hidden flex flex-col group"
+                    className="bg-white dark:bg-[#0d0d0d] rounded-[32px] border border-gray-100 dark:border-white/[0.07] shadow-sm hover:shadow-2xl hover:shadow-black/10 dark:hover:shadow-black/40 hover:-translate-y-1.5 transition-all duration-500 overflow-hidden flex flex-col group"
                     style={{ willChange: 'transform' }}
                   >
                     {/* Preview area */}
-                    <div className="relative h-44 bg-gray-50 border-b border-gray-100 overflow-hidden">
+                    <div className="relative h-60 bg-gray-50 dark:bg-white/[0.02] border-b border-gray-50 dark:border-white/[0.05] overflow-hidden">
                       <div className="absolute inset-0">
                         <template.Preview />
                       </div>
 
                       {/* Hover overlay with preview label */}
                       <div
-                        className="absolute inset-0 transition-opacity duration-300 flex items-center justify-center"
-                        style={{ opacity: isHovered ? 1 : 0, background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(1.5px)' }}
+                        className="absolute inset-0 transition-opacity duration-500 flex items-center justify-center opacity-0 group-hover:opacity-100 bg-black/60 backdrop-blur-[2px]"
                       >
-                        <span className="bg-white text-gray-900 font-semibold text-[13px] px-5 py-2 rounded-xl shadow-xl"
-                          style={{ transform: isHovered ? 'translateY(0)' : 'translateY(8px)', transition: 'transform 0.3s ease' }}>
-                          Live Preview
-                        </span>
+                         <div className="text-center transform translate-y-4 group-hover:translate-y-0 transition-transform duration-500">
+                            <p className="text-[10px] font-black text-white/50 uppercase tracking-[0.3em] mb-2">Framework View</p>
+                            <button 
+                                onClick={() => openModal(template)}
+                                className="px-6 py-2.5 bg-white text-black rounded-xl font-black text-xs uppercase tracking-widest shadow-2xl active:scale-95 transition-all cursor-pointer"
+                            >
+                                Deploy Template
+                            </button>
+                         </div>
                       </div>
 
                       {/* Badge */}
                       {template.badge && (
-                        <div className="absolute top-3 right-3">
-                          <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full shadow-md ${template.badgeColor}`}>
+                        <div className="absolute top-4 right-4">
+                          <span className={`text-[10px] font-black px-3 py-1 rounded-lg shadow-xl uppercase tracking-widest border border-white/10 ${template.badgeColor}`}>
                             {template.badge}
                           </span>
                         </div>
@@ -1946,24 +1948,19 @@ export default function TemplateSelect() {
                     </div>
 
                     {/* Card content */}
-                    <div className="p-4 flex-1 flex flex-col">
-                      <div className="flex items-start justify-between mb-1">
-                        <h3 className="font-bold text-gray-900 text-[15px] leading-tight">{template.name}</h3>
+                    <div className="p-7 flex-1 flex flex-col">
+                      <div className="flex items-start justify-between mb-1.5">
+                        <h3 className="font-black text-gray-900 dark:text-white text-lg tracking-tight uppercase">{template.name}</h3>
                       </div>
-                      <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-2.5">{template.category}</p>
-                      <p className="text-xs text-gray-500 leading-relaxed flex-1 mb-4">{template.desc}</p>
+                      <p className="text-[10px] text-[#dc2626] font-black uppercase tracking-[0.2em] mb-4">{template.category}</p>
+                      <p className="text-sm font-medium text-gray-500 dark:text-[#5a5a7a] leading-relaxed flex-1 mb-6">{template.desc}</p>
 
                       <button
                         onClick={() => openModal(template)}
                         disabled={!!creatingId}
-                        className="w-full py-2.5 rounded-xl font-semibold text-sm transition-all duration-150 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
-                        style={{
-                          background: isHovered ? '#006e52' : '#008060',
-                          color: '#fff',
-                          boxShadow: isHovered && !creatingId ? '0 4px 14px rgba(0,128,96,0.4)' : 'none',
-                        }}
+                        className="w-full py-3.5 bg-gray-50 dark:bg-white/[0.03] hover:bg-[#dc2626] dark:hover:bg-[#dc2626] text-gray-900 dark:text-white hover:text-white dark:hover:text-white border border-gray-100 dark:border-white/[0.08] hover:border-[#dc2626] rounded-2xl font-black text-xs uppercase tracking-widest transition-all duration-300 shadow-sm disabled:opacity-50 active:scale-[0.98] cursor-pointer"
                       >
-                        Use Template
+                        {isCreating ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : 'Select Pipeline'}
                       </button>
                     </div>
                   </div>
@@ -1978,28 +1975,31 @@ export default function TemplateSelect() {
     {/* ── Create Catalogue Modal ──────────────────────────────────── */}
     {selectedTemplate && (
       <div
-        className="fixed inset-0 z-50 flex items-center justify-center p-4"
-        style={{ background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(3px)' }}
+        className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md"
         onClick={e => { if (e.target === e.currentTarget) closeModal(); }}
       >
-        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
+        <div className="bg-white dark:bg-[#0d0d0d] rounded-[32px] shadow-2xl w-full max-w-md overflow-hidden border border-gray-100 dark:border-white/[0.08]">
           {/* Modal header */}
-          <div className="px-6 pt-6 pb-4 border-b border-gray-100">
-            <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl bg-[#008060]/10 flex items-center justify-center text-lg">🗂️</div>
+          <div className="px-8 pt-8 pb-5 border-b border-gray-100 dark:border-white/[0.07] bg-gray-50/50 dark:bg-white/[0.02]">
+            <div className="flex items-center gap-4">
+              <div className="w-11 h-11 rounded-2xl bg-[#dc2626]/10 flex items-center justify-center text-xl shadow-inner">
+                <LayoutTemplate className="w-5 h-5 text-[#dc2626]" />
+              </div>
               <div>
-                <h2 className="text-base font-bold text-gray-900">New Catalogue</h2>
-                <p className="text-xs text-gray-400 mt-0.5">Using <span className="font-semibold text-gray-600">{selectedTemplate.name}</span> template</p>
+                <h2 className="text-sm font-black text-gray-900 dark:text-white uppercase tracking-wider">New Canvas Initialization</h2>
+                <p className="text-[11px] font-bold text-gray-400 dark:text-[#5a5a7a] mt-1.5 uppercase tracking-widest">
+                  Using <span className="text-[#dc2626] font-black">{selectedTemplate.name}</span> framework
+                </p>
               </div>
             </div>
           </div>
 
           {/* Modal body */}
-          <div className="px-6 py-5 space-y-5">
+          <div className="px-8 py-7 space-y-6">
             {/* Name field */}
             <div>
-              <label className="block text-xs font-semibold text-gray-700 mb-1.5">
-                Catalogue Name <span className="text-gray-400 font-normal">(optional)</span>
+              <label className="block text-[10px] font-black text-gray-400 dark:text-[#5a5a7a] uppercase tracking-widest mb-2.5">
+                Channel Designation <span className="opacity-50">(optional)</span>
               </label>
               <input
                 type="text"
@@ -2007,25 +2007,24 @@ export default function TemplateSelect() {
                 onChange={e => setCatalogName(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && handleCreate()}
                 placeholder={`New ${selectedTemplate.name} Catalog`}
-                className="w-full px-3.5 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#008060]/25 focus:border-[#008060] transition-all bg-gray-50"
+                className="w-full px-4 py-3 text-sm font-bold border border-gray-100 dark:border-white/[0.08] rounded-xl focus:outline-none focus:ring-4 focus:ring-[#dc2626]/10 focus:border-[#dc2626]/30 transition-all bg-gray-50/50 dark:bg-white/[0.03] text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-[#2a2a3a]"
                 autoFocus
               />
-              <p className="text-[11px] text-gray-400 mt-1.5">You can rename it anytime in the editor.</p>
             </div>
 
             {/* Cover image upload */}
             <div>
-              <label className="block text-xs font-semibold text-gray-700 mb-1.5">
-                Cover / Background Image <span className="text-gray-400 font-normal">(optional)</span>
+              <label className="block text-[10px] font-black text-gray-400 dark:text-[#5a5a7a] uppercase tracking-widest mb-2.5">
+                Primary Visual Asset <span className="opacity-50">(optional)</span>
               </label>
               {coverPreview ? (
-                <div className="relative rounded-xl overflow-hidden border border-gray-200 h-36">
+                <div className="relative rounded-2xl overflow-hidden border border-gray-100 dark:border-white/[0.08] h-40 shadow-xl">
                   <img src={coverPreview} alt="Cover preview" className="w-full h-full object-cover" />
                   <button
                     onClick={() => { setCoverFile(null); setCoverPreview(null); }}
-                    className="absolute top-2 right-2 w-7 h-7 bg-black/60 hover:bg-black/80 text-white rounded-full flex items-center justify-center text-sm leading-none transition-colors"
-                  >×</button>
-                  <div className="absolute bottom-2 left-2 bg-black/50 text-white text-[10px] px-2 py-0.5 rounded-md font-medium">
+                    className="absolute top-3 right-3 w-8 h-8 bg-black/60 hover:bg-black/80 text-white rounded-xl flex items-center justify-center transition-colors shadow-2xl"
+                  ><X className="w-4 h-4" /></button>
+                  <div className="absolute bottom-3 left-3 bg-black/80 backdrop-blur-md text-white text-[10px] px-3 py-1 rounded-lg font-black uppercase tracking-widest border border-white/10">
                     {coverFile.name}
                   </div>
                 </div>
@@ -2035,17 +2034,17 @@ export default function TemplateSelect() {
                   onDragLeave={() => setDragOver(false)}
                   onDrop={e => { e.preventDefault(); setDragOver(false); handleFileSelect(e.dataTransfer.files[0]); }}
                   onClick={() => document.getElementById('cover-upload-input').click()}
-                  className="relative border-2 border-dashed rounded-xl h-32 flex flex-col items-center justify-center gap-2 cursor-pointer transition-all"
+                  className="relative border-2 border-dashed rounded-2xl h-36 flex flex-col items-center justify-center gap-2 cursor-pointer transition-all group"
                   style={{
-                    borderColor: dragOver ? '#008060' : '#e5e7eb',
-                    background: dragOver ? '#f0fdf8' : '#fafafa',
+                    borderColor: dragOver ? '#dc2626' : 'rgba(156, 163, 175, 0.2)',
+                    background: dragOver ? 'rgba(220, 38, 38, 0.05)' : 'transparent',
                   }}
                 >
-                  <div className="text-2xl">🖼️</div>
-                  <p className="text-xs font-semibold text-gray-500">
-                    {dragOver ? 'Drop to upload' : 'Drag & drop or click to upload'}
+                  <Image className="w-7 h-7 text-gray-200 dark:text-[#2a2a4a] group-hover:text-[#dc2626] transition-colors" />
+                  <p className="text-[11px] font-black text-gray-400 dark:text-[#5a5a7a] uppercase tracking-widest">
+                    {dragOver ? 'Release to upload' : 'Drag & drop visual asset'}
                   </p>
-                  <p className="text-[10px] text-gray-400">JPG, PNG, WEBP · Max 5MB</p>
+                  <p className="text-[9px] font-bold text-gray-300 dark:text-[#2a2a3a]">WEBP, JPG, PNG · MAX 5MB</p>
                 </div>
               )}
               <input
@@ -2059,27 +2058,26 @@ export default function TemplateSelect() {
           </div>
 
           {/* Modal footer */}
-          <div className="px-6 pb-6 flex gap-3">
+          <div className="px-8 pb-8 flex gap-3">
             <button
               onClick={closeModal}
               disabled={!!creatingId}
-              className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-gray-600 bg-gray-100 hover:bg-gray-200 transition-colors disabled:opacity-50"
+              className="flex-1 py-3.5 rounded-2xl text-[11px] font-black uppercase tracking-widest text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors disabled:opacity-50"
             >
               Cancel
             </button>
             <button
               onClick={handleCreate}
               disabled={!!creatingId}
-              className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white transition-all disabled:opacity-60 flex items-center justify-center gap-2"
-              style={{ background: '#008060', boxShadow: creatingId ? 'none' : '0 4px 14px rgba(0,128,96,0.35)' }}
+              className="flex-1 py-3.5 rounded-2xl text-[11px] font-black uppercase tracking-widest text-white bg-[#dc2626] shadow-lg shadow-red-500/20 active:scale-95 transition-all disabled:opacity-60 flex items-center justify-center gap-2"
             >
               {creatingId ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" />
-                  Creating...
+                  Synthesizing...
                 </>
               ) : (
-                <>🚀 Create Catalogue</>
+                <>🚀 Initialize Canvas</>
               )}
             </button>
           </div>

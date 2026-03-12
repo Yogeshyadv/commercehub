@@ -135,7 +135,7 @@ exports.getSalesAnalytics = async (req, res) => {
     });
   } catch (error) {
     console.error('SalesAnalytics error:', error);
-    return res.status(500).json({ success: false, message: 'Server error' });
+    return res.status(500).json({ success: false, message: error.message, stack: error.stack });
   }
 };
 
@@ -156,6 +156,6 @@ exports.getCustomerAnalytics = async (req, res) => {
     res.status(200).json({ success: true, data: { totalCustomers, newThisMonth, customerGroups, topCustomers } });
   } catch (error) {
     console.error('CustomerAnalytics error:', error);
-    return res.status(500).json({ success: false, message: 'Server error' });
+    return res.status(500).json({ success: false, message: error.message, stack: error.stack });
   }
 };

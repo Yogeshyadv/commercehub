@@ -60,7 +60,13 @@ export default function Checkout() {
   const totalDiscount = totalOriginalPrice - totalSellingPrice;
   const packagingFee = items.length * 59;
   const deliveryCharges = totalSellingPrice > 500 ? 0 : 40;
-  const finalAmount = totalSellingPrice + packagingFee + deliveryCharges;
+
+  // Loyalty points
+  const [redeemLoyalty, setRedeemLoyalty] = useState(false);
+  const availablePoints = user?.loyaltyPoints || 0;
+  const loyaltyDiscount = redeemLoyalty ? Math.min(availablePoints, Math.floor(totalSellingPrice * 0.1)) : 0;
+
+  const finalAmount = totalSellingPrice + packagingFee + deliveryCharges - loyaltyDiscount;
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -104,9 +110,10 @@ export default function Checkout() {
           zipCode: formData.pincode,
           country: 'India',
         },
-        paymentMethod: 'cod', // Defaulting to COD
-        totalAmount: finalAmount, // Passing calculated amount
+        paymentMethod: 'cod',
+        totalAmount: finalAmount,
         customerNotes: formData.notes,
+        loyaltyPointsRedeemed: loyaltyDiscount,
       };
 
       const response = await orderService.createCustomerOrder(orderData);
@@ -298,7 +305,7 @@ export default function Checkout() {
                 <div className="bg-white rounded-sm shadow-sm border border-gray-100">
                     <div className={`p-4 ${activeStep === 2 ? 'bg-[#DC2626] text-white' : 'bg-white text-gray-500'}`}>
                         <div className="flex items-center gap-3">
-                            <span className={`w-7 h-7 ${activeStep === 2 ? 'bg-white text-[#128C7E]' : 'bg-gray-100 text-gray-500'} text-xs font-bold flex items-center justify-center rounded-[2px]`}>2</span>
+                            <span className={`w-7 h-7 ${activeStep === 2 ? 'bg-white text-red-600' : 'bg-gray-100 text-gray-500'} text-xs font-bold flex items-center justify-center rounded-[2px]`}>2</span>
                             <h3 className={`font-bold uppercase text-sm ${activeStep === 2 ? 'text-white' : 'text-gray-500'}`}>Delivery Address</h3>
                             {activeStep > 2 && <CheckCircle className="w-5 h-5 text-[#128C7E] ml-auto" />}
                         </div>
@@ -438,7 +445,7 @@ export default function Checkout() {
                 <div className="bg-white rounded-sm shadow-sm border border-gray-100">
                     <div className={`p-4 ${activeStep === 3 ? 'bg-[#DC2626] text-white' : 'bg-white'}`}>
                         <div className="flex items-center gap-3">
-                            <span className={`w-7 h-7 ${activeStep === 3 ? 'bg-white text-[#128C7E]' : 'bg-gray-100 text-gray-500'} text-xs font-bold flex items-center justify-center rounded-[2px]`}>3</span>
+                            <span className={`w-7 h-7 ${activeStep === 3 ? 'bg-white text-red-600' : 'bg-gray-100 text-gray-500'} text-xs font-bold flex items-center justify-center rounded-[2px]`}>3</span>
                             <h3 className={`font-bold uppercase text-sm ${activeStep === 3 ? 'text-white' : 'text-gray-500'}`}>Order Summary</h3>
                             {activeStep > 3 && <CheckCircle className="w-5 h-5 text-[#128C7E] ml-auto" />}
                         </div>
@@ -477,7 +484,7 @@ export default function Checkout() {
                  <div className="bg-white rounded-sm shadow-sm border border-gray-100">
                     <div className={`p-4 ${activeStep === 4 ? 'bg-[#DC2626] text-white' : 'bg-white'}`}>
                         <div className="flex items-center gap-3">
-                            <span className={`w-7 h-7 ${activeStep === 4 ? 'bg-white text-[#128C7E]' : 'bg-gray-100 text-gray-500'} text-xs font-bold flex items-center justify-center rounded-[2px]`}>4</span>
+                            <span className={`w-7 h-7 ${activeStep === 4 ? 'bg-white text-red-600' : 'bg-gray-100 text-gray-500'} text-xs font-bold flex items-center justify-center rounded-[2px]`}>4</span>
                             <h3 className={`font-bold uppercase text-sm ${activeStep === 4 ? 'text-white' : 'text-gray-500'}`}>Payment Options</h3>
                         </div>
                     </div>
@@ -543,6 +550,30 @@ export default function Checkout() {
                             <span>Secured Packaging Fee</span>
                             <span>{formatCurrency(packagingFee)}</span>
                         </div>
+
+                        {/* Loyalty Points */}
+                        {availablePoints > 0 && (
+                          <div className="flex items-center justify-between p-3 border border-amber-200 bg-amber-50 rounded-md">
+                            <div className="flex items-center gap-2">
+                              <Star className="w-4 h-4 text-amber-500" />
+                              <div>
+                                <p className="text-sm font-semibold text-gray-800">{availablePoints} loyalty pts</p>
+                                <p className="text-xs text-gray-500">Worth {formatCurrency(availablePoints)}</p>
+                              </div>
+                            </div>
+                            <label className="flex items-center gap-2 cursor-pointer">
+                              <input type="checkbox" checked={redeemLoyalty} onChange={e => setRedeemLoyalty(e.target.checked)}
+                                className="w-4 h-4 text-amber-500 rounded" />
+                              <span className="text-xs font-semibold text-amber-700">Redeem</span>
+                            </label>
+                          </div>
+                        )}
+                        {loyaltyDiscount > 0 && (
+                          <div className="flex justify-between text-base text-green-700 font-medium">
+                            <span>Loyalty discount</span>
+                            <span>- {formatCurrency(loyaltyDiscount)}</span>
+                          </div>
+                        )}
                         
                         <div className="border-t border-gray-200 border-dashed my-4 pt-4">
                              <div className="flex justify-between text-lg font-bold text-gray-900">

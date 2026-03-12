@@ -1,7 +1,8 @@
-﻿import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Search, X, Users, MoreHorizontal, Plus,
-  Eye, Edit, Trash2, Mail, Phone, ShoppingBag
+  Eye, Edit, Trash2, Phone, ShoppingBag
 } from 'lucide-react';
 import { customerService } from '../services/customerService';
 import Loader from '../components/common/Loader';
@@ -11,11 +12,12 @@ import ConfirmDialog from '../components/common/ConfirmDialog';
 import { useDebounce } from '../hooks/useDebounce';
 import { formatCurrency, formatDate } from '../utils/formatters';
 import toast from 'react-hot-toast';
+import { motion, AnimatePresence } from 'framer-motion';
 
-/* ── Polaris tokens ──────────────────────────────────────────── */
-const CARD = 'bg-white dark:bg-[#1a1a24] rounded-xl shadow-[0_0_0_1px_rgba(26,26,26,0.13),0_1px_0_0_rgba(26,26,26,0.07)] dark:shadow-[0_0_0_1px_rgba(255,255,255,0.10),0_1px_0_0_rgba(0,0,0,0.32)]';
-const DIV  = 'border-[#e1e3e5] dark:border-white/[0.08]';
-const SUB  = 'text-[#6d7175] dark:text-[#9898b8]';
+/* -- Design tokens -------------------------------------------- */
+const CARD = 'bg-white dark:bg-[#0d0d0d] rounded-2xl shadow-sm border border-gray-100 dark:border-white/[0.07]';
+const DIV  = 'border-gray-100 dark:border-white/[0.07]';
+const SUB  = 'text-gray-400 dark:text-[#5a5a7a]';
 
 const GROUP_CONFIG = {
   regular:   { label: 'Regular',   color: 'gray'  },
@@ -25,13 +27,13 @@ const GROUP_CONFIG = {
 };
 
 const STATUS_TABS = [
-  { id: '', label: 'All' },
-  { id: 'vip',       label: 'VIP'       },
-  { id: 'wholesale', label: 'Wholesale' },
-  { id: 'new',       label: 'New'       },
+  { id: '',          label: 'All Customers' },
+  { id: 'vip',       label: 'VIP Members'    },
+  { id: 'wholesale', label: 'Wholesale B2B'  },
+  { id: 'new',       label: 'New Leads'     },
 ];
 
-/* ── Row action menu ─────────────────────────────────────────── */
+/* -- Row action menu ------------------------------------------- */
 function RowMenu({ onView, onEdit, onDelete }) {
   const [open, setOpen] = useState(false);
   const ref = useRef();
@@ -44,23 +46,24 @@ function RowMenu({ onView, onEdit, onDelete }) {
     <div ref={ref} className="relative flex justify-end">
       <button
         onClick={e => { e.stopPropagation(); setOpen(p => !p); }}
-        className="p-1.5 rounded-lg text-[#6d7175] hover:bg-[#f6f6f7] dark:hover:bg-white/[0.06] hover:text-[#1a1a1a] dark:hover:text-white transition-colors"
+        className="p-1.5 rounded-lg text-gray-400 hover:text-gray-900 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/5 transition-colors"
       >
-        <MoreHorizontal className="w-4 h-4" />
+        <MoreHorizontal className="w-5 h-5" />
       </button>
       {open && (
-        <div className={`absolute right-0 top-8 z-20 w-40 ${CARD} py-1 animate-scale-in`}>
+        <div className={`absolute right-0 top-full mt-1 z-30 w-40 ${CARD} shadow-xl py-1.5 overflow-hidden animate-in fade-in slide-in-from-bottom-2 duration-150`}>
           {[
-            { icon: Eye,   label: 'View',   fn: onView,   cls: '' },
-            { icon: Edit,  label: 'Edit',   fn: onEdit,   cls: '' },
-            { icon: Trash2,label: 'Delete', fn: onDelete, cls: 'text-red-600' },
+            { icon: Eye,   label: 'View Profile', fn: onView,   cls: '' },
+            { icon: Edit,  label: 'Edit Details', fn: onEdit,   cls: '' },
+            { icon: Trash2,label: 'Delete Record',fn: onDelete, cls: 'text-red-600 dark:text-red-400 font-bold' },
           ].map(({ icon: Icon, label, fn, cls }) => (
             <button
               key={label}
-              onClick={e => { e.stopPropagation(); setOpen(false); fn?.(); }}
-              className={`flex items-center gap-2 w-full px-3 py-2 text-sm hover:bg-[#f6f6f7] dark:hover:bg-white/[0.05] transition-colors ${cls || 'text-[#303030] dark:text-[#d4d4d4]'}`}
+              onClick={e => { e.stopPropagation(); setOpen(false); fn(e); }}
+              className={`w-full flex items-center gap-2 px-3 py-2 text-left text-sm font-medium hover:bg-gray-50 dark:hover:bg-zinc-800 transition-colors ${cls}`}
             >
-              <Icon className="w-4 h-4" />{label}
+              <Icon className="w-4 h-4" />
+              {label}
             </button>
           ))}
         </div>
@@ -69,7 +72,7 @@ function RowMenu({ onView, onEdit, onDelete }) {
   );
 }
 
-/* ── Customer modal ──────────────────────────────────────────── */
+/* -- Customer modal -------------------------------------------- */
 function CustomerModal({ customer, mode, onClose, onSaved }) {
   const isEdit = mode === 'edit' || mode === 'view';
   const readOnly = mode === 'view';
@@ -89,81 +92,80 @@ function CustomerModal({ customer, mode, onClose, onSaved }) {
     try {
       if (isEdit && customer?._id) {
         await customerService.updateCustomer(customer._id, form);
-        toast.success('Customer updated');
+        toast.success('Customer profile synchronized');
       } else {
         await customerService.createCustomer(form);
-        toast.success('Customer created');
+        toast.success('New customer profile created');
       }
       onSaved?.();
       onClose();
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to save');
+      toast.error(err.response?.data?.message || 'Synchronization failed');
     } finally { setSaving(false); }
   };
 
   const fields = [
-    { key: 'firstName', label: 'First name',   type: 'text'  },
-    { key: 'lastName',  label: 'Last name',    type: 'text'  },
-    { key: 'email',     label: 'Email',        type: 'email' },
-    { key: 'phone',     label: 'Phone',        type: 'tel'   },
+    { key: 'firstName', label: 'First Name',   type: 'text'  },
+    { key: 'lastName',  label: 'Last Name',    type: 'text'  },
+    { key: 'email',     label: 'Email Address', type: 'email' },
+    { key: 'phone',     label: 'Phone Contact', type: 'tel'   },
   ];
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="fixed inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
-      <div className={`relative w-full max-w-md ${CARD} p-6 z-10 max-h-[90vh] overflow-y-auto`}>
-        <div className="flex items-center justify-between mb-5">
-          <p className="text-sm font-bold text-[#1a1a1a] dark:text-[#e3e3e3]">
-            {mode === 'view' ? 'Customer details' : isEdit ? 'Edit customer' : 'Add customer'}
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+      <div className={`relative w-full max-w-md ${CARD} shadow-2xl p-7 z-10 max-h-[90vh] overflow-y-auto custom-scrollbar`}>
+        <div className="flex items-center justify-between mb-6">
+          <p className="text-sm font-black text-gray-900 dark:text-gray-300 uppercase tracking-wider">
+            {mode === 'view' ? 'Client Profile' : isEdit ? 'Edit Relationship' : 'New Customer Intake'}
           </p>
-          <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-[#f6f6f7] dark:hover:bg-white/[0.06] transition-colors">
-            <X className="w-4 h-4 text-[#6d7175]" />
+          <button onClick={onClose} className="p-1.5 rounded-lg text-gray-400 hover:text-gray-900 dark:hover:text-gray-300 dark:hover:bg-white/5 transition-colors">
+            <X className="w-5 h-5" />
           </button>
         </div>
-        <div className="space-y-3">
-          <div className="grid grid-cols-2 gap-3">
+        <div className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
             {fields.slice(0, 2).map(f => (
               <div key={f.key}>
-                <label className="block text-xs font-semibold text-[#6d7175] dark:text-[#9898b8] mb-1">{f.label}</label>
+                <label className="block text-[11px] font-black uppercase tracking-widest text-gray-400 dark:text-[#5a5a7a] mb-1.5">{f.label}</label>
                 <input type={f.type} value={form[f.key]} onChange={up(f.key)} disabled={readOnly}
-                  className={`w-full px-3 py-2 text-sm border ${DIV} bg-white dark:bg-[#23233a] text-[#1a1a1a] dark:text-[#e3e3e3] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#DC2626]/20 transition-all disabled:opacity-60`} />
+                  className={`w-full px-4 py-2.5 text-sm font-medium border ${DIV} bg-white dark:bg-white/[0.03] text-gray-900 dark:text-white rounded-xl focus:outline-none focus:ring-4 focus:ring-[#DC2626]/10 transition-all disabled:opacity-50`} />
               </div>
             ))}
           </div>
           {fields.slice(2).map(f => (
             <div key={f.key}>
-              <label className="block text-xs font-semibold text-[#6d7175] dark:text-[#9898b8] mb-1">{f.label}</label>
+              <label className="block text-[11px] font-black uppercase tracking-widest text-gray-400 dark:text-[#5a5a7a] mb-1.5">{f.label}</label>
               <input type={f.type} value={form[f.key]} onChange={up(f.key)} disabled={readOnly}
-                className={`w-full px-3 py-2 text-sm border ${DIV} bg-white dark:bg-[#23233a] text-[#1a1a1a] dark:text-[#e3e3e3] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#DC2626]/20 transition-all disabled:opacity-60`} />
+                className={`w-full px-4 py-2.5 text-sm font-medium border ${DIV} bg-white dark:bg-white/[0.03] text-gray-900 dark:text-white rounded-xl focus:outline-none focus:ring-4 focus:ring-[#DC2626]/10 transition-all disabled:opacity-50`} />
             </div>
           ))}
           <div>
-            <label className="block text-xs font-semibold text-[#6d7175] dark:text-[#9898b8] mb-1">Customer group</label>
+            <label className="block text-[11px] font-black uppercase tracking-widest text-gray-400 dark:text-[#5a5a7a] mb-1.5">Segment Group</label>
             <select value={form.group} onChange={up('group')} disabled={readOnly}
-              className={`w-full px-3 py-2 text-sm border ${DIV} bg-white dark:bg-[#23233a] text-[#1a1a1a] dark:text-[#e3e3e3] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#DC2626]/20 transition-all disabled:opacity-60`}>
-              {Object.entries(GROUP_CONFIG).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
+              className={`w-full px-4 py-2.5 text-sm font-bold border ${DIV} bg-white dark:bg-white/[0.05] text-gray-900 dark:text-white rounded-xl focus:outline-none focus:ring-4 focus:ring-[#DC2626]/10 transition-all cursor-pointer`}>
+              {Object.entries(GROUP_CONFIG).map(([k, v]) => <option key={k} value={k} className="bg-white dark:bg-[#1a1a1a]">{v.label}</option>)}
             </select>
           </div>
 
           {mode === 'view' && customer && (
-            <div className={`grid grid-cols-2 gap-3 pt-2 mt-2 border-t ${DIV}`}>
+            <div className={`grid grid-cols-2 gap-4 pt-4 mt-4 border-t ${DIV}`}>
               {[
-                { icon: ShoppingBag, label: 'Orders',        val: customer.totalOrders ?? 0      },
-                { icon: null,        label: 'Total spent',   val: formatCurrency(customer.totalSpent || 0) },
+                { icon: ShoppingBag, label: 'Order Volume',    val: customer.totalOrders ?? 0      },
+                { icon: null,        label: 'Lifetime Value',  val: formatCurrency(customer.totalSpent || 0) },
               ].map(({ icon: Ic, label, val }) => (
-                <div key={label} className="bg-[#f6f6f7] dark:bg-white/[0.04] rounded-lg p-3">
-                  <p className={`text-xs ${SUB} mb-0.5`}>{label}</p>
-                  <p className="text-sm font-bold text-[#1a1a1a] dark:text-[#e3e3e3]">{val}</p>
+                <div key={label} className="bg-gray-50/50 dark:bg-white/[0.03] rounded-xl p-4 border border-gray-100 dark:border-white/[0.05]">
+                  <p className={`text-[10px] font-black uppercase tracking-widest ${SUB} mb-1`}>{label}</p>
+                  <p className="text-sm font-black text-gray-900 dark:text-white">{val}</p>
                 </div>
               ))}
             </div>
           )}
         </div>
         {!readOnly && (
-          <div className="flex gap-2.5 mt-5">
-            <button onClick={onClose} className={`flex-1 py-2 text-sm font-semibold text-[#1a1a1a] dark:text-[#d4d4d4] border ${DIV} rounded-lg hover:bg-[#f6f6f7] dark:hover:bg-white/[0.05] transition-colors`}>Cancel</button>
-            <button onClick={handleSave} disabled={saving} className="flex-1 py-2 text-sm font-semibold text-white bg-[#DC2626] rounded-lg hover:bg-[#b91c1c] disabled:opacity-50 transition-colors shadow-[0_1px_0_rgba(0,0,0,0.2)]">
-              {saving ? 'Saving…' : isEdit ? 'Save changes' : 'Add customer'}
+          <div className="flex gap-3 mt-7">
+            <button onClick={onClose} className="flex-1 py-2.5 text-sm font-bold text-gray-500 dark:text-gray-400 border border-gray-100 dark:border-white/10 rounded-xl hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">Cancel</button>
+            <button onClick={handleSave} disabled={saving} className="flex-1 py-2.5 text-sm font-black text-white bg-[#DC2626] rounded-xl hover:bg-[#b91c1c] disabled:opacity-50 transition-all shadow-md active:scale-95">
+              {saving ? 'Processing...' : isEdit ? 'Update Client' : 'Add to Directory'}
             </button>
           </div>
         )}
@@ -172,17 +174,21 @@ function CustomerModal({ customer, mode, onClose, onSaved }) {
   );
 }
 
-/* ═══════════════════════════════════════════════════════════════
+/* ---------------------------------------------------------------
    PAGE
-═══════════════════════════════════════════════════════════════ */
+--------------------------------------------------------------- */
 export default function Customers() {
+  const navigate = useNavigate();
   const [customers,    setCustomers]    = useState([]);
   const [loading,      setLoading]      = useState(true);
   const [pg,           setPg]           = useState({ page: 1, limit: 20, total: 0, pages: 0 });
   const [search,       setSearch]       = useState('');
   const [groupFilter,  setGroupFilter]  = useState('');
-  const [modal,        setModal]        = useState(null); // { mode, customer }
+  const [modal,        setModal]        = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
+  const [selected,     setSelected]     = useState(new Set());
+  const [bulkGroup,    setBulkGroup]     = useState('vip');
+  const [bulkLoading,  setBulkLoading]   = useState(false);
 
   const ds = useDebounce(search, 400);
 
@@ -195,51 +201,75 @@ export default function Customers() {
       const r = await customerService.getCustomers(params);
       setCustomers(r.data || []);
       setPg(r.pagination || { page: 1, limit: 20, total: 0, pages: 0 });
-    } catch { toast.error('Failed to load customers'); }
+    } catch { toast.error('Communication error with customer database'); }
     finally { setLoading(false); }
   }, [groupFilter, ds]);
 
   useEffect(() => { fetchCustomers(); }, [fetchCustomers]);
 
+  const toggleSelect = id => setSelected(prev => {
+    const next = new Set(prev);
+    next.has(id) ? next.delete(id) : next.add(id);
+    return next;
+  });
+
+  const allSelected = customers.length > 0 && customers.every(c => selected.has(c._id));
+  const toggleAll = () => setSelected(allSelected ? new Set() : new Set(customers.map(c => c._id)));
+
+  const handleBulkGroup = async () => {
+    if (selected.size === 0) return;
+    setBulkLoading(true);
+    try {
+      await customerService.bulkUpdateGroup([...selected], bulkGroup);
+      toast.success(`${selected.size} accounts relocated to "${GROUP_CONFIG[bulkGroup]?.label}"`);
+      setSelected(new Set());
+      fetchCustomers(pg.page);
+    } catch { toast.error('Bulk reassignment failed'); }
+    finally { setBulkLoading(false); }
+  };
+
   const handleDelete = async () => {
     if (!deleteTarget) return;
     try {
       await customerService.deleteCustomer(deleteTarget._id);
-      toast.success('Customer deleted');
+      toast.success('Customer record expunged');
       fetchCustomers(pg.page);
-    } catch { toast.error('Failed to delete customer'); }
+    } catch { toast.error('Deletion protocol failed'); }
     finally { setDeleteTarget(null); }
   };
 
   const initials = c => `${c.firstName?.[0] || ''}${c.lastName?.[0] || ''}`.toUpperCase() || 'U';
-  const AVATAR_COLORS = ['from-[#DC2626] to-[#9b1c1c]','from-indigo-500 to-indigo-700','from-emerald-500 to-emerald-700','from-amber-500 to-amber-700','from-violet-500 to-violet-700'];
+  const AVATAR_COLORS = ['from-[#DC2626] to-[#b91c1c]','from-indigo-500 to-indigo-700','from-emerald-500 to-emerald-700','from-amber-500 to-amber-700','from-violet-500 to-violet-700'];
   const avatarColor = c => AVATAR_COLORS[(c.firstName?.charCodeAt(0) || 0) % AVATAR_COLORS.length];
 
   return (
-    <div className="max-w-[1200px] mx-auto space-y-5 pb-12">
+    <div className="max-w-[1200px] mx-auto space-y-6 pb-12 animate-in fade-in duration-500">
       {/* Header */}
-      <div className="flex items-center justify-between pt-1">
-        <h1 className="text-[1.375rem] font-bold text-[#1a1a1a] dark:text-[#e3e3e3]">Customers</h1>
+      <div className="flex items-end justify-between pt-4">
+        <div>
+          <p className="text-[13px] font-bold uppercase tracking-widest text-[#dc2626] mb-1">CRM</p>
+          <h1 className="text-3xl font-black text-gray-900 dark:text-white tracking-tight">Customer Intelligence</h1>
+        </div>
         <button
           onClick={() => setModal({ mode: 'add', customer: null })}
-          className="flex items-center gap-2 px-3.5 py-2 text-sm font-semibold text-white bg-[#DC2626] rounded-lg hover:bg-[#b91c1c] transition-colors shadow-[0_1px_0_rgba(0,0,0,0.2)]"
+          className="flex items-center gap-2 px-5 py-2.5 text-sm font-black text-white bg-[#DC2626] rounded-xl hover:bg-[#b91c1c] transition-all shadow-md hover:scale-[1.02] active:scale-[0.98]"
         >
-          <Plus className="w-4 h-4" /> Add customer
+          <Plus className="w-4 h-4" /> New Customer
         </button>
       </div>
 
       {/* Main card */}
-      <div className={CARD}>
+      <div className={`${CARD} overflow-hidden`}>
         {/* Group tabs */}
-        <div className={`flex gap-0 border-b ${DIV} overflow-x-auto scrollbar-hide`}>
+        <div className={`flex gap-2 px-2 border-b ${DIV} bg-gray-50/30 dark:bg-white/[0.01] overflow-x-auto scrollbar-hide`}>
           {STATUS_TABS.map(tab => (
             <button
               key={tab.id}
               onClick={() => setGroupFilter(tab.id)}
-              className={`px-4 py-3.5 text-sm font-medium whitespace-nowrap border-b-2 -mb-px transition-colors ${
+              className={`px-4 py-3.5 text-sm font-bold whitespace-nowrap border-b-2 transition-all ${
                 groupFilter === tab.id
                   ? 'border-[#DC2626] text-[#DC2626]'
-                  : `border-transparent ${SUB} hover:text-[#1a1a1a] dark:hover:text-[#e3e3e3]`
+                  : `border-transparent text-gray-400 dark:text-[#5a5a7a] hover:text-gray-900 dark:hover:text-[#a0a0c0]`
               }`}
             >
               {tab.label}
@@ -247,86 +277,137 @@ export default function Customers() {
           ))}
         </div>
 
+        {/* Bulk action bar */}
+        {selected.size > 0 && (
+          <div className={`flex flex-col sm:flex-row sm:items-center gap-4 px-5 py-3.5 bg-[#DC2626]/[0.02] dark:bg-[#DC2626]/[0.06] border-b ${DIV} animate-in slide-in-from-top-2 duration-200`}>
+            <span className="text-sm font-black text-[#dc2626] uppercase tracking-wider">{selected.size} Accounts Selected</span>
+            <div className="flex items-center gap-3 ml-auto">
+              <label className="text-[11px] font-black uppercase tracking-widest text-gray-400 dark:text-[#5a5a7a] flex items-center gap-2">
+                <Users className="w-3.5 h-3.5" /> Move to group:
+              </label>
+              <select
+                value={bulkGroup}
+                onChange={e => setBulkGroup(e.target.value)}
+                className={`text-xs font-bold border ${DIV} bg-white dark:bg-white/5 text-gray-900 dark:text-white rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#DC2626]/20 transition-all cursor-pointer`}
+              >
+                {Object.entries(GROUP_CONFIG).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
+              </select>
+              <button
+                onClick={handleBulkGroup}
+                disabled={bulkLoading}
+                className="px-4 py-1.5 text-xs font-black text-white bg-[#dc2626] rounded-lg disabled:opacity-50 transition-all shadow-sm active:scale-95"
+              >
+                {bulkLoading ? 'Updating...' : 'Confirm'}
+              </button>
+              <div className="w-px h-6 bg-gray-200 dark:bg-white/10 mx-1" />
+              <button onClick={() => setSelected(new Set())} className="text-xs font-bold text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">Dismiss</button>
+            </div>
+          </div>
+        )}
+
         {/* Search */}
-        <div className={`flex items-center gap-3 px-4 py-3 border-b ${DIV}`}>
+        <div className={`flex items-center gap-4 px-5 py-4 border-b ${DIV}`}>
           <div className="relative flex-1 max-w-sm">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#6d7175]" />
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-[#4a4a6e]" />
             <input
               value={search} onChange={e => setSearch(e.target.value)}
-              placeholder="Search customers"
-              className={`w-full pl-9 pr-9 py-2 text-sm rounded-lg border ${DIV} bg-white dark:bg-[#23233a] text-[#1a1a1a] dark:text-[#e3e3e3] placeholder-[#6d7175] focus:outline-none focus:ring-2 focus:ring-[#DC2626]/20 transition-all`}
+              placeholder="Filter by name, ID or email..."
+              className="w-full pl-10 pr-10 py-2.5 text-sm font-medium rounded-xl border border-gray-100 dark:border-white/[0.08] bg-gray-50/50 dark:bg-white/[0.03] text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-[#4a4a6e] focus:outline-none focus:ring-4 focus:ring-[#DC2626]/10 transition-all"
             />
-            {search && <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#6d7175]"><X className="w-3.5 h-3.5" /></button>}
+            {search && <button onClick={() => setSearch('')} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-900 dark:hover:text-white"><X className="w-4 h-4" /></button>}
           </div>
-          <span className="ml-auto text-xs text-[#6d7175] dark:text-[#9898b8] whitespace-nowrap">{pg.total} customer{pg.total !== 1 ? 's' : ''}</span>
+          <span className="ml-auto text-xs font-bold text-gray-400 dark:text-[#5a5a7a] uppercase tracking-wider">{pg.total} Total Profiles</span>
         </div>
 
         {/* Table */}
         {loading ? (
-          <div className="py-20 flex justify-center"><Loader text="Loading customers..." /></div>
+          <div className="py-24 flex justify-center"><Loader text="Aggregating records..." /></div>
         ) : customers.length === 0 ? (
-          <div className="py-20 flex flex-col items-center gap-3">
-            <div className="w-14 h-14 bg-[#f6f6f7] dark:bg-white/[0.05] rounded-full flex items-center justify-center">
-              <Users className="w-7 h-7 text-[#c9cccf] dark:text-[#4a4a6a]" />
+          <div className="py-24 flex flex-col items-center justify-center gap-5 text-center px-6">
+            <div className="w-20 h-20 bg-gray-50 dark:bg-white/[0.04] rounded-full flex items-center justify-center">
+              <Users className="w-10 h-10 text-gray-300 dark:text-[#3a3a5a]" />
             </div>
-            <p className="text-sm font-semibold text-[#1a1a1a] dark:text-[#e3e3e3]">No customers found</p>
-            <p className={`text-xs ${SUB}`}>{search || groupFilter ? 'Try changing your filters.' : 'Customers will appear here after their first order.'}</p>
+            <div>
+              <p className="text-lg font-bold text-gray-900 dark:text-white">No matches found</p>
+              <p className={`text-sm ${SUB} mt-1 max-w-sm`}>{search || groupFilter ? 'No accounts match the specified intelligence parameters.' : 'Your directory is empty. Client profiles will populate automatically after order fulfillment.'}</p>
+            </div>
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[640px]">
+            <table className="w-full min-w-[760px]">
               <thead>
-                <tr className={`border-b ${DIV} bg-[#fafafa] dark:bg-white/[0.02]`}>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-[#6d7175] dark:text-[#9898b8] uppercase tracking-wider">Customer</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-[#6d7175] dark:text-[#9898b8] uppercase tracking-wider hidden sm:table-cell">Contact</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-[#6d7175] dark:text-[#9898b8] uppercase tracking-wider">Group</th>
-                  <th className="px-4 py-3 text-center text-xs font-semibold text-[#6d7175] dark:text-[#9898b8] uppercase tracking-wider hidden md:table-cell">Orders</th>
-                  <th className="px-4 py-3 text-right text-xs font-semibold text-[#6d7175] dark:text-[#9898b8] uppercase tracking-wider hidden lg:table-cell">Spent</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-[#6d7175] dark:text-[#9898b8] uppercase tracking-wider hidden xl:table-cell">Joined</th>
-                  <th className="w-12" />
+                <tr className={`border-b ${DIV} bg-gray-50/50 dark:bg-white/[0.03]`}>
+                  <th className="px-5 py-4 w-12 text-center">
+                    <input type="checkbox" checked={allSelected} onChange={toggleAll}
+                      className="w-4.5 h-4.5 rounded-lg border-gray-200 dark:border-white/10 text-[#dc2626] focus:ring-[#dc2626]/20 cursor-pointer transition-all" />
+                  </th>
+                  <th className="px-4 py-4 text-left text-[11px] font-black uppercase tracking-widest text-gray-400 dark:text-[#5a5a7a]">Full Identity</th>
+                  <th className="px-4 py-4 text-left text-[11px] font-black uppercase tracking-widest text-gray-400 dark:text-[#5a5a7a] hidden sm:table-cell">Contact</th>
+                  <th className="px-4 py-4 text-left text-[11px] font-black uppercase tracking-widest text-gray-400 dark:text-[#5a5a7a]">Classification</th>
+                  <th className="px-4 py-4 text-center text-[11px] font-black uppercase tracking-widest text-gray-400 dark:text-[#5a5a7a] hidden md:table-cell">LVM</th>
+                  <th className="px-4 py-4 text-right text-[11px] font-black uppercase tracking-widest text-gray-400 dark:text-[#5a5a7a] hidden lg:table-cell">LTV Value</th>
+                  <th className="px-4 py-4 text-left text-[11px] font-black uppercase tracking-widest text-gray-400 dark:text-[#5a5a7a] hidden xl:table-cell">Acquired</th>
+                  <th className="w-12 pr-5" />
                 </tr>
               </thead>
               <tbody className={`divide-y ${DIV}`}>
-                {customers.map(cust => {
-                  const gc = GROUP_CONFIG[cust.group] || GROUP_CONFIG.regular;
+                {customers.map((cust, idx) => {
+                  const isSelected = selected.has(cust._id);
+                  const grp = GROUP_CONFIG[cust.group] || GROUP_CONFIG.regular;
+                  
+                  const handleRowClick = () => {
+                    console.log('Clicked customer:', cust._id);
+                    navigate(`/dashboard/customers/${cust._id}`);
+                  };
+                  
                   return (
-                    <tr key={cust._id} className="group hover:bg-[#f6f6f7] dark:hover:bg-white/[0.02] transition-colors">
-                      <td className="px-4 py-3.5">
-                        <div className="flex items-center gap-3">
-                          <div className={`w-8 h-8 bg-gradient-to-br ${avatarColor(cust)} rounded-lg flex items-center justify-center text-white text-xs font-black shrink-0`}>
+                    <motion.tr 
+                      key={cust._id} 
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      onClick={handleRowClick}
+                      className={`group transition-all duration-150 cursor-pointer ${isSelected ? 'bg-[#dc2626]/[0.03] dark:bg-[#dc2626]/[0.05]' : 'hover:bg-gray-50/50 dark:hover:bg-white/[0.01]'}`}
+                    >
+                      <td className="px-5 py-4 text-center">
+                        <input type="checkbox" checked={selected.has(cust._id)} onChange={(e) => { e.stopPropagation(); toggleSelect(cust._id); }}
+                          className="w-4.5 h-4.5 rounded-lg border-gray-200 dark:border-white/10 text-[#dc2626] focus:ring-[#dc2626]/20 cursor-pointer transition-all" />
+                      </td>
+                      <td className="px-4 py-4">
+                        <div className="flex items-center gap-3.5">
+                          <div className={`w-10 h-10 bg-gradient-to-br ${avatarColor(cust)} rounded-xl flex items-center justify-center text-white text-[11px] font-black shadow-md shrink-0 group-hover:scale-105 transition-transform`}>
                             {initials(cust)}
                           </div>
                           <div className="min-w-0">
-                            <p className="text-sm font-semibold text-[#1a1a1a] dark:text-[#e3e3e3] truncate">{cust.firstName} {cust.lastName}</p>
-                            <p className={`text-xs ${SUB} truncate`}>{cust.email}</p>
+                            <p className="text-sm font-bold text-gray-900 dark:text-white truncate group-hover:text-[#dc2626] transition-colors">{cust.firstName} {cust.lastName}</p>
+                            <p className={`text-[11px] font-bold ${SUB} truncate uppercase tracking-tight mt-0.5`}>{cust.email}</p>
                           </div>
                         </div>
                       </td>
-                      <td className="px-4 py-3.5 hidden sm:table-cell">
+                      <td className="px-4 py-4 hidden sm:table-cell">
                         {cust.phone && (
-                          <div className="flex items-center gap-1.5 text-xs text-[#303030] dark:text-[#d4d4d4]">
-                            <Phone className="w-3 h-3 text-[#6d7175]" />{cust.phone}
+                          <div className="flex items-center gap-2 text-[13px] font-medium text-gray-600 dark:text-[#a0a0c8]">
+                            <Phone className="w-3.5 h-3.5 text-gray-400" />{cust.phone}
                           </div>
                         )}
                       </td>
-                      <td className="px-4 py-3.5"><Badge color={gc.color}>{gc.label}</Badge></td>
-                      <td className="px-4 py-3.5 text-center hidden md:table-cell">
-                        <span className="text-sm font-semibold text-[#303030] dark:text-[#d4d4d4]">{cust.totalOrders ?? 0}</span>
+                      <td className="px-4 py-4"><Badge color={grp.color}>{grp.label}</Badge></td>
+                      <td className="px-4 py-4 text-center hidden md:table-cell">
+                        <span className="text-sm font-black text-gray-900 dark:text-gray-300">{cust.totalOrders ?? 0}</span>
                       </td>
-                      <td className="px-4 py-3.5 text-right hidden lg:table-cell">
-                        <span className="text-sm font-bold text-[#1a1a1a] dark:text-[#e3e3e3]">{formatCurrency(cust.totalSpent || 0)}</span>
+                      <td className="px-4 py-4 text-right hidden lg:table-cell">
+                        <span className="text-sm font-black text-gray-900 dark:text-white">{formatCurrency(cust.totalSpent || 0)}</span>
                       </td>
-                      <td className="px-4 py-3.5 hidden xl:table-cell">
-                        <span className={`text-xs ${SUB}`}>{formatDate(cust.createdAt)}</span>
+                      <td className="px-4 py-4 hidden xl:table-cell">
+                        <span className={`text-[13px] font-bold text-gray-600 dark:text-[#8888a8]`}>{formatDate(cust.createdAt)}</span>
                       </td>
-                      <td className="pr-3">
+                      <td className="pr-5 py-4">
                         <RowMenu
-                          onView={() => setModal({ mode: 'view', customer: cust })}
-                          onEdit={() => setModal({ mode: 'edit', customer: cust })}
-                          onDelete={() => setDeleteTarget(cust)}
+                          onView={(e) => { e.stopPropagation(); navigate(`/dashboard/customers/${cust._id}`); }}
+                          onEdit={(e) => { e.stopPropagation(); setModal({ mode: 'edit', customer: cust }); }}
+                          onDelete={(e) => { e.stopPropagation(); setDeleteTarget(cust); }}
                         />
                       </td>
-                    </tr>
+                    </motion.tr>
                   );
                 })}
               </tbody>
@@ -335,11 +416,14 @@ export default function Customers() {
         )}
 
         {pg.pages > 1 && (
-          <div className={`px-4 py-3.5 border-t ${DIV} flex items-center justify-between`}>
-            <p className="text-xs text-[#6d7175] dark:text-[#9898b8]">
-              Showing {((pg.page - 1) * pg.limit) + 1}–{Math.min(pg.page * pg.limit, pg.total)} of {pg.total}
-            </p>
-            <Pagination currentPage={pg.page} totalPages={pg.pages} onPageChange={p => fetchCustomers(p)} />
+          <div className={`px-6 py-4 border-t ${DIV} bg-gray-50/30 dark:bg-white/[0.01]`}>
+            <Pagination 
+                page={pg.page} 
+                totalPages={pg.pages} 
+                onPageChange={p => fetchCustomers(p)} 
+                total={pg.total}
+                limit={pg.limit}
+            />
           </div>
         )}
       </div>
@@ -353,17 +437,15 @@ export default function Customers() {
         />
       )}
 
-      {deleteTarget && (
-        <ConfirmDialog
-          isOpen
-          title="Delete customer"
-          message={`Delete ${deleteTarget.firstName} ${deleteTarget.lastName}? This cannot be undone.`}
-          confirmLabel="Delete"
-          confirmVariant="danger"
-          onConfirm={handleDelete}
-          onCancel={() => setDeleteTarget(null)}
-        />
-      )}
+      <ConfirmDialog
+        isOpen={!!deleteTarget}
+        title="Protocol: Deletion"
+        message={`Are you certain you wish to purge the record of "${deleteTarget?.firstName} ${deleteTarget?.lastName}"? Information recovery will not be possible.`}
+        confirmLabel="Expunge Record"
+        variant="danger"
+        onConfirm={handleDelete}
+        onClose={() => setDeleteTarget(null)}
+      />
     </div>
   );
 }

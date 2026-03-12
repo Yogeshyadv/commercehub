@@ -64,7 +64,7 @@ export default function AboutUsPage() {
   const navigate = useNavigate();
 
   return (
-    <div className="bg-black text-white min-h-screen font-sans">
+    <div className="bg-white text-black min-h-screen font-sans">
       <Navbar />
 
       {/* ── HERO ── */}
@@ -108,20 +108,20 @@ export default function AboutUsPage() {
       </section>
 
       {/* ── MISSION ── */}
-      <section className="py-24 bg-black">
+      <section className="py-24 bg-white">
         <div className="max-w-6xl mx-auto px-6 grid md:grid-cols-2 gap-16 items-center">
           <motion.div initial={{ opacity: 0, x: -20 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ duration: 0.5 }}>
             <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[#DC2626] mb-4 block">Our mission</span>
             <h2 className="text-4xl font-black mb-6 leading-tight">Commerce should be possible for anyone, anywhere.</h2>
-            <p className="text-gray-400 leading-relaxed mb-6">
+            <p className="text-gray-600 leading-relaxed mb-6">
               For most of history, starting a business meant access to capital, infrastructure, and know-how that only a privileged few had. The internet changed that — but building and running an online store was still absurdly complicated.
             </p>
-            <p className="text-gray-400 leading-relaxed mb-8">
+            <p className="text-gray-600 leading-relaxed mb-8">
               We built CommerceHub because we believed the gap between "I have an idea" and "I have a business" should be measured in hours, not months. Every feature we ship, every price we set, every hire we make is in pursuit of that gap shrinking further.
             </p>
             <div className="space-y-3">
               {['No enterprise licence required to access enterprise features', 'Transparent, flat-rate pricing — no revenue share on sales', 'Same platform, whether you do Rs.1,000/mo or Rs.100Cr/mo'].map(b => (
-                <div key={b} className="flex items-start gap-3 text-sm text-gray-300">
+                <div key={b} className="flex items-start gap-3 text-sm text-gray-600">
                   <CheckIcon className="w-4 h-4 text-[#DC2626] shrink-0 mt-0.5" strokeWidth={2.5} />
                   {b}
                 </div>
@@ -142,7 +142,7 @@ export default function AboutUsPage() {
       </section>
 
       {/* ── TIMELINE ── */}
-      <section className="py-24 bg-[#060606]">
+      <section className="py-24 bg-gray-50">
         <div className="max-w-4xl mx-auto px-6">
           <div className="text-center mb-14">
             <h2 className="text-4xl font-black mb-3">Our story</h2>
@@ -150,7 +150,7 @@ export default function AboutUsPage() {
           </div>
           <div className="relative">
             {/* vertical line */}
-            <div className="absolute left-[22px] top-0 bottom-0 w-px bg-white/[0.06]" />
+            <div className="absolute left-[22px] top-0 bottom-0 w-px bg-gray-200" />
             <div className="space-y-10">
               {timeline.map((item, i) => (
                 <motion.div
@@ -179,7 +179,7 @@ export default function AboutUsPage() {
       </section>
 
       {/* ── VALUES ── */}
-      <section className="py-24 bg-black">
+      <section className="py-24 bg-white">
         <div className="max-w-6xl mx-auto px-6">
           <div className="text-center mb-14">
             <h2 className="text-4xl font-black mb-3">What we believe</h2>
@@ -207,7 +207,7 @@ export default function AboutUsPage() {
       </section>
 
       {/* ── LEADERSHIP ── */}
-      <section className="py-24 bg-[#060606]">
+      <section className="py-24 bg-gray-50">
         <div className="max-w-6xl mx-auto px-6">
           <div className="text-center mb-14">
             <h2 className="text-4xl font-black mb-3">Leadership team</h2>
@@ -236,12 +236,12 @@ export default function AboutUsPage() {
       </section>
 
       {/* ── INVESTORS ── */}
-      <section className="py-16 bg-black border-y border-white/[0.04]">
+      <section className="py-16 bg-gray-50 border-y border-gray-200">
         <div className="max-w-5xl mx-auto px-6 text-center">
           <p className="text-xs font-black uppercase tracking-[0.2em] text-gray-600 mb-8">Backed by the world's best investors</p>
           <div className="flex flex-wrap justify-center gap-8">
             {investors.map(inv => (
-              <span key={inv} className="text-gray-500 font-bold text-sm hover:text-white transition-colors cursor-default">{inv}</span>
+              <span className="text-gray-500 font-bold text-sm hover:text-black transition-colors cursor-default">{inv}</span>
             ))}
           </div>
         </div>
@@ -279,16 +279,16 @@ export default function AboutUsPage() {
       </section>
 
       {/* ── FINAL CTA ── */}
-      <section className="relative py-28 bg-black overflow-hidden text-center">
+      <section className="relative py-28 bg-gray-50 overflow-hidden text-center">
         <div className="pointer-events-none absolute inset-0" style={{ background: 'radial-gradient(ellipse 55% 45% at 50% 100%, rgba(220,38,38,0.2) 0%, transparent 70%)' }} />
         <div className="relative max-w-2xl mx-auto px-6">
           <h2 className="text-5xl font-black leading-tight mb-5">Want to help build<br /><span className="text-[#DC2626]">the future of commerce?</span></h2>
-          <p className="text-gray-400 text-lg mb-10">We're hiring across engineering, design, product, and growth. Come work on problems that matter for millions of merchants.</p>
+          <p className="text-gray-600 text-lg mb-10">We're hiring across engineering, design, product, and growth. Come work on problems that matter for millions of merchants.</p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <button onClick={() => navigate('/careers')} className="inline-flex items-center gap-2 bg-white hover:bg-gray-100 text-black font-black text-lg px-10 py-4 rounded-full transition-all duration-200">
               View open roles <ArrowRightIcon className="w-5 h-5" />
             </button>
-            <button onClick={() => navigate('/register')} className="inline-flex items-center gap-2 border border-white/20 hover:border-white/50 text-white font-bold text-lg px-10 py-4 rounded-full transition-all duration-200">
+            <button onClick={() => navigate('/register')} className="inline-flex items-center gap-2 border border-gray-300 hover:border-gray-400 text-black font-bold text-lg px-10 py-4 rounded-full transition-all duration-200">
               Start selling
             </button>
           </div>

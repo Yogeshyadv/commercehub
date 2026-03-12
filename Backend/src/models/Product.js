@@ -122,6 +122,15 @@ const productSchema = new mongoose.Schema({
   reviews: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Review'
+  }],
+  variants: [{
+    name: { type: String, required: true },
+    options: [{
+      value: { type: String, required: true },
+      price: { type: Number, min: 0 },
+      stock: { type: Number, default: 0 },
+      sku: String
+    }]
   }]
 }, {
   timestamps: true

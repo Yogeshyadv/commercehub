@@ -11,8 +11,9 @@ export const catalogService = {
     return response.data;
   },
 
-  getPublicCatalog: async (shareableLink) => {
-    const response = await api.get(`/catalogs/public/${shareableLink}`);
+  getPublicCatalog: async (shareableLink, password = null) => {
+    const headers = password ? { 'x-catalog-password': password } : {};
+    const response = await api.get(`/catalogs/public/${shareableLink}`, { headers });
     return response.data;
   },
 
@@ -52,6 +53,21 @@ export const catalogService = {
     const response = await api.post(`/catalogs/${id}/cover`, formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
     });
+    return response.data;
+  },
+
+  // Fire-and-forget analytics tracking (public, no auth)
+  trackEvent: async (shareableLink, eventType, productId = null) => {
+    try {
+      await api.post(`/catalogs/public/${shareableLink}/track`, { eventType, productId });
+    } catch {
+      // Tracking failures are silently ignored
+    }
+  },
+
+  // Vendor-facing per-catalog analytics
+  getCatalogAnalytics: async (id) => {
+    const response = await api.get(`/catalogs/${id}/analytics`);
     return response.data;
   },
 };

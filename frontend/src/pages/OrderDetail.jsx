@@ -84,7 +84,7 @@ export default function OrderDetail() {
   const currentStepIndex = ORDER_STEPS.indexOf(order.status);
 
   return (
-    <div className="min-h-screen bg-gray-50/50 dark:bg-[#09090b] p-4 lg:p-8">
+    <div className="min-h-screen bg-gray-50/50 dark:bg-[#000000] p-4 lg:p-8">
       <div className="max-w-6xl mx-auto space-y-8">
         
         {/* Header navigation */}

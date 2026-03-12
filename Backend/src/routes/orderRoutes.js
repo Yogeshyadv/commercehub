@@ -3,6 +3,7 @@ const router = express.Router();
 const {
   createOrder,
   createCustomerOrder,
+  createWhatsAppOrder,
   getOrders,
   getMyOrders,
   getOrder,
@@ -12,6 +13,9 @@ const {
 const { protect } = require('../middleware/auth');
 const { authorize } = require('../middleware/rbac');
 const { resolveTenant, requireTenant } = require('../middleware/tenantResolver');
+
+// Public — WhatsApp catalog order (no auth; tenantId comes in request body)
+router.post('/whatsapp', createWhatsAppOrder);
 
 // Customer routes (no tenant required)
 router.post('/customer', protect, createCustomerOrder);

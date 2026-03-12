@@ -314,8 +314,8 @@ function ProfitMarginWidget() {
             <p className="text-3xl font-black text-[#DC2626]">₹{sellPrice}</p>
             <p className="text-xs text-gray-500 mt-1">Selling price</p>
           </div>
-          <div className="bg-white/[0.04] border border-white/[0.06] rounded-2xl p-5 text-center">
-            <p className="text-3xl font-black text-white">₹{profit}</p>
+          <div className="bg-gray-50 border border-gray-200 rounded-2xl p-5 text-center">
+            <p className="text-3xl font-black text-black">₹{profit}</p>
             <p className="text-xs text-gray-500 mt-1">Profit per unit</p>
           </div>
         </motion.div>
@@ -344,7 +344,7 @@ export default function FreeToolsPage() {
   const popular = tools.filter((t) => t.popular);
 
   return (
-    <div className="bg-black text-white min-h-screen font-sans">
+    <div className="bg-white text-black min-h-screen font-sans">
       <Navbar />
 
       {/* ────────────────────────────────────
@@ -441,7 +441,7 @@ export default function FreeToolsPage() {
       {/* ────────────────────────────────────
           INLINE CALCULATOR — PROFIT MARGIN
       ──────────────────────────────────── */}
-      <section className="py-20 bg-black">
+      <section className="py-20 bg-white">
         <div className="max-w-6xl mx-auto px-6 grid lg:grid-cols-2 gap-16 items-center">
           <div>
             <span className="inline-block text-xs font-bold uppercase tracking-[0.18em] text-[#DC2626] mb-4">
@@ -554,9 +554,9 @@ export default function FreeToolsPage() {
       {/* ────────────────────────────────────
           COMMERCE TOOLS INFO SECTION
       ──────────────────────────────────── */}
-      <section className="py-20 bg-black">
+      <section className="py-20 bg-white">
         <div className="max-w-5xl mx-auto px-6">
-          <h2 className="text-3xl font-black text-white mb-8 text-center">
+          <h2 className="text-3xl font-black text-black mb-8 text-center">
             Why use CommerceHub free tools?
           </h2>
           <div className="grid md:grid-cols-3 gap-6">
@@ -615,13 +615,13 @@ export default function FreeToolsPage() {
             <br />
             <span className="text-[#DC2626]">the beginning.</span>
           </h2>
-          <p className="text-gray-400 text-lg mb-10 leading-relaxed">
+          <p className="text-gray-600 text-lg mb-10 leading-relaxed">
             Once you've planned your business, launch your online store with CommerceHub —
             the world's most complete commerce platform.
           </p>
           <button
             onClick={() => navigate('/register')}
-            className="inline-flex items-center gap-2 bg-white hover:bg-gray-100 text-black font-black text-lg px-10 py-4 rounded-full transition-all duration-200 shadow-xl shadow-white/5"
+            className="inline-flex items-center gap-2 bg-red-500 hover:bg-red-600 text-white font-black text-lg px-10 py-4 rounded-full transition-all duration-200 shadow-xl"
           >
             Start your store — free
             <ArrowRightIcon className="w-5 h-5" />

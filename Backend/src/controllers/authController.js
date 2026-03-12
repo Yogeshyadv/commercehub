@@ -4,29 +4,90 @@ const AuditLog = require('../models/AuditLog');
 const notificationService = require('../services/notificationService');
 const crypto = require('crypto');
 
-// Helper: Send token response
-const sendTokenResponse = (user, statusCode, res, message = 'Success') => {
-  const token = user.getSignedJwtToken();
+// ── Cookie helpers ────────────────────────────────────────────
+const ACCESS_COOKIE_OPTS = () => ({
+  httpOnly: true,
+  secure: process.env.NODE_ENV === 'production',
+  sameSite: 'strict',
+  expires: new Date(Date.now() + 15 * 60 * 1000), // 15 min
+});
 
-  const options = {
-    expires: new Date(Date.now() + (parseInt(process.env.JWT_COOKIE_EXPIRE) || 7) * 24 * 60 * 60 * 1000),
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'strict'
-  };
+const REFRESH_COOKIE_OPTS = () => ({
+  httpOnly: true,
+  secure: process.env.NODE_ENV === 'production',
+  sameSite: 'strict',
+  path: '/api/v1/auth/refresh-token', // scoped to refresh endpoint
+  expires: new Date(
+    Date.now() +
+      (parseInt(process.env.REFRESH_TOKEN_EXPIRE_DAYS) || 30) * 24 * 60 * 60 * 1000
+  ),
+});
+
+// Helper: send access + refresh tokens
+const sendTokenResponse = async (user, statusCode, res, message = 'Success') => {
+  const accessToken  = user.getSignedJwtToken();
+  const refreshToken = user.createRefreshToken(
+    res.req?.headers?.['user-agent'] || 'unknown'
+  );
+  await user.save({ validateBeforeSave: false });
 
   const userObj = user.toObject();
   delete userObj.password;
+  delete userObj.refreshTokens;
 
-  res
+  return res
     .status(statusCode)
-    .cookie('token', token, options)
+    .cookie('token',         accessToken,  ACCESS_COOKIE_OPTS())
+    .cookie('refreshToken',  refreshToken, REFRESH_COOKIE_OPTS())
     .json({
       success: true,
       message,
-      token,
-      user: userObj
+      token: accessToken,
+      user: userObj,
     });
+};
+
+// @desc    Refresh access token
+// @route   POST /api/v1/auth/refresh-token
+exports.refreshToken = async (req, res) => {
+  try {
+    const rawToken = req.cookies?.refreshToken || req.body?.refreshToken;
+    if (!rawToken) {
+      return res.status(401).json({ success: false, message: 'No refresh token provided' });
+    }
+
+    const hashed = crypto.createHash('sha256').update(rawToken).digest('hex');
+    const user = await User.findOne({
+      'refreshTokens.token': hashed,
+      'refreshTokens.expiresAt': { $gt: new Date() },
+    }).select('+refreshTokens');
+
+    if (!user) {
+      return res.status(401).json({ success: false, message: 'Invalid or expired refresh token' });
+    }
+
+    // Rotate: remove used token
+    user.refreshTokens = user.refreshTokens.filter(t => t.token !== hashed);
+    await sendTokenResponse(user, 200, res, 'Token refreshed');
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+// @desc    Revoke all refresh tokens (logout everywhere)
+// @route   POST /api/v1/auth/logout-all
+exports.logoutAll = async (req, res) => {
+  try {
+    if (req.user) {
+      await User.findByIdAndUpdate(req.user._id, { $set: { refreshTokens: [] } });
+    }
+    res
+      .clearCookie('token')
+      .clearCookie('refreshToken', { path: '/api/v1/auth/refresh-token' })
+      .json({ success: true, message: 'Logged out from all devices' });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
 };
 
 // @desc    Register user

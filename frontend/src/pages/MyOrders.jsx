@@ -71,7 +71,7 @@ export default function MyOrders() {
   if (loading) return <Loader text="Loading your orders..." />;
 
   return (
-    <div className="min-h-screen bg-gray-50/50 dark:bg-[#09090b] p-4 lg:p-8">
+    <div className="min-h-screen bg-gray-50/50 dark:bg-[#000000] p-4 lg:p-8">
       <div className="max-w-5xl mx-auto space-y-8">
         
         {/* Header */}

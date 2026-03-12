@@ -2,8 +2,8 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { 
   ArrowLeft, Save, Eye, Package, Image as ImageIcon, 
-  List, Tag, DollarSign, Globe,
-  Check, X, AlertCircle, Sparkles, Loader2
+  List, Tag, DollarSign, Globe, Layers,
+  Check, X, AlertCircle, Sparkles, Loader2, Plus, Trash2
 } from 'lucide-react';
 import Button from '../components/common/Button';
 import Input from '../components/common/Input';
@@ -19,6 +19,7 @@ const tabs = [
   { id: 'images', name: 'Media', icon: ImageIcon },
   { id: 'pricing', name: 'Pricing & Inventory', icon: DollarSign },
   { id: 'specifications', name: 'Specifications', icon: Tag },
+  { id: 'variants', name: 'Variants', icon: Layers },
   { id: 'seo', name: 'SEO', icon: Globe },
 ];
 
@@ -53,6 +54,7 @@ export default function ProductForm() {
     metaTitle: '',
     metaDescription: '',
     metaKeywords: '',
+    variants: [],
   });
 
   const [tagInput, setTagInput] = useState('');
@@ -78,6 +80,7 @@ export default function ProductForm() {
       setFormData({
         ...response.data,
         specifications: specs || [],
+        variants: response.data.variants || [],
         stock: response.data.stock?.toString() || '0',
         price: response.data.price?.toString() || '',
         compareAtPrice: response.data.compareAtPrice?.toString() || '',
@@ -222,11 +225,10 @@ export default function ProductForm() {
         stock: parseInt(formData.stock),
         lowStockThreshold: parseInt(formData.lowStockThreshold),
         attributes: formData.specifications.reduce((acc, spec) => {
-          if (spec.key && spec.value) {
-            acc[spec.key] = spec.value;
-          }
+          if (spec.key && spec.value) acc[spec.key] = spec.value;
           return acc;
         }, {}),
+        variants: formData.variants,
       };
 
       if (id) {
@@ -612,9 +614,98 @@ export default function ProductForm() {
                         />
                          <div className="flex justify-between items-center pt-6 mt-6 border-t border-gray-100 dark:border-gray-800">
                             <Button type="button" variant="secondary" onClick={() => setActiveTab('pricing')} size="lg">&larr; Back</Button>
-                            <Button type="button" onClick={() => setActiveTab('seo')} size="lg">Next: SEO &rarr;</Button>
+                            <Button type="button" onClick={() => setActiveTab('variants')} size="lg">Next: Variants &rarr;</Button>
                          </div>
                     </div>
+                )}
+
+                {/* Variants Tab */}
+                {activeTab === 'variants' && (
+                  <div className="bg-white dark:bg-zinc-900 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 p-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                    <div className="flex items-center justify-between mb-4">
+                      <div>
+                        <h3 className="text-lg font-bold text-gray-900 dark:text-white">Product Variants</h3>
+                        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Add options like Size or Color with individual prices and stock.</p>
+                      </div>
+                      <Button type="button" variant="secondary" onClick={() => setFormData(p => ({ ...p, variants: [...p.variants, { name: '', options: [] }] }))}>
+                        <Plus className="w-4 h-4 mr-1" /> Add Group
+                      </Button>
+                    </div>
+
+                    {formData.variants.length === 0 ? (
+                      <div className="border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-xl p-12 text-center">
+                        <Layers className="w-10 h-10 text-gray-300 mx-auto mb-3" />
+                        <p className="text-gray-500 dark:text-gray-400 text-sm">No variants added. Click &quot;Add Group&quot; to create variant options like Size or Color.</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-6">
+                        {formData.variants.map((variant, vi) => (
+                          <div key={vi} className="border border-gray-200 dark:border-gray-700 rounded-xl p-4">
+                            <div className="flex items-center gap-3 mb-4">
+                              <input
+                                type="text"
+                                value={variant.name}
+                                onChange={e => {
+                                  const v = [...formData.variants];
+                                  v[vi] = { ...v[vi], name: e.target.value };
+                                  setFormData(p => ({ ...p, variants: v }));
+                                }}
+                                placeholder="Variant name (e.g. Color, Size)"
+                                className="flex-1 px-3 py-2 text-sm border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-zinc-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-[#DC2626] focus:outline-none"
+                              />
+                              <button type="button" onClick={() => setFormData(p => ({ ...p, variants: p.variants.filter((_, i) => i !== vi) }))}
+                                className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors">
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
+                            <div className="space-y-2 mb-3">
+                              {variant.options.map((opt, oi) => (
+                                <div key={oi} className="grid grid-cols-4 gap-2 items-center">
+                                  <input type="text" value={opt.value} onChange={e => {
+                                      const v = [...formData.variants];
+                                      v[vi].options[oi] = { ...v[vi].options[oi], value: e.target.value };
+                                      setFormData(p => ({ ...p, variants: v }));
+                                    }} placeholder="Value (e.g. Red)"
+                                    className="px-3 py-1.5 text-sm border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-zinc-800 text-gray-900 dark:text-white focus:ring-1 focus:ring-[#DC2626] focus:outline-none" />
+                                  <input type="number" min="0" value={opt.price || ''} onChange={e => {
+                                      const v = [...formData.variants];
+                                      v[vi].options[oi] = { ...v[vi].options[oi], price: parseFloat(e.target.value) || 0 };
+                                      setFormData(p => ({ ...p, variants: v }));
+                                    }} placeholder="Price"
+                                    className="px-3 py-1.5 text-sm border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-zinc-800 text-gray-900 dark:text-white focus:ring-1 focus:ring-[#DC2626] focus:outline-none" />
+                                  <input type="number" min="0" value={opt.stock ?? ''} onChange={e => {
+                                      const v = [...formData.variants];
+                                      v[vi].options[oi] = { ...v[vi].options[oi], stock: parseInt(e.target.value) || 0 };
+                                      setFormData(p => ({ ...p, variants: v }));
+                                    }} placeholder="Stock"
+                                    className="px-3 py-1.5 text-sm border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-zinc-800 text-gray-900 dark:text-white focus:ring-1 focus:ring-[#DC2626] focus:outline-none" />
+                                  <button type="button" onClick={() => {
+                                      const v = [...formData.variants];
+                                      v[vi].options = v[vi].options.filter((_, i) => i !== oi);
+                                      setFormData(p => ({ ...p, variants: v }));
+                                    }} className="p-1.5 text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors">
+                                    <X className="w-3.5 h-3.5" />
+                                  </button>
+                                </div>
+                              ))}
+                            </div>
+                            <button type="button" onClick={() => {
+                                const v = [...formData.variants];
+                                v[vi].options = [...(v[vi].options || []), { value: '', price: 0, stock: 0, sku: '' }];
+                                setFormData(p => ({ ...p, variants: v }));
+                              }}
+                              className="text-xs text-[#DC2626] font-semibold flex items-center gap-1 hover:underline">
+                              <Plus className="w-3.5 h-3.5" /> Add option
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    <div className="flex justify-between items-center pt-6 mt-6 border-t border-gray-100 dark:border-gray-800">
+                      <Button type="button" variant="secondary" onClick={() => setActiveTab('specifications')} size="lg">&larr; Back</Button>
+                      <Button type="button" onClick={() => setActiveTab('seo')} size="lg">Next: SEO &rarr;</Button>
+                    </div>
+                  </div>
                 )}
                 
                  {/* SEO Tab */}
@@ -662,7 +753,7 @@ export default function ProductForm() {
                             />
                         </div>
                          <div className="flex justify-between items-center pt-6 mt-6 border-t border-gray-100 dark:border-gray-800">
-                            <Button type="button" variant="secondary" onClick={() => setActiveTab('specifications')} size="lg">&larr; Back</Button>
+                            <Button type="button" variant="secondary" onClick={() => setActiveTab('variants')} size="lg">&larr; Back</Button>
                             <Button type="button" onClick={() => { setFormData(p => ({ ...p, status: 'active' })); setTimeout(() => document.getElementById('product-form').requestSubmit(), 0); }} size="lg" className="bg-red-600 hover:bg-red-700 text-white shadow-lg shadow-red-600/20">
                                 Save Product
                             </Button>

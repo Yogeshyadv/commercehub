@@ -289,7 +289,7 @@ export default function PricingPage() {
       <Navbar />
 
       {/* ── 1. HERO ── */}
-      <section className="bg-black text-white pt-32 pb-20 text-center px-6">
+      <section className="bg-gray-50 text-black pt-32 pb-20 text-center px-6">
         <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }}>
           <h1 className="text-[clamp(2.6rem,7vw,5rem)] font-black leading-tight tracking-tight mb-4">
             Start for free, stay for ₹20
@@ -306,7 +306,7 @@ export default function PricingPage() {
               value={email}
               onChange={e => setEmail(e.target.value)}
               placeholder="Enter your email address"
-              className="flex-1 px-5 py-4 rounded-xl bg-white/[0.07] border border-white/[0.1] text-white placeholder-gray-600 focus:outline-none focus:border-[#DC2626] transition-all text-sm font-medium"
+              className="flex-1 px-5 py-4 rounded-xl bg-white border border-gray-200 text-black placeholder-gray-400 focus:outline-none focus:border-red-500 transition-all text-sm font-medium"
             />
             <button
               type="submit"
@@ -316,16 +316,16 @@ export default function PricingPage() {
             </button>
           </form>
           {/* Toggle */}
-          <div className="inline-flex items-center gap-4 bg-white/[0.07] border border-white/[0.1] rounded-full px-2 py-1.5">
+          <div className="inline-flex items-center gap-4 bg-gray-100 border border-gray-200 rounded-full px-2 py-1.5">
             <button
               onClick={() => setYearly(false)}
-              className={`px-5 py-2 rounded-full text-sm font-bold transition-all ${!yearly ? 'bg-white text-black' : 'text-gray-400 hover:text-white'}`}
+              className={`px-5 py-2 rounded-full text-sm font-bold transition-all ${!yearly ? 'bg-white text-black' : 'text-gray-600 hover:text-black'}`}
             >
               Pay monthly
             </button>
             <button
               onClick={() => setYearly(true)}
-              className={`px-5 py-2 rounded-full text-sm font-bold transition-all flex items-center gap-2 ${yearly ? 'bg-white text-black' : 'text-gray-400 hover:text-white'}`}
+              className={`px-5 py-2 rounded-full text-sm font-bold transition-all flex items-center gap-2 ${yearly ? 'bg-white text-black' : 'text-gray-600 hover:text-black'}`}
             >
               Pay yearly
               <span className="bg-[#DC2626] text-white text-[10px] font-black px-2 py-0.5 rounded-full">Save 25%</span>
@@ -335,7 +335,7 @@ export default function PricingPage() {
       </section>
 
       {/* ── 2. PLAN CARDS ── */}
-      <section className="bg-black pb-20 px-6">
+      <section className="bg-white pb-20 px-6">
         <div className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
           {plans.map((plan, i) => (
             <motion.div

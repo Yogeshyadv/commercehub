@@ -111,7 +111,7 @@ export default function EmailMarketingPage() {
   const navigate = useNavigate();
 
   return (
-    <div className="bg-black text-white min-h-screen font-sans">
+    <div className="bg-white text-black min-h-screen font-sans">
       <Navbar />
 
       {/* ── HERO ── */}
@@ -192,7 +192,7 @@ export default function EmailMarketingPage() {
       </section>
 
       {/* ── FEATURES ── */}
-      <section className="py-24 bg-black">
+      <section className="py-24 bg-white">
         <div className="max-w-6xl mx-auto px-6 space-y-20">
           {features.map((f, i) => (
             <motion.div
@@ -248,20 +248,20 @@ export default function EmailMarketingPage() {
       </section>
 
       {/* ── TESTIMONIALS ── */}
-      <section className="py-24 bg-black">
+      <section className="py-24 bg-white">
         <div className="max-w-6xl mx-auto px-6">
-          <h2 className="text-3xl font-black text-white text-center mb-12">What merchants say</h2>
+          <h2 className="text-3xl font-black text-black text-center mb-12">What merchants say</h2>
           <div className="grid md:grid-cols-3 gap-6">
             {testimonials.map((t) => (
-              <div key={t.name} className="bg-[#0a0a0a] border border-white/[0.06] rounded-2xl p-7">
+              <div key={t.name} className="bg-gray-50 border border-gray-200 rounded-2xl p-7">
                 <div className="flex gap-0.5 mb-5">
                   {[...Array(t.stars)].map((_, i) => <StarIcon key={i} className="w-4 h-4 fill-[#DC2626] text-[#DC2626]" />)}
                 </div>
-                <blockquote className="text-gray-300 text-sm leading-relaxed italic mb-6">"{t.quote}"</blockquote>
+                <blockquote className="text-gray-600 text-sm leading-relaxed italic mb-6">"{t.quote}"</blockquote>
                 <div className="flex items-center gap-3">
                   <div className="w-9 h-9 rounded-full bg-[#DC2626]/20 flex items-center justify-center text-[#DC2626] font-black text-sm">{t.avatar}</div>
                   <div>
-                    <p className="text-white font-bold text-sm">{t.name}</p>
+                    <p className="text-black font-bold text-sm">{t.name}</p>
                     <p className="text-gray-600 text-xs">{t.title}</p>
                   </div>
                 </div>
@@ -307,12 +307,12 @@ export default function EmailMarketingPage() {
       </section>
 
       {/* ── FINAL CTA ── */}
-      <section className="relative py-32 bg-black overflow-hidden text-center">
+      <section className="relative py-32 bg-gray-50 overflow-hidden text-center">
         <div className="pointer-events-none absolute inset-0" style={{ background: 'radial-gradient(ellipse 55% 45% at 50% 100%, rgba(220,38,38,0.2) 0%, transparent 70%)' }} />
         <div className="relative max-w-2xl mx-auto px-6">
           <h2 className="text-5xl sm:text-6xl font-black leading-tight mb-6">Your next sale is one email away.</h2>
-          <p className="text-gray-400 text-lg mb-10">Start sending in minutes. No credit card required.</p>
-          <button onClick={() => navigate('/register')} className="inline-flex items-center gap-2 bg-white hover:bg-gray-100 text-black font-black text-lg px-10 py-4 rounded-full transition-all duration-200 shadow-xl shadow-white/5">
+          <p className="text-gray-600 text-lg mb-10">Start sending in minutes. No credit card required.</p>
+          <button onClick={() => navigate('/register')} className="inline-flex items-center gap-2 bg-red-500 hover:bg-red-600 text-white font-black text-lg px-10 py-4 rounded-full transition-all duration-200 shadow-xl">
             Start free <ArrowRightIcon className="w-5 h-5" />
           </button>
         </div>

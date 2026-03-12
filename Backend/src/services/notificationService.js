@@ -138,6 +138,27 @@ const notificationService = {
     }
   },
 
+  // Send SMS via Twilio
+  sendSMS: async (phone, message) => {
+    if (!process.env.TWILIO_ACCOUNT_SID || !process.env.TWILIO_AUTH_TOKEN || !process.env.TWILIO_PHONE_NUMBER) {
+      console.log('📱 SMS (Dev Mode):', { phone, message });
+      return { success: true, method: 'log' };
+    }
+    try {
+      const twilio = require('twilio')(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
+      const result = await twilio.messages.create({
+        body: message,
+        from: process.env.TWILIO_PHONE_NUMBER,
+        to: phone
+      });
+      console.log('✅ SMS sent:', result.sid);
+      return { success: true, sid: result.sid };
+    } catch (error) {
+      console.error('❌ SMS send error:', error.message);
+      return { success: false, error: error.message };
+    }
+  },
+
   // Send WhatsApp message (using Twilio or direct API)
   sendWhatsApp: async (phone, message) => {
     // If Twilio is configured

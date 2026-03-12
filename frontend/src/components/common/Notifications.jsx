@@ -130,7 +130,7 @@ export default function Notifications() {
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 mt-4 w-80 sm:w-96 bg-white dark:bg-[#111b21] rounded-2xl shadow-2xl ring-1 ring-black/5 dark:ring-white/10 z-50 overflow-hidden">
+        <div className="absolute right-0 mt-4 w-80 sm:w-96 bg-white dark:bg-[#0d0d0d] rounded-2xl shadow-2xl ring-1 ring-black/5 dark:ring-white/10 z-50 overflow-hidden">
           {/* Header */}
           <div className="px-4 py-3 border-b border-gray-100 dark:border-zinc-800 flex items-center justify-between">
             <div>

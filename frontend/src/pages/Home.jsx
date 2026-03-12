@@ -166,7 +166,7 @@ export default function Home() {
   const handleStart = (e) => { e.preventDefault(); navigate('/register'); };
 
   return (
-    <div className="bg-black min-h-screen w-full overflow-x-hidden text-white">
+    <div className="bg-white min-h-screen w-full overflow-x-hidden text-black">
       <Navbar />
 
       {/* ══════════════════════════ HERO ══════════════════════════ */}
@@ -205,7 +205,7 @@ export default function Home() {
           <motion.h1
             initial={{ opacity: 0, y: 36 }} animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 1.0, ease: [0.22, 1, 0.36, 1], delay: 0.18 }}
-            className="text-[clamp(4rem,11vw,8rem)] font-black leading-[0.93] tracking-tight mb-8"
+            className="text-white text-[clamp(4rem,11vw,8rem)] font-black leading-[0.93] tracking-tight mb-8"
           >
             Be the next<br />big thing
           </motion.h1>
@@ -279,12 +279,12 @@ export default function Home() {
       </section>
 
       {/* ══════════════════════════ SELL PILLS ══════════════════════════ */}
-      <section className="bg-black border-t border-white/[0.05] py-6 px-6">
+      <section className="bg-white border-t border-red-500 py-6 px-6">
         <div className="max-w-7xl mx-auto flex flex-wrap justify-center gap-x-10 gap-y-2">
           {sellPills.map((label, i) => (
             <motion.span key={i}
               animate={{ opacity: i === activePill ? 1 : 0.28 }} transition={{ duration: 0.5 }}
-              className="text-sm font-bold text-white select-none cursor-default"
+              className="text-sm font-bold text-red-600 select-none cursor-default"
             >
               {label}
             </motion.span>
@@ -293,7 +293,7 @@ export default function Home() {
       </section>
 
       {/* ══════════════════════════ STORE MOSAIC — infinite auto-scroll ══════════════════════════ */}
-      <section className="bg-black py-8 overflow-hidden">
+      <section className="bg-gray-50 py-8 overflow-hidden">
         <style>{`
           @keyframes mosaicScroll {
             from { transform: translateX(0); }
@@ -318,16 +318,16 @@ export default function Home() {
       </section>
 
       {/* ══════════════════════════ THE ONE COMMERCE PLATFORM ══════════════════════════ */}
-      <section className="bg-black py-28 px-6 border-t border-white/[0.06]">
+      <section className="bg-white py-28 px-6 border-t border-gray-200">
         <div className="max-w-7xl mx-auto">
           <motion.p {...fadeUp()} className="text-[#DC2626] text-xs font-black uppercase tracking-[0.25em] mb-4">
             From first-time entrepreneurs to enterprise businesses
           </motion.p>
           <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6 mb-16">
-            <motion.h2 {...fadeUp(0.06)} className="text-4xl md:text-5xl lg:text-6xl font-black leading-[1.0] max-w-xl">
+            <motion.h2 {...fadeUp(0.06)} className="text-4xl md:text-5xl lg:text-6xl font-black leading-[1.0] max-w-xl text-black">
               The one commerce<br />platform behind it all
             </motion.h2>
-            <motion.p {...fadeUp(0.1)} className="text-gray-400 text-base font-medium max-w-sm leading-relaxed">
+            <motion.p {...fadeUp(0.1)} className="text-gray-600 text-base font-medium max-w-sm leading-relaxed">
               Millions of businesses of every size have collectively made over US$1 trillion in sales on CommerceHub.
             </motion.p>
           </div>
@@ -335,7 +335,7 @@ export default function Home() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-12">
             {merchantStories.map((s, i) => (
               <motion.div key={i} {...fadeUp(i * 0.09)}
-                className="group border border-white/[0.07] rounded-2xl overflow-hidden hover:border-white/[0.18] transition-all duration-300 cursor-pointer"
+                className="group border border-gray-200 rounded-2xl overflow-hidden hover:border-gray-300 transition-all duration-300 cursor-pointer shadow-lg"
                 onClick={() => navigate('/register')}
               >
                 <div className="aspect-[16/10] overflow-hidden bg-[#0a0a0a]">
@@ -344,7 +344,7 @@ export default function Home() {
                 </div>
                 <div className="p-7">
                   <p className="text-[#DC2626] text-[10px] font-black uppercase tracking-[0.22em] mb-3">{s.tag}</p>
-                  <h3 className="text-white font-black text-lg mb-3 leading-tight">{s.name}</h3>
+                  <h3 className="text-black font-black text-lg mb-3 leading-tight">{s.name}</h3>
                   <p className="text-gray-500 text-sm font-medium leading-relaxed">{s.desc}</p>
                 </div>
               </motion.div>
@@ -353,7 +353,7 @@ export default function Home() {
 
           <motion.div {...fadeUp(0.2)}>
             <button onClick={() => navigate('/register')}
-              className="inline-flex items-center gap-2 text-sm font-black text-white border border-white/25 px-6 py-3.5 rounded-xl hover:bg-white/[0.06] transition-colors">
+              className="inline-flex items-center gap-2 px-8 py-4 bg-red-500 text-white font-black rounded-xl text-sm hover:bg-red-600 transition-all shadow-xl">
               Pick a plan that fits your business <ArrowRightIcon className="w-4 h-4" />
             </button>
           </motion.div>
@@ -361,11 +361,11 @@ export default function Home() {
       </section>
 
       {/* ══════════════════════════ SELL ANYWHERE ══════════════════════════ */}
-      <section className="bg-[#070707] py-28 px-6 border-t border-white/[0.06]">
+      <section className="bg-gray-50 py-28 px-6 border-t border-gray-200">
         <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
           <motion.div {...fadeUp()}>
             <p className="text-gray-600 text-xs font-black uppercase tracking-[0.22em] mb-5">Online and in person</p>
-            <h2 className="text-4xl md:text-5xl font-black leading-tight mb-12">
+            <h2 className="text-4xl md:text-5xl font-black leading-tight mb-12 text-black">
               Sell anywhere<br />and everywhere
             </h2>
             <div className="space-y-8">
@@ -373,8 +373,8 @@ export default function Home() {
                 <motion.div key={i} {...fadeUp(0.07 + i * 0.07)} className="flex gap-5">
                   <div className="mt-1 w-0.5 flex-shrink-0 rounded-full bg-gradient-to-b from-[#DC2626] to-transparent" style={{ minHeight: '64px' }} />
                   <div>
-                    <h3 className="text-white font-black text-base mb-1.5">{pt.heading}</h3>
-                    <p className="text-gray-500 text-sm font-medium leading-relaxed">{pt.desc}</p>
+                    <h3 className="text-black font-black text-base mb-1.5">{pt.heading}</h3>
+                    <p className="text-gray-600 text-sm font-medium leading-relaxed">{pt.desc}</p>
                   </div>
                 </motion.div>
               ))}
@@ -398,7 +398,7 @@ export default function Home() {
                     className={`px-5 py-3 text-xs font-bold transition-all border-b-2 ${
                       activeStoreTab === t.id
                         ? 'text-white border-[#DC2626] bg-white/[0.03]'
-                        : 'text-gray-600 border-transparent hover:text-gray-400'
+                        : 'text-gray-400 border-transparent hover:text-gray-300'
                     }`}>
                     {t.label}
                   </button>
@@ -418,25 +418,25 @@ export default function Home() {
       </section>
 
       {/* ══════════════════════════ CUSTOMER RELATIONSHIPS ══════════════════════════ */}
-      <section className="bg-black py-28 px-6 border-t border-white/[0.06]">
+      <section className="bg-white py-28 px-6 border-t border-gray-200">
         <div className="max-w-7xl mx-auto">
           <div className="mb-16">
             <motion.p {...fadeUp()} className="text-gray-600 text-xs font-black uppercase tracking-[0.22em] mb-4">Direct and wholesale</motion.p>
-            <motion.h2 {...fadeUp(0.07)} className="text-4xl md:text-5xl font-black leading-tight">
+            <motion.h2 {...fadeUp(0.07)} className="text-4xl md:text-5xl font-black leading-tight text-black">
               Build lasting customer<br />relationships
             </motion.h2>
           </div>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-7">
             {customerRelPoints.map((item, i) => (
               <motion.div key={i} {...fadeUp(i * 0.1)}
-                className="rounded-2xl overflow-hidden border border-white/[0.07] group hover:border-white/[0.18] transition-all duration-300">
-                <div className="overflow-hidden bg-[#080808]">
+                className="rounded-2xl overflow-hidden border border-gray-200 group hover:border-gray-300 transition-all duration-300 shadow-lg">
+                <div className="overflow-hidden bg-gray-100">
                   <img src={item.img} alt={item.imgAlt} loading="lazy"
                     className="w-full object-cover group-hover:scale-[1.025] transition-transform duration-700" />
                 </div>
-                <div className="p-8">
-                  <h3 className="text-white font-black text-xl mb-3">{item.heading}</h3>
-                  <p className="text-gray-500 text-sm font-medium leading-relaxed">{item.desc}</p>
+                <div className="p-8 bg-white">
+                  <h3 className="text-black font-black text-xl mb-3">{item.heading}</h3>
+                  <p className="text-gray-600 text-sm font-medium leading-relaxed">{item.desc}</p>
                 </div>
               </motion.div>
             ))}
@@ -445,22 +445,22 @@ export default function Home() {
       </section>
 
       {/* ══════════════════════════ QUOTE ══════════════════════════ */}
-      <section className="bg-[#070707] py-24 px-6 border-t border-white/[0.06]">
+      <section className="bg-gray-50 py-24 px-6 border-t border-gray-200">
         <div className="max-w-4xl mx-auto text-center">
           <motion.div {...fadeUp()}>
-            <p className="text-[#DC2626] font-black text-8xl leading-none mb-4 opacity-30 select-none">&ldquo;</p>
-            <blockquote className="text-2xl md:text-3xl font-black text-white leading-snug mb-10">
+            <p className="text-[#DC2626] font-black text-8xl leading-none mb-4 opacity-50 select-none">&ldquo;</p>
+            <blockquote className="text-2xl md:text-3xl font-black text-gray-800 leading-snug mb-10">
               Since we started on CommerceHub, we&apos;ve gone from a bedroom operation to a global brand doing over half a billion in annual sales.
             </blockquote>
             <div className="flex items-center justify-center gap-4">
               <img
                 src={CDN + '/b3a10e2014c5b6cd44f2bc4a893ffc75.webp'}
                 alt="Gymshark" loading="lazy"
-                className="w-11 h-11 rounded-full object-cover border border-white/15"
+                className="w-11 h-11 rounded-full object-cover border border-gray-300"
               />
               <div className="text-left">
-                <p className="text-white font-black text-sm">Ben Francis</p>
-                <p className="text-gray-500 text-xs font-medium">Founder, Gymshark</p>
+                <p className="text-black font-black text-sm">Ben Francis</p>
+                <p className="text-gray-600 text-xs font-medium">Founder, Gymshark</p>
               </div>
             </div>
           </motion.div>
@@ -468,23 +468,23 @@ export default function Home() {
       </section>
 
       {/* ══════════════════════════ EXPAND GLOBALLY ══════════════════════════ */}
-      <section className="bg-black py-28 px-6 border-t border-white/[0.06]">
+      <section className="bg-white py-28 px-6 border-t border-gray-200">
         <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
           <motion.div {...fadeUp()}>
             <p className="text-gray-600 text-xs font-black uppercase tracking-[0.22em] mb-5">Local and global</p>
-            <h2 className="text-4xl md:text-5xl font-black leading-tight mb-7">
+            <h2 className="text-4xl md:text-5xl font-black leading-tight mb-7 text-black">
               Expand across<br />the globe
             </h2>
-            <h3 className="text-white font-black text-lg mb-3">Sell and ship everywhere</h3>
-            <p className="text-gray-500 text-sm font-medium leading-relaxed mb-10">
+            <h3 className="text-black font-black text-lg mb-3">Sell and ship everywhere</h3>
+            <p className="text-gray-600 text-sm font-medium leading-relaxed mb-10">
               CommerceHub takes the complexity out of international selling — from delivering products faster and more
               affordably to localising your experience with CommerceHub Markets.
             </p>
             <div className="grid grid-cols-2 gap-4">
               {globalStats.map((s, i) => (
                 <motion.div key={i} {...fadeUp(0.06 + i * 0.06)}
-                  className="border border-white/[0.07] rounded-xl p-5 hover:border-white/20 transition-colors">
-                  <p className="text-white font-black text-2xl">{s.value}</p>
+                  className="border border-gray-200 rounded-xl p-5 hover:border-gray-300 transition-colors bg-white shadow-sm">
+                  <p className="text-black font-black text-2xl">{s.value}</p>
                   <p className="text-gray-600 text-xs font-semibold mt-1">{s.label}</p>
                 </motion.div>
               ))}
@@ -587,19 +587,19 @@ export default function Home() {
       </section>
 
       {/* ══════════════════════════ MANAGE BUSINESS ══════════════════════════ */}
-      <section className="bg-[#070707] py-28 px-6 border-t border-white/[0.06]">
+      <section className="bg-gray-50 py-28 px-6 border-t border-gray-200">
         <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
           {/* Left: multi-image block */}
           <motion.div {...fadeUp()}>
-            <div className="rounded-2xl overflow-hidden border border-white/[0.07] bg-[#080808] mb-4">
+            <div className="rounded-2xl overflow-hidden border border-gray-200 bg-white mb-4 shadow-lg">
               <img src={CDN + '/3b04a0eb77b3f64a5f90673f9e4afad7.png'}
                 alt="CommerceHub Admin" loading="lazy" className="w-full object-cover" />
             </div>
             <div className="grid grid-cols-2 gap-4">
-              <div className="rounded-xl overflow-hidden border border-white/[0.07] aspect-square">
+              <div className="rounded-xl overflow-hidden border border-gray-200 aspect-square bg-white shadow-sm">
                 <img src={CDN + '/c10c68f8cde3ae725cb4286678280226.webp'} alt="POS terminal" loading="lazy" className="w-full h-full object-cover" />
               </div>
-              <div className="rounded-xl overflow-hidden border border-white/[0.07] aspect-square">
+              <div className="rounded-xl overflow-hidden border border-gray-200 aspect-square bg-white shadow-sm">
                 <img src={CDN + '/82f295147d6f32cd1533aa843f68b0c2.webp'} alt="Mobile" loading="lazy" className="w-full h-full object-cover" />
               </div>
             </div>
@@ -608,7 +608,7 @@ export default function Home() {
           {/* Right: text */}
           <motion.div {...fadeUp(0.1)}>
             <p className="text-gray-600 text-xs font-black uppercase tracking-[0.22em] mb-5">Desktop and mobile</p>
-            <h2 className="text-4xl md:text-5xl font-black leading-tight mb-10">
+            <h2 className="text-4xl md:text-5xl font-black leading-tight mb-10 text-black">
               Manage your<br />business with ease
             </h2>
             <div className="space-y-8 mb-10">
@@ -616,21 +616,21 @@ export default function Home() {
                 <motion.div key={i} {...fadeUp(0.12 + i * 0.08)} className="flex gap-5">
                   <div className="mt-1 w-0.5 flex-shrink-0 rounded-full bg-gradient-to-b from-[#DC2626] to-transparent" style={{ minHeight: '56px' }} />
                   <div>
-                    <h3 className="text-white font-black text-base mb-1.5">{pt.heading}</h3>
-                    <p className="text-gray-500 text-sm font-medium leading-relaxed">{pt.desc}</p>
+                    <h3 className="text-black font-black text-base mb-1.5">{pt.heading}</h3>
+                    <p className="text-gray-600 text-sm font-medium leading-relaxed">{pt.desc}</p>
                   </div>
                 </motion.div>
               ))}
             </div>
-            <div className="border-t border-white/[0.06] pt-8 mb-8">
-              <h3 className="text-white font-black text-base mb-2">Apps for your business needs</h3>
-              <p className="text-gray-500 text-sm font-medium leading-relaxed">
+            <div className="border-t border-gray-200 pt-8 mb-8">
+              <h3 className="text-black font-black text-base mb-2">Apps for your business needs</h3>
+              <p className="text-gray-600 text-sm font-medium leading-relaxed">
                 CommerceHub offers all the essentials built in. The CommerceHub App Store has 13,000+ apps for whatever specialised feature you need.
               </p>
             </div>
-            <div className="border-t border-white/[0.06] pt-8">
-              <h3 className="text-white font-black text-base mb-2">By developers, for developers</h3>
-              <p className="text-gray-500 text-sm font-medium leading-relaxed">
+            <div className="border-t border-gray-200 pt-8">
+              <h3 className="text-black font-black text-base mb-2">By developers, for developers</h3>
+              <p className="text-gray-600 text-sm font-medium leading-relaxed">
                 APIs, primitives, and tools empower devs and partners to build the apps, themes, and custom storefronts your business needs.
               </p>
             </div>
@@ -639,22 +639,22 @@ export default function Home() {
       </section>
 
       {/* ══════════════════════════ TRUSTED PLATFORM ══════════════════════════ */}
-      <section className="bg-black py-28 px-6 border-t border-white/[0.06]">
+      <section className="bg-white py-28 px-6 border-t border-gray-200">
         <div className="max-w-7xl mx-auto">
           <motion.p {...fadeUp()} className="text-[#DC2626] text-xs font-black uppercase tracking-[0.25em] mb-4">Proven at every scale</motion.p>
-          <motion.h2 {...fadeUp(0.07)} className="text-4xl md:text-6xl font-black mb-20 leading-[1.0] max-w-xl">
+          <motion.h2 {...fadeUp(0.07)} className="text-4xl md:text-6xl font-black mb-20 leading-[1.0] max-w-xl text-black">
             A trusted platform<br />to build your business
           </motion.h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {trustedStats.map((item, i) => (
               <motion.div key={i} {...fadeUp(i * 0.1)}
-                className="border border-white/[0.07] rounded-2xl p-9 hover:border-white/[0.18] transition-colors">
+                className="border border-gray-200 rounded-2xl p-9 hover:border-gray-300 transition-colors bg-white shadow-lg">
                 <p className="text-[#DC2626] text-[10px] font-black uppercase tracking-[0.22em] mb-2">{item.label}</p>
-                <p className="text-white font-black leading-none text-[4.5rem] mb-1">{item.stat}</p>
+                <p className="text-black font-black leading-none text-[4.5rem] mb-1">{item.stat}</p>
                 {item.extra && (
                   <div className="mt-7">
                     <p className="text-[#DC2626] text-[10px] font-black uppercase tracking-[0.22em] mb-1">{item.extraLabel}</p>
-                    <p className="text-white font-black text-4xl leading-none">{item.extra}</p>
+                    <p className="text-black font-black text-4xl leading-none">{item.extra}</p>
                   </div>
                 )}
                 {item.speedBar && (
@@ -873,31 +873,31 @@ export default function Home() {
       </section>
 
       {/* ══════════════════════════ EASY TO START ══════════════════════════ */}
-      <section className="bg-[#070707] py-28 px-6 border-t border-white/[0.06]">
+      <section className="bg-gray-50 py-28 px-6 border-t border-gray-200">
         <div className="max-w-7xl mx-auto">
           <motion.p {...fadeUp()} className="text-gray-600 text-xs font-black uppercase tracking-[0.22em] mb-4">Get started in minutes</motion.p>
-          <motion.h2 {...fadeUp(0.07)} className="text-4xl md:text-5xl font-black mb-16 leading-tight">
+          <motion.h2 {...fadeUp(0.07)} className="text-4xl md:text-5xl font-black mb-16 leading-tight text-black">
             It&apos;s easy to start selling
           </motion.h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-14">
             {steps.map((s, i) => (
               <motion.div key={i} {...fadeUp(i * 0.09)}
-                className="group border border-white/[0.07] rounded-2xl overflow-hidden hover:border-white/[0.18] transition-all duration-300">
-                <div className="aspect-[16/9] overflow-hidden bg-[#080808]">
+                className="group border border-gray-200 rounded-2xl overflow-hidden hover:border-gray-300 transition-all duration-300 shadow-lg bg-white">
+                <div className="aspect-[16/9] overflow-hidden bg-gray-100">
                   <img src={s.img} alt={s.title} loading="lazy"
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
                 </div>
-                <div className="p-7">
+                <div className="p-7 bg-white">
                   <p className="text-[#DC2626] font-black text-xs tracking-[0.22em] uppercase mb-3">{s.num}</p>
-                  <h3 className="text-white font-black text-xl mb-3 leading-tight">{s.title}</h3>
-                  <p className="text-gray-500 text-sm font-medium leading-relaxed">{s.desc}</p>
+                  <h3 className="text-black font-black text-xl mb-3 leading-tight">{s.title}</h3>
+                  <p className="text-gray-600 text-sm font-medium leading-relaxed">{s.desc}</p>
                 </div>
               </motion.div>
             ))}
           </div>
           <motion.div {...fadeUp(0.25)}>
             <button onClick={() => navigate('/register')}
-              className="inline-flex items-center gap-2 px-8 py-4 bg-white text-black font-black rounded-xl text-sm hover:bg-gray-100 transition-all shadow-xl shadow-white/10">
+              className="inline-flex items-center gap-2 px-8 py-4 bg-red-500 text-white font-black rounded-xl text-sm hover:bg-red-600 transition-all shadow-xl">
               Get started today <ArrowRightIcon className="w-4 h-4" />
             </button>
           </motion.div>
@@ -905,16 +905,16 @@ export default function Home() {
       </section>
 
       {/* ══════════════════════════ DEVELOPER TERMINAL ══════════════════════════ */}
-      <section className="bg-[#070707] py-28 px-6 border-t border-white/[0.06]">
+      <section className="bg-white py-28 px-6 border-t border-gray-200">
         <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
 
           {/* Left — heading & copy */}
           <motion.div {...fadeUp()}>
             <p className="text-gray-600 text-xs font-black uppercase tracking-[0.25em] mb-5">For developers</p>
-            <h2 className="text-4xl md:text-5xl font-black leading-tight mb-7 text-white">
+            <h2 className="text-4xl md:text-5xl font-black leading-tight mb-7 text-black">
               There&apos;s no better<br />place for you to build
             </h2>
-            <p className="text-gray-400 text-base font-medium leading-relaxed mb-10">
+            <p className="text-gray-600 text-base font-medium leading-relaxed mb-10">
               Build apps, themes, and custom storefronts on CommerceHub. Access powerful APIs,
               primitives, and tools to create exactly what your business needs — with 13,000+ partners
               already building on the platform.
@@ -1024,7 +1024,7 @@ export default function Home() {
         <div className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[400px] bg-[#DC2626]/10 rounded-full blur-[120px]" />
 
         <div className="relative z-10 max-w-3xl mx-auto">
-          <motion.h2 {...fadeUp()} className="text-5xl md:text-7xl font-black mb-6 leading-[0.92] tracking-tight">
+          <motion.h2 {...fadeUp()} className="text-white text-5xl md:text-7xl font-black mb-6 leading-[0.92] tracking-tight">
             Be the next<br />big thing.
           </motion.h2>
           <motion.p {...fadeUp(0.09)} className="text-gray-400 text-xl font-medium mb-10">

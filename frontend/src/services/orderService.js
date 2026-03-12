@@ -34,5 +34,11 @@ export const orderService = {
   cancelOrder: async (id) => {
     const response = await api.put(`/orders/${id}/cancel`);
     return response.data;
-  }
+  },
+
+  // Public endpoint — records a WhatsApp catalog order without requiring auth
+  createWhatsAppOrder: async (data) => {
+    const response = await api.post('/orders/whatsapp', data);
+    return response.data;
+  },
 };

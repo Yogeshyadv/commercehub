@@ -1,12 +1,19 @@
 import React, { useState } from 'react';
-import { X, Globe, Lock, Link as LinkIcon, Smartphone, CheckCircle2, Loader2 } from 'lucide-react';
+import { X, Globe, Lock, Link as LinkIcon, Smartphone, CheckCircle2, Loader2, QrCode, Download, Calendar } from 'lucide-react';
 import { catalogService } from '../../../services/catalogService';
 import toast from 'react-hot-toast';
 
 export default function PublishModal({ isOpen = true, onClose, catalog, onPublished }) {
-  const [visibility, setVisibility] = useState('public');
+  const [visibility, setVisibility] = useState(
+    catalog?.sharing?.password ? 'password' : 'public'
+  );
+  const [password, setPassword] = useState(catalog?.sharing?.password || '');
+  const [expiresAt, setExpiresAt] = useState(
+    catalog?.sharing?.expiresAt ? catalog.sharing.expiresAt.slice(0, 10) : ''
+  );
   const [copied, setCopied] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [showQR, setShowQR] = useState(false);
 
   if (!isOpen) return null;
 
@@ -33,7 +40,9 @@ export default function PublishModal({ isOpen = true, onClose, catalog, onPublis
     try {
       await catalogService.updateCatalog(catalog._id, {
         status: 'published',
-        'sharing.isPublic': visibility === 'public',
+        'sharing.isPublic': visibility === 'public' || visibility === 'password',
+        'sharing.password': visibility === 'password' ? password : '',
+        'sharing.expiresAt': expiresAt ? new Date(expiresAt) : null,
       });
       toast.success('Catalog is now live!');
       if (onPublished) onPublished();
@@ -86,12 +95,60 @@ export default function PublishModal({ isOpen = true, onClose, catalog, onPublis
                   <div className="flex items-center gap-2 font-bold text-sm text-gray-900"><Lock className="w-4 h-4 text-gray-500"/> Password Protected</div>
                   <p className="text-xs text-gray-500 mt-1 mb-3">Only visitors with the password can access.</p>
                   {visibility === 'password' && (
-                    <input type="text" placeholder="Enter password..." className="w-full text-sm border border-gray-300 rounded px-3 py-2 outline-none focus:border-[#008060]" />
+                    <input
+                      type="text"
+                      value={password}
+                      onChange={e => setPassword(e.target.value)}
+                      placeholder="Enter password..."
+                      className="w-full text-sm border border-gray-300 rounded px-3 py-2 outline-none focus:border-[#008060]"
+                    />
                   )}
                 </div>
               </label>
             </div>
           </div>
+
+          {/* Expiry Date */}
+          <div>
+            <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2"><Calendar className="w-4 h-4 text-gray-500" /> Link Expiry Date</label>
+            <input
+              type="date"
+              value={expiresAt}
+              min={new Date().toISOString().slice(0, 10)}
+              onChange={e => setExpiresAt(e.target.value)}
+              className="w-full text-sm border border-gray-300 rounded px-3 py-2 outline-none focus:border-[#008060]"
+            />
+            <p className="text-xs text-gray-500 mt-1">Leave empty for no expiry.</p>
+          </div>
+
+          {/* QR Code */}
+          {catalog?.sharing?.qrCode && (
+            <div>
+              <button
+                type="button"
+                onClick={() => setShowQR(v => !v)}
+                className="flex items-center gap-2 text-sm font-bold text-gray-700 hover:text-[#008060] transition-colors"
+              >
+                <QrCode className="w-4 h-4" /> {showQR ? 'Hide QR Code' : 'Show QR Code'}
+              </button>
+              {showQR && (
+                <div className="mt-3 flex flex-col items-center gap-2">
+                  <img
+                    src={catalog.sharing.qrCode}
+                    alt="Catalog QR Code"
+                    className="w-40 h-40 rounded-xl border border-gray-200 shadow"
+                  />
+                  <a
+                    href={catalog.sharing.qrCode}
+                    download={`${catalog.name || 'catalog'}-qr.png`}
+                    className="flex items-center gap-1 text-xs text-blue-600 hover:underline"
+                  >
+                    <Download className="w-3 h-3" /> Download QR
+                  </a>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Share Block Preview */}
           <div className="bg-gray-50 rounded-xl p-4 border border-gray-200 flex items-center justify-between gap-4">
@@ -103,7 +160,7 @@ export default function PublishModal({ isOpen = true, onClose, catalog, onPublis
                <button onClick={copyLink} className="p-2 bg-white border border-gray-200 shadow-sm rounded-lg hover:bg-gray-100 text-gray-600 transition-colors" title="Copy Link">
                  {copied ? <CheckCircle2 className="w-5 h-5 text-red-600" /> : <LinkIcon className="w-5 h-5" />}
                </button>
-               <button onClick={shareOnWhatsApp} className="p-2 bg-[#DC2626] shadow-sm rounded-lg hover:bg-[#1ebd5d] text-white transition-colors" title="Share on WhatsApp">
+               <button onClick={shareOnWhatsApp} className="p-2 bg-[#25D366] shadow-sm rounded-lg hover:bg-[#1ebd5d] text-white transition-colors" title="Share on WhatsApp">
                  <Smartphone className="w-5 h-5" />
                </button>
             </div>

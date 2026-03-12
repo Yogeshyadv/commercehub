@@ -223,3 +223,26 @@ exports.deleteCustomer = async (req, res, next) => {
     next(err);
   }
 };
+
+// @desc    Bulk update customer group
+// @route   PATCH /api/v1/customers/bulk-group
+// @access  Private (Vendor/Staff)
+exports.bulkUpdateGroup = async (req, res, next) => {
+  try {
+    const { customerIds, group } = req.body;
+    const validGroups = ['regular', 'vip', 'wholesale', 'new'];
+    if (!Array.isArray(customerIds) || customerIds.length === 0) {
+      return res.status(400).json({ success: false, message: 'customerIds array is required' });
+    }
+    if (!validGroups.includes(group)) {
+      return res.status(400).json({ success: false, message: `group must be one of: ${validGroups.join(', ')}` });
+    }
+    const result = await Customer.updateMany(
+      { _id: { $in: customerIds }, tenant: req.tenantId },
+      { $set: { group } }
+    );
+    res.status(200).json({ success: true, message: `Updated ${result.modifiedCount} customer(s) to group "${group}"`, modifiedCount: result.modifiedCount });
+  } catch (err) {
+    next(err);
+  }
+};

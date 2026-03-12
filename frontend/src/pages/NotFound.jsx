@@ -3,7 +3,7 @@ import { ArrowLeft, Home, Search } from 'lucide-react';
 
 export default function NotFound() {
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-white dark:bg-[#09090b] p-6 text-center animate-in fade-in duration-700">
+    <div className="flex flex-col items-center justify-center min-h-screen bg-white dark:bg-[#000000] p-6 text-center animate-in fade-in duration-700">
       {/* Decorative gradient blur */}
       <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-96 h-96 bg-gradient-to-br from-[#DC2626]/20 to-blue-500/20 rounded-full blur-3xl pointer-events-none" />
 

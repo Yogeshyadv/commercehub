@@ -51,7 +51,7 @@ import LiveAnalyticsPage from './pages/LiveAnalyticsPage';
 import CustomersPage from './pages/CustomersPage';
 import Products from './pages/Products';
 import ProductForm from './pages/ProductForm';
-
+import AuditLog from './pages/AuditLog';
 import Orders from './pages/Orders';
 import Inventory from './pages/Inventory';
 import Customers from './pages/Customers';
@@ -62,6 +62,7 @@ import Loader from './components/common/Loader';
 import CatalogPublic from './pages/CatalogPublic';
 import Store from './pages/Store';
 import ProductDetail from './pages/ProductDetail';
+import VendorProductDetail from './pages/VendorProductDetail';
 import CatalogDetail from './pages/CatalogDetail';
 import ThemeEditor from './pages/ThemeEditor';
 import Cart from './pages/Cart';
@@ -145,9 +146,11 @@ function AppRoutes() {
         <Route path="products" element={<VendorOnly><Products /></VendorOnly>} />
         <Route path="products/new" element={<VendorOnly><ProductForm /></VendorOnly>} />
         <Route path="products/edit/:id" element={<VendorOnly><ProductForm /></VendorOnly>} />
+        <Route path="products/:id" element={<VendorOnly><VendorProductDetail /></VendorOnly>} />
+        <Route path="audit-log" element={<VendorOnly><AuditLog /></VendorOnly>} />
         <Route path="catalogs" element={<CatalogueList />} />
-        <Route path="catalogues/templates" element={<TemplateSelect />} />
-        <Route path="catalogues/:id/edit" element={<CatalogueEditor />} />
+        <Route path="catalogs/templates" element={<TemplateSelect />} />
+        <Route path="catalogs/:id/edit" element={<CatalogueEditor />} />
         <Route path="catalogs/:id" element={<CatalogDetail />} />
         <Route path="orders" element={<Orders />} />
         <Route path="inventory" element={<VendorOnly><Inventory /></VendorOnly>} />

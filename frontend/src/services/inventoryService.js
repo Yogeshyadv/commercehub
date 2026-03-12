@@ -1,6 +1,11 @@
 import api from './api';
 
 export const inventoryService = {
+  getAllInventory: async (params = {}) => {
+    const response = await api.get('/inventory', { params });
+    return response.data;
+  },
+
   getProductInventory: async (productId) => {
     const response = await api.get(`/inventory/product/${productId}`);
     return response.data;

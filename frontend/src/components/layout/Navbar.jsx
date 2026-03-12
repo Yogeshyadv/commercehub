@@ -1,10 +1,11 @@
-﻿import { Menu, Search, Settings, LogOut, Sun, Moon, ChevronDown, HelpCircle, X } from 'lucide-react';
+import { Menu, Search, Settings, LogOut, Sun, Moon, ChevronDown, HelpCircle, X } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 import { generateInitials } from '../../utils/formatters';
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import Notifications from '../common/Notifications';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const PAGE_TITLES = {
   '/dashboard':          'Home',
@@ -20,52 +21,29 @@ const PAGE_TITLES = {
   '/store':               'Store',
 };
 
-/* ── Command-K searchbar ────────────────────────────────────── */
-function SearchBar() {
-  const [focused, setFocused] = useState(false);
-  const inputRef = useRef(null);
-
-  useEffect(() => {
-    const handler = (e) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
-        e.preventDefault();
-        inputRef.current?.focus();
-      }
-    };
-    window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
-  }, []);
-
+/* -- Command palette trigger ---------------------------------- */
+function CmdTrigger({ onOpen }) {
   return (
-    <div className={`relative flex items-center transition-all duration-200
-      ${focused ? 'w-80' : 'w-60 md:w-72'}`}>
-      <Search className={`absolute left-3 w-4 h-4 pointer-events-none transition-colors
-        ${focused ? 'text-[#DC2626]' : 'text-gray-400 dark:text-[#7070a0]'}`} />
-      <input
-        ref={inputRef}
-        type="text"
-        placeholder="Search..."
-        onFocus={() => setFocused(true)}
-        onBlur={() => setFocused(false)}
-        className="w-full pl-9 pr-16 py-2
-          bg-[#f6f6f7] dark:bg-white/[0.05]
-          border border-[#e1e3e5] dark:border-white/[0.08]
-          rounded-lg text-sm text-gray-700 dark:text-gray-200
-          placeholder-gray-400 dark:placeholder-[#7070a0]
-          focus:outline-none focus:border-[#DC2626]/40 focus:ring-2 focus:ring-[#DC2626]/10
-          focus:bg-white dark:focus:bg-white/[0.08]
-          transition-all"
-      />
-      <kbd className={`absolute right-3 flex items-center gap-0.5 text-[10px] font-semibold pointer-events-none transition-opacity
-        ${focused ? 'opacity-0' : 'opacity-100'}
-        border border-gray-200 dark:border-white/[0.1] text-gray-400 dark:text-[#6060a0] rounded px-1.5 py-0.5`}>
-        ⌘K
-      </kbd>
-    </div>
+    <button
+      onClick={onOpen}
+      className="flex items-center gap-2 pl-3 pr-2.5 py-2
+        bg-[#f6f6f7] dark:bg-white/[0.05]
+        border border-[#e1e3e5] dark:border-white/[0.08]
+        rounded-lg text-sm text-gray-400 dark:text-[#7070a0]
+        hover:border-gray-300 dark:hover:border-white/[0.14]
+        hover:bg-white dark:hover:bg-white/[0.08]
+        transition-all w-56 md:w-64"
+    >
+      <Search className="w-3.5 h-3.5 shrink-0" />
+      <span className="flex-1 text-left text-[13px]">Search...</span>
+      <kbd className="flex items-center gap-0.5 text-[10px] font-semibold
+        border border-gray-200 dark:border-white/[0.1]
+        text-gray-400 dark:text-[#6060a0] rounded px-1.5 py-0.5">?K</kbd>
+    </button>
   );
 }
 
-/* ── Profile dropdown ────────────────────────────────────────── */
+/* -- Profile dropdown ------------------------------------------ */
 function ProfileMenu({ user, logout, navigate }) {
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
@@ -95,7 +73,7 @@ function ProfileMenu({ user, logout, navigate }) {
 
       {open && (
         <div className="absolute right-0 mt-2 w-56
-          bg-white dark:bg-[#1e1e2c]
+          bg-white dark:bg-[#111111]
           border border-[#e1e3e5] dark:border-white/[0.08]
           rounded-xl shadow-xl shadow-black/10 dark:shadow-black/50
           py-1.5 z-50 origin-top-right
@@ -127,10 +105,10 @@ function ProfileMenu({ user, logout, navigate }) {
   );
 }
 
-/* ═══════════════════════════════════════════════════════════════
+/* ---------------------------------------------------------------
    NAVBAR
-═══════════════════════════════════════════════════════════════ */
-export default function Navbar({ onMenuClick }) {
+--------------------------------------------------------------- */
+export default function Navbar({ onMenuClick, onCmdOpen }) {
   const { user, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const navigate   = useNavigate();
@@ -140,7 +118,7 @@ export default function Navbar({ onMenuClick }) {
 
   return (
     <header className="sticky top-0 z-30 h-[60px] min-h-[60px] px-4 lg:px-6
-      bg-white dark:bg-[#13131f]
+      bg-white dark:bg-[#0a0a0a]
       border-b border-[#e1e3e5] dark:border-white/[0.07]
       flex items-center justify-between gap-4
       shadow-[0_1px_0_rgba(26,26,26,0.06)] dark:shadow-[0_1px_0_rgba(0,0,0,0.3)]
@@ -155,9 +133,9 @@ export default function Navbar({ onMenuClick }) {
           <Menu className="w-5 h-5" />
         </button>
 
-        {/* Search (hidden on small screens, shown md+) */}
+        {/* Command palette trigger (hidden on small screens, shown md+) */}
         <div className="hidden md:block">
-          <SearchBar />
+          <CmdTrigger onOpen={onCmdOpen} />
         </div>
 
         {/* Mobile: page title */}
@@ -168,15 +146,24 @@ export default function Navbar({ onMenuClick }) {
       <div className="flex items-center gap-1">
 
         {/* Theme toggle */}
-        <button
+        <motion.button
+          whileTap={{ scale: 0.88, rotate: 15 }}
           onClick={toggleTheme}
           title={theme === 'dark' ? 'Light mode' : 'Dark mode'}
-          className="p-2 rounded-lg text-gray-500 dark:text-[#9898b8] hover:bg-gray-100 dark:hover:bg-white/[0.06] hover:text-gray-900 dark:hover:text-white transition-all"
+          className="p-2 rounded-lg text-gray-500 dark:text-[#9898b8] hover:bg-gray-100 dark:hover:bg-white/[0.06] hover:text-gray-900 dark:hover:text-white transition-all overflow-hidden"
         >
-          {theme === 'dark'
-            ? <Sun className="w-[18px] h-[18px]" />
-            : <Moon className="w-[18px] h-[18px]" />}
-        </button>
+          <AnimatePresence mode="wait" initial={false}>
+            {theme === 'dark' ? (
+              <motion.div key="sun" initial={{ rotate: -90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: 90, opacity: 0 }} transition={{ duration: 0.2 }}>
+                <Sun className="w-[18px] h-[18px]" />
+              </motion.div>
+            ) : (
+              <motion.div key="moon" initial={{ rotate: 90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: -90, opacity: 0 }} transition={{ duration: 0.2 }}>
+                <Moon className="w-[18px] h-[18px]" />
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </motion.button>
 
         {/* Help */}
         <button

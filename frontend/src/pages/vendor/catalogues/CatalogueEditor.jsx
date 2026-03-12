@@ -14,15 +14,15 @@ import { CatalogCanvas, getTheme } from '../../../components/catalog/CatalogThem
 function SidebarSection({ title, icon, children, defaultOpen = true }) {
   const [open, setOpen] = useState(defaultOpen);
   return (
-    <div className="border border-gray-200 rounded-xl overflow-hidden bg-white">
+    <div className="border border-gray-200 dark:border-white/[0.08] rounded-xl overflow-hidden bg-white dark:bg-[#0d0d0d]">
       <button
-        className="w-full flex items-center justify-between px-4 py-3 text-sm font-semibold text-gray-800 bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer"
+        className="w-full flex items-center justify-between px-4 py-3 text-sm font-semibold text-gray-800 dark:text-gray-200 bg-gray-50 dark:bg-white/[0.02] hover:bg-gray-100 dark:hover:bg-white/[0.05] transition-colors cursor-pointer"
         onClick={() => setOpen(o => !o)}
       >
         <span className="flex items-center gap-2">{icon}{title}</span>
         {open ? <ChevronDown className="w-4 h-4 text-gray-400" /> : <ChevronRight className="w-4 h-4 text-gray-400" />}
       </button>
-      {open && <div className="p-4 space-y-3">{children}</div>}
+      {open && <div className="p-4 space-y-3 bg-white dark:bg-[#0d0d0d]">{children}</div>}
     </div>
   );
 }
@@ -30,10 +30,10 @@ function SidebarSection({ title, icon, children, defaultOpen = true }) {
 function ColorRow({ label, value, onChange }) {
   return (
     <div className="flex items-center justify-between gap-3">
-      <span className="text-xs text-gray-600 flex-1">{label}</span>
+      <span className="text-xs text-gray-600 dark:text-gray-400 flex-1">{label}</span>
       <div className="flex items-center gap-2">
         <div
-          className="w-6 h-6 rounded border border-gray-300 cursor-pointer shadow-inner"
+          className="w-6 h-6 rounded border border-gray-300 dark:border-gray-600 cursor-pointer shadow-inner"
           style={{ background: value }}
           onClick={() => document.getElementById('cp-' + label)?.click()}
         />
@@ -48,7 +48,7 @@ function ColorRow({ label, value, onChange }) {
           type="text"
           value={value || ''}
           onChange={e => onChange(e.target.value)}
-          className="w-20 text-xs border border-gray-200 rounded px-2 py-1 font-mono focus:outline-none focus:ring-1 focus:ring-[#008060]"
+          className="w-20 text-xs bg-transparent dark:text-white border border-gray-200 dark:border-white/[0.08] rounded px-2 py-1 font-mono focus:outline-none focus:ring-1 focus:ring-[#008060]"
         />
       </div>
     </div>
@@ -250,10 +250,10 @@ export default function CatalogueEditor() {
 
   if (loading) {
     return (
-      <div className="fixed inset-0 bg-[#f4f6f8] flex items-center justify-center z-[100]">
+      <div className="fixed inset-0 bg-[#f4f6f8] dark:bg-[#000000] flex items-center justify-center z-[100]">
         <div className="flex flex-col items-center gap-4">
           <Loader2 className="w-10 h-10 animate-spin text-[#008060]" />
-          <span className="text-gray-500 font-medium">Loading editor...</span>
+          <span className="text-gray-500 dark:text-gray-400 font-medium">Loading editor...</span>
         </div>
       </div>
     );
@@ -264,15 +264,15 @@ export default function CatalogueEditor() {
   const templateLabel = theme.name || catalog.template;
 
   return (
-    <div className="flex h-screen bg-[#eceff1] overflow-hidden fixed inset-0 z-[100]" style={{ fontFamily: 'Inter, system-ui, sans-serif' }}>
+    <div className="flex h-screen bg-[#eceff1] dark:bg-[#000000] overflow-hidden fixed inset-0 z-[100]" style={{ fontFamily: 'Inter, system-ui, sans-serif' }}>
 
       {/* ------------------ SIDEBAR ------------------*/}
-      <aside className="w-[320px] bg-white border-r border-gray-200 flex flex-col shadow-sm z-10 flex-shrink-0">
+      <aside className="w-[320px] bg-white dark:bg-[#0d0d0d] border-r border-gray-200 dark:border-white/[0.08] flex flex-col shadow-sm z-10 flex-shrink-0">
 
         {/* Sidebar Top Bar */}
-        <div className="h-14 px-4 border-b border-gray-200 flex items-center justify-between bg-white flex-shrink-0">
+        <div className="h-14 px-4 border-b border-gray-200 dark:border-white/[0.08] flex items-center justify-between bg-white dark:bg-[#0d0d0d] flex-shrink-0">
           <button
-            className="flex items-center gap-2 text-gray-500 hover:text-gray-800 transition-colors cursor-pointer"
+            className="flex items-center gap-2 text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-white transition-colors cursor-pointer"
             onClick={() => navigate('/dashboard/catalogs')}
           >
             <ArrowLeft className="w-4 h-4" />
@@ -280,14 +280,14 @@ export default function CatalogueEditor() {
           </button>
 
           {/* Template badge */}
-          <div className="flex items-center gap-1.5 bg-gray-100 rounded-full px-3 py-1">
+          <div className="flex items-center gap-1.5 bg-gray-100 dark:bg-white/[0.05] rounded-full px-3 py-1">
             <LayoutTemplate className="w-3 h-3 text-[#008060]" />
-            <span className="text-[11px] font-semibold text-gray-600">{templateLabel}</span>
+            <span className="text-[11px] font-semibold text-gray-600 dark:text-gray-400">{templateLabel}</span>
           </div>
         </div>
 
         {/* Catalog name */}
-        <div className="px-4 py-3 border-b border-gray-100 flex-shrink-0">
+        <div className="px-4 py-3 border-b border-gray-100 dark:border-white/[0.05] flex-shrink-0">
           {editingName ? (
             <div className="flex items-center gap-2">
               <input
@@ -296,17 +296,17 @@ export default function CatalogueEditor() {
                 value={tempName}
                 onChange={e => setTempName(e.target.value)}
                 onKeyDown={e => { if (e.key === 'Enter') commitName(); if (e.key === 'Escape') setEditingName(false); }}
-                className="flex-1 text-sm font-semibold border border-[#008060] rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#008060]/20"
+                className="flex-1 text-sm font-semibold border border-[#008060] rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#008060]/20 bg-white dark:bg-white/[0.03] text-gray-900 dark:text-white"
               />
-              <button onClick={commitName} className="p-1.5 text-[#008060] hover:bg-red-50 rounded-lg cursor-pointer"><Check className="w-4 h-4" /></button>
-              <button onClick={() => setEditingName(false)} className="p-1.5 text-gray-400 hover:bg-gray-50 rounded-lg cursor-pointer"><X className="w-4 h-4" /></button>
+              <button onClick={commitName} className="p-1.5 text-[#008060] hover:bg-gray-50 dark:hover:bg-white/[0.05] rounded-lg cursor-pointer"><Check className="w-4 h-4" /></button>
+              <button onClick={() => setEditingName(false)} className="p-1.5 text-gray-400 hover:bg-gray-50 dark:hover:bg-white/[0.05] rounded-lg cursor-pointer"><X className="w-4 h-4" /></button>
             </div>
           ) : (
             <button
               className="flex items-center gap-2 w-full group cursor-pointer"
               onClick={() => setEditingName(true)}
             >
-              <span className="text-sm font-semibold text-gray-800 flex-1 text-left truncate">{catalog.name}</span>
+              <span className="text-sm font-semibold text-gray-800 dark:text-gray-200 flex-1 text-left truncate">{catalog.name}</span>
               <Pencil className="w-3.5 h-3.5 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity" />
             </button>
           )}
@@ -327,12 +327,12 @@ export default function CatalogueEditor() {
         </div>
 
         {/* Tabs */}
-        <div className="flex border-b border-gray-200 flex-shrink-0">
+        <div className="flex border-b border-gray-200 dark:border-white/[0.08] flex-shrink-0">
           {[['sections', <Layers className="w-3.5 h-3.5" />, 'Sections'], ['theme', <Palette className="w-3.5 h-3.5" />, 'Theme'], ['text', <Type className="w-3.5 h-3.5" />, 'Text'], ['products', <Package className="w-3.5 h-3.5" />, 'Products']].map(([key, icon, label]) => (
             <button
               key={key}
               onClick={() => setSidebarTab(key)}
-              className={`flex-1 py-2.5 flex items-center justify-center gap-1.5 text-[11px] font-bold uppercase tracking-wide cursor-pointer transition-colors ${sidebarTab === key ? 'text-[#008060] border-b-2 border-[#008060]' : 'text-gray-400 hover:text-gray-600'}`}
+              className={`flex-1 py-2.5 flex items-center justify-center gap-1.5 text-[11px] font-bold uppercase tracking-wide cursor-pointer transition-colors ${sidebarTab === key ? 'text-[#008060] border-b-2 border-[#008060]' : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300'}`}
             >
               {icon}{label}
             </button>
@@ -345,25 +345,25 @@ export default function CatalogueEditor() {
           {/* SECTIONS TAB */}
           {sidebarTab === 'sections' && (
             <div className="space-y-2">
-              <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest px-1 mb-2">Click a section to select it on canvas</p>
+              <p className="text-[10px] text-gray-400 dark:text-gray-500 font-bold uppercase tracking-widest px-1 mb-2">Click a section to select it on canvas</p>
               {[
                 { id: 'announcement', icon: <Tag className="w-4 h-4" />, label: 'Announcement Bar', desc: 'Top promo banner' },
                 { id: 'header', icon: <AlignLeft className="w-4 h-4" />, label: 'Header & Nav', desc: 'Logo, nav links, CTA' },
                 { id: 'hero', icon: <Image className="w-4 h-4" />, label: 'Hero Banner', desc: 'Main featured section' },
-                { id: 'products', icon: <Grid className="w-4 h-4" />, label: 'Product Grid', desc: theme.gridCols + ' columns � ' + products.length + ' products' },
+                { id: 'products', icon: <Grid className="w-4 h-4" />, label: 'Product Grid', desc: theme.gridCols + ' columns  ' + products.length + ' products' },
                 { id: 'footer', icon: <Globe className="w-4 h-4" />, label: 'Footer', desc: 'Links, social, branding' },
               ].map(sec => (
                 <button
                   key={sec.id}
                   onClick={() => setActiveSection(activeSection === sec.id ? null : sec.id)}
-                  className={`w-full flex items-center gap-3 p-3 rounded-xl border cursor-pointer text-left transition-all ${activeSection === sec.id ? 'border-[#008060] bg-[#008060]/5 shadow-sm' : 'border-gray-200 bg-white hover:border-gray-300 hover:shadow-sm'}`}
+                  className={`w-full flex items-center gap-3 p-3 rounded-xl border cursor-pointer text-left transition-all ${activeSection === sec.id ? 'border-[#008060] bg-[#008060]/5 dark:bg-[#008060]/10 shadow-sm' : 'border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.02] hover:border-gray-300 dark:hover:border-white/20 hover:shadow-sm'}`}
                 >
-                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${activeSection === sec.id ? 'bg-[#008060] text-white' : 'bg-gray-100 text-gray-500'}`}>
+                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${activeSection === sec.id ? 'bg-[#008060] text-white' : 'bg-gray-100 dark:bg-white/10 text-gray-500 dark:text-gray-400'}`}>
                     {sec.icon}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className={`text-sm font-semibold ${activeSection === sec.id ? 'text-[#008060]' : 'text-gray-800'}`}>{sec.label}</div>
-                    <div className="text-[11px] text-gray-400 truncate">{sec.desc}</div>
+                    <div className={`text-sm font-semibold ${activeSection === sec.id ? 'text-[#008060]' : 'text-gray-800 dark:text-gray-200'}`}>{sec.label}</div>
+                    <div className="text-[11px] text-gray-400 dark:text-gray-500 truncate">{sec.desc}</div>
                   </div>
                   <ChevronRight className={`w-4 h-4 flex-shrink-0 transition-transform ${activeSection === sec.id ? 'rotate-90 text-[#008060]' : 'text-gray-300'}`} />
                 </button>
@@ -389,7 +389,7 @@ export default function CatalogueEditor() {
                   <select
                     value={theme.fontHeading}
                     onChange={e => updateTheme('fontHeading', e.target.value)}
-                    className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#008060]/20"
+                    className="w-full text-sm bg-transparent dark:text-white border border-gray-200 dark:border-white/[0.08] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#008060]/20 dark:bg-[#0d0d0d]"
                   >
                     {['system-ui, sans-serif', 'Georgia, serif', "'Times New Roman', serif", "'Playfair Display', serif", "'Inter', system-ui", "'Montserrat', system-ui", 'monospace'].map(f => (
                       <option key={f} value={f}>{f.split(',')[0].replace(/'/g, '')}</option>
@@ -401,7 +401,7 @@ export default function CatalogueEditor() {
                   <select
                     value={theme.fontBody}
                     onChange={e => updateTheme('fontBody', e.target.value)}
-                    className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#008060]/20"
+                    className="w-full text-sm bg-transparent dark:text-white border border-gray-200 dark:border-white/[0.08] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#008060]/20 dark:bg-[#0d0d0d]"
                   >
                     {['system-ui, sans-serif', 'Georgia, serif', "'Inter', system-ui", "'Roboto', system-ui", 'monospace'].map(f => (
                       <option key={f} value={f}>{f.split(',')[0].replace(/'/g, '')}</option>
@@ -487,7 +487,7 @@ export default function CatalogueEditor() {
                     value={catalog.description || ''}
                     onChange={e => updateCatalog('description', e.target.value)}
                     rows={3}
-                    className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#008060]/20 resize-none"
+                    className="w-full text-sm bg-transparent dark:text-white border border-gray-200 dark:border-white/[0.08] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#008060]/20 resize-none placeholder-gray-400 dark:placeholder-gray-600"
                     placeholder="Write a short description..."
                   />
                 </div>
@@ -516,8 +516,8 @@ export default function CatalogueEditor() {
                   {catalog.sharing?.shareableLink && (
                     <>
                       <label className="text-xs text-gray-500 font-semibold">Public Link</label>
-                      <div className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2">
-                        <span className="text-xs text-gray-600 flex-1 truncate font-mono">
+                      <div className="flex items-center gap-2 bg-gray-50 dark:bg-white/[0.02] border border-gray-200 dark:border-white/[0.08] rounded-lg px-3 py-2">
+                        <span className="text-xs text-gray-600 dark:text-gray-300 flex-1 truncate font-mono">
                           {window.location.origin + '/catalog/' + catalog.sharing.shareableLink}
                         </span>
                         <button
@@ -540,7 +540,7 @@ export default function CatalogueEditor() {
                       value={texts.whatsappPhone}
                       onChange={e => updateText('whatsappPhone', e.target.value)}
                       placeholder="e.g. +919876543210"
-                      className="w-full text-xs border border-gray-200 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-[#DC2626]/40 focus:border-[#DC2626]"
+                      className="w-full text-xs border border-gray-200 dark:border-white/[0.08] rounded-lg px-3 py-2 bg-white dark:bg-[#0d0d0d] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#DC2626]/40 focus:border-[#DC2626] placeholder-gray-400 dark:placeholder-gray-600"
                     />
                     <p className="text-[10px] text-gray-400 mt-1">Customers will send their cart orders to this number via WhatsApp.</p>
                   </div>
@@ -570,7 +570,7 @@ export default function CatalogueEditor() {
                     placeholder="Search products..."
                     value={productSearch}
                     onChange={e => setProductSearch(e.target.value)}
-                    className="w-full text-xs border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-[#008060]"
+                    className="w-full text-xs border border-gray-200 dark:border-white/[0.08] rounded-lg px-3 py-2 bg-transparent dark:text-white focus:outline-none focus:ring-1 focus:ring-[#008060] placeholder-gray-400 dark:placeholder-gray-600"
                   />
                   <div className="max-h-48 overflow-y-auto space-y-1">
                     {filteredAllProducts.length === 0 ? (
@@ -590,7 +590,7 @@ export default function CatalogueEditor() {
                           }
                         </div>
                         <div className="flex-1 min-w-0">
-                          <div className="text-xs font-semibold text-gray-800 truncate">{p.name}</div>
+                          <div className="text-xs font-semibold text-gray-800 dark:text-gray-200 truncate">{p.name}</div>
                           <div className="text-[10px] text-gray-400">?{p.price?.toLocaleString('en-IN')}</div>
                         </div>
                       </label>
@@ -649,7 +649,7 @@ export default function CatalogueEditor() {
                     value={texts.announcement}
                     onChange={e => updateText('announcement', e.target.value)}
                     rows={2}
-                    className="w-full text-xs border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#008060]/20 resize-none"
+                    className="w-full text-xs bg-transparent dark:text-white border border-gray-200 dark:border-white/[0.08] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#008060]/20 resize-none placeholder-gray-400 dark:placeholder-gray-600"
                   />
                 </div>
               </SidebarSection>
@@ -661,7 +661,7 @@ export default function CatalogueEditor() {
                     type="text"
                     value={texts.headerCta}
                     onChange={e => updateText('headerCta', e.target.value)}
-                    className="w-full text-xs border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#008060]/20"
+                    className="w-full text-xs bg-transparent dark:text-white border border-gray-200 dark:border-white/[0.08] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#008060]/20"
                   />
                 </div>
               </SidebarSection>
@@ -673,7 +673,7 @@ export default function CatalogueEditor() {
                     type="text"
                     value={texts.heroBadge}
                     onChange={e => updateText('heroBadge', e.target.value)}
-                    className="w-full text-xs border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#008060]/20"
+                    className="w-full text-xs bg-transparent dark:text-white border border-gray-200 dark:border-white/[0.08] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#008060]/20"
                   />
                 </div>
                 <div>
@@ -683,7 +683,7 @@ export default function CatalogueEditor() {
                     value={texts.heroHeading}
                     onChange={e => updateText('heroHeading', e.target.value)}
                     placeholder={catalog.name}
-                    className="w-full text-xs border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#008060]/20"
+                    className="w-full text-xs bg-transparent dark:text-white border border-gray-200 dark:border-white/[0.08] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#008060]/20 placeholder-gray-400 dark:placeholder-gray-600"
                   />
                 </div>
                 <div>
@@ -692,7 +692,7 @@ export default function CatalogueEditor() {
                     value={texts.heroSubheading}
                     onChange={e => updateText('heroSubheading', e.target.value)}
                     rows={3}
-                    className="w-full text-xs border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#008060]/20 resize-none"
+                    className="w-full text-xs bg-transparent dark:text-white border border-gray-200 dark:border-white/[0.08] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#008060]/20 resize-none placeholder-gray-400 dark:placeholder-gray-600"
                   />
                 </div>
                 <div className="grid grid-cols-2 gap-2">
@@ -702,7 +702,7 @@ export default function CatalogueEditor() {
                       type="text"
                       value={texts.heroPrimaryBtn}
                       onChange={e => updateText('heroPrimaryBtn', e.target.value)}
-                      className="w-full text-xs border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#008060]/20"
+                      className="w-full text-xs bg-transparent dark:text-white border border-gray-200 dark:border-white/[0.08] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#008060]/20"
                     />
                   </div>
                   <div>
@@ -711,7 +711,7 @@ export default function CatalogueEditor() {
                       type="text"
                       value={texts.heroSecondaryBtn}
                       onChange={e => updateText('heroSecondaryBtn', e.target.value)}
-                      className="w-full text-xs border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#008060]/20"
+                      className="w-full text-xs bg-transparent dark:text-white border border-gray-200 dark:border-white/[0.08] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#008060]/20"
                     />
                   </div>
                 </div>
@@ -724,7 +724,7 @@ export default function CatalogueEditor() {
                     type="text"
                     value={texts.productsHeading}
                     onChange={e => updateText('productsHeading', e.target.value)}
-                    className="w-full text-xs border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#008060]/20"
+                    className="w-full text-xs bg-transparent dark:text-white border border-gray-200 dark:border-white/[0.08] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#008060]/20"
                   />
                 </div>
               </SidebarSection>
@@ -736,7 +736,7 @@ export default function CatalogueEditor() {
                     value={texts.footerTagline}
                     onChange={e => updateText('footerTagline', e.target.value)}
                     rows={2}
-                    className="w-full text-xs border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#008060]/20 resize-none"
+                    className="w-full text-xs bg-transparent dark:text-white border border-gray-200 dark:border-white/[0.08] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#008060]/20 resize-none placeholder-gray-400 dark:placeholder-gray-600"
                   />
                 </div>
               </SidebarSection>
@@ -749,14 +749,14 @@ export default function CatalogueEditor() {
       <div className="flex-1 flex flex-col overflow-hidden">
 
         {/* Top Toolbar */}
-        <div className="h-14 bg-white border-b border-gray-200 flex items-center justify-between px-6 flex-shrink-0 shadow-sm">
+        <div className="h-14 bg-white dark:bg-[#0d0d0d] border-b border-gray-200 dark:border-white/[0.08] flex items-center justify-between px-6 flex-shrink-0 shadow-sm transition-colors">
           <div className="flex items-center gap-3">
-            <div className="h-7 w-7 rounded-lg flex items-center justify-center" style={{ background: theme.accent }}>
+            <div className="h-7 w-7 rounded-lg flex items-center justify-center shadow-lg" style={{ background: theme.accent }}>
               <LayoutTemplate className="w-4 h-4 text-white" />
             </div>
             <div>
-              <span className="text-sm font-bold text-gray-800">{catalog.name}</span>
-              <span className="text-xs text-gray-400 ml-2">� {templateLabel}</span>
+              <span className="text-sm font-black text-gray-800 dark:text-gray-200 uppercase tracking-tight">{catalog.name}</span>
+              <span className="text-[10px] font-bold text-gray-400 dark:text-gray-500 ml-2 uppercase tracking-widest opacity-60"> {templateLabel}</span>
             </div>
           </div>
 
@@ -764,7 +764,7 @@ export default function CatalogueEditor() {
             {/* Preview toggle */}
             <button
               onClick={() => setPreviewing(p => !p)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold border cursor-pointer transition-all ${previewing ? 'bg-gray-900 text-white border-gray-900' : 'bg-white text-gray-600 border-gray-200 hover:border-gray-300'}`}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold border transition-all ${previewing ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900 border-gray-900 dark:border-white' : 'bg-white dark:bg-white/[0.05] text-gray-600 dark:text-gray-300 border-gray-200 dark:border-white/[0.08] hover:border-gray-300 dark:hover:border-white/20 hover:bg-gray-50 dark:hover:bg-white/[0.08]'}`}
             >
               {previewing ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               {previewing ? 'Exit Preview' : 'Preview'}
@@ -799,25 +799,25 @@ export default function CatalogueEditor() {
               ) : (
                 <Radio className="w-4 h-4" />
               )}
-              {catalogStatus === 'published' ? 'Published' : 'Publish'}
+              {catalogStatus === 'published' ? 'Live' : 'Go Live'}
             </button>
 
             {/* Save */}
             <button
               onClick={handleSave}
               disabled={saving}
-              className="flex items-center gap-2 px-5 py-2 bg-[#008060] hover:bg-[#006e52] text-white rounded-lg text-sm font-bold shadow cursor-pointer transition-all disabled:opacity-60 disabled:cursor-not-allowed"
+              className="flex items-center gap-2 px-6 py-2 bg-[#dc2626] hover:bg-[#b91c1c] text-white rounded-xl text-sm font-black uppercase tracking-widest shadow-lg shadow-red-500/20 cursor-pointer transition-all disabled:opacity-60 disabled:cursor-not-allowed active:scale-95"
             >
               {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-              {saving ? 'Saving...' : 'Save'}
+              {saving ? 'Syncing...' : 'Save Changes'}
             </button>
           </div>
         </div>
 
         {/* Canvas scroll area */}
-        <div className="flex-1 overflow-auto bg-[#eceff1] py-8 px-12">
+        <div className="flex-1 overflow-auto bg-[#eceff1] dark:bg-[#080808] py-8 px-4 sm:px-12 transition-colors">
           {/* Device frame */}
-          <div className="mx-auto max-w-5xl bg-white shadow-2xl rounded-xl overflow-hidden ring-1 ring-black/10">
+          <div className="mx-auto max-w-5xl bg-white dark:bg-[#0d0d0d] shadow-2xl rounded-[32px] overflow-hidden border border-gray-200 dark:border-white/[0.08] ring-1 ring-black/10 dark:ring-white/5">
             {/* Template canvas */}
             <CatalogCanvas
               catalog={catalog}
@@ -830,7 +830,7 @@ export default function CatalogueEditor() {
           </div>
 
           {/* Bottom padding */}
-          <div className="h-16" />
+          <div className="h-20" />
         </div>
       </div>
     </div>

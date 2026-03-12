@@ -150,7 +150,7 @@ export default function PressMediaPage() {
               <button
                 key={tag}
                 onClick={() => setActiveTag(tag)}
-                className={`px-4 py-2 rounded-full text-xs font-bold transition-all ${activeTag === tag ? 'bg-[#DC2626] text-white' : 'bg-[#0a0a0a] border border-white/[0.08] text-gray-400 hover:border-white/[0.2] hover:text-white'}`}
+                className={`px-4 py-2 rounded-full text-xs font-bold transition-all ${activeTag === tag ? 'bg-[#DC2626] text-white' : 'bg-[#0a0a0a] border border-white/[0.08] text-gray-300 hover:border-white/[0.2] hover:text-white'}`}
               >
                 {tag}
               </button>

@@ -1,4 +1,4 @@
-﻿import { Link } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { ArrowRight, Package } from 'lucide-react';
 import Badge from '../common/Badge';
 import { formatCurrency, formatRelativeTime } from '../../utils/formatters';
@@ -10,7 +10,7 @@ const statusColorMap = {
 
 export default function RecentOrders({ orders = [] }) {
   return (
-    <div className="bg-white dark:bg-[#1f1f30] rounded-xl border border-gray-100 dark:border-white/[0.09] overflow-hidden">
+    <div className="bg-white dark:bg-[#0d0d0d] rounded-xl border border-gray-100 dark:border-white/[0.09] overflow-hidden">
       <div className="px-6 py-4 border-b border-gray-100 dark:border-white/[0.09] flex items-center justify-between">
         <div>
           <h3 className="text-sm font-bold text-gray-900 dark:text-white">Recent orders</h3>

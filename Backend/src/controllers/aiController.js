@@ -1,6 +1,7 @@
 const aiService = require('../services/aiService');
 const Product = require('../models/Product');
 const Order = require('../models/Order');
+const mongoose = require('mongoose');
 
 // @desc    Generate AI product description
 // @route   POST /api/v1/ai/description
@@ -261,5 +262,104 @@ exports.generateCatalog = async (req, res) => {
   } catch (error) {
     console.error('AI Catalog error:', error);
     res.status(500).json({ success: false, message: 'Failed to generate catalog' });
+  }
+};
+
+// @desc    AI chat assistant with live business context
+// @route   POST /api/v1/ai/chat
+exports.chat = async (req, res) => {
+  try {
+    const { messages, context } = req.body;
+    if (!messages || !Array.isArray(messages) || messages.length === 0) {
+      return res.status(400).json({ success: false, message: 'messages array is required' });
+    }
+
+    // ── Gather live business metrics for this vendor's tenant ─────────────
+    let bizContext = '';
+    if (req.tenantId) {
+      try {
+        const tenantId = new mongoose.Types.ObjectId(req.tenantId);
+        const now = new Date();
+        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+        const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+        const endOfLastMonth = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59);
+
+        const [
+          monthStats,
+          lastMonthStats,
+          pendingCount,
+          lowStockItems,
+          topProducts,
+          totalCustomers,
+        ] = await Promise.all([
+          // This month revenue + order count
+          Order.aggregate([
+            { $match: { tenant: tenantId, createdAt: { $gte: startOfMonth }, status: { $nin: ['cancelled', 'refunded'] } } },
+            { $group: { _id: null, revenue: { $sum: '$total' }, orders: { $sum: 1 } } },
+          ]),
+          // Last month revenue + order count
+          Order.aggregate([
+            { $match: { tenant: tenantId, createdAt: { $gte: startOfLastMonth, $lte: endOfLastMonth }, status: { $nin: ['cancelled', 'refunded'] } } },
+            { $group: { _id: null, revenue: { $sum: '$total' }, orders: { $sum: 1 } } },
+          ]),
+          // Pending orders
+          Order.countDocuments({ tenant: tenantId, status: 'pending' }),
+          // Low stock (stock ≤ 10, not out of stock)
+          Product.find({ tenant: tenantId, stock: { $gt: 0, $lte: 10 }, status: 'active' })
+            .select('name stock').limit(10).lean(),
+          // Top 5 products by revenue (this month)
+          Order.aggregate([
+            { $match: { tenant: tenantId, createdAt: { $gte: startOfMonth }, status: { $nin: ['cancelled'] } } },
+            { $unwind: '$items' },
+            { $group: { _id: '$items.product', name: { $first: '$items.name' }, revenue: { $sum: '$items.total' }, qty: { $sum: '$items.quantity' } } },
+            { $sort: { revenue: -1 } },
+            { $limit: 5 },
+          ]),
+          // Total distinct customers
+          Order.distinct('customer', { tenant: tenantId }),
+        ]);
+
+        const thisMonth = monthStats[0] || { revenue: 0, orders: 0 };
+        const lastMonth = lastMonthStats[0] || { revenue: 0, orders: 1 };
+        const revenueGrowth = lastMonth.revenue > 0
+          ? (((thisMonth.revenue - lastMonth.revenue) / lastMonth.revenue) * 100).toFixed(1)
+          : 'N/A';
+
+        const topProductsList = topProducts.map(p => `${p.name} (₹${p.revenue?.toFixed(0)}, ${p.qty} units)`).join('; ') || 'No sales yet';
+        const lowStockList = lowStockItems.map(p => `${p.name} (${p.stock} left)`).join(', ') || 'None';
+
+        bizContext = `
+=== YOUR STORE METRICS (live data) ===
+This month:  ₹${thisMonth.revenue.toFixed(2)} revenue across ${thisMonth.orders} orders
+Last month:  ₹${lastMonth.revenue.toFixed(2)} revenue across ${lastMonth.orders} orders
+Revenue growth: ${revenueGrowth}%
+Pending orders: ${pendingCount}
+Total customers: ${totalCustomers.length}
+Low-stock products: ${lowStockList}
+Top sellers this month: ${topProductsList}
+======================================`;
+      } catch {
+        // Non-fatal — proceed without business context
+      }
+    }
+
+    const systemPrompt = [
+      'You are an intelligent AI business assistant embedded inside a SaaS vendor dashboard called CommerceHub.',
+      'You help vendors manage products, orders, inventory, and analytics.',
+      'Be concise, friendly, and actionable. Use short paragraphs or bullet points. Never make up numbers — only use the live data provided.',
+      bizContext,
+      context?.productName ? `Current product context: ${context.productName}` : '',
+      context?.catalogName ? `Current catalog context: ${context.catalogName}` : '',
+    ].filter(Boolean).join('\n');
+
+    const reply = await aiService.chat([
+      { role: 'system', content: systemPrompt },
+      ...messages.slice(-12), // keep last 12 messages for context
+    ]);
+
+    res.status(200).json({ success: true, data: { reply } });
+  } catch (error) {
+    console.error('AI Chat error:', error);
+    res.status(500).json({ success: false, message: 'Failed to get AI response' });
   }
 };

@@ -145,7 +145,7 @@ export default function SEOToolsPage() {
   const navigate = useNavigate();
 
   return (
-    <div className="bg-black text-white min-h-screen font-sans">
+    <div className="bg-white text-black min-h-screen font-sans">
       <Navbar />
 
       {/* ── HERO ── */}
@@ -233,7 +233,7 @@ export default function SEOToolsPage() {
       </section>
 
       {/* ── FEATURES (alternating) ── */}
-      <section className="py-24 bg-black">
+      <section className="py-24 bg-white">
         <div className="max-w-6xl mx-auto px-6 space-y-20">
           {features.map((f, i) => (
             <motion.div
@@ -288,7 +288,7 @@ export default function SEOToolsPage() {
       </section>
 
       {/* ── CHECKLIST vs DIY ── */}
-      <section className="py-20 bg-black">
+      <section className="py-20 bg-gray-50">
         <div className="max-w-5xl mx-auto px-6">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-black mb-3">CommerceHub vs. DIY SEO</h2>
@@ -345,7 +345,7 @@ export default function SEOToolsPage() {
       </section>
 
       {/* ── TESTIMONIALS ── */}
-      <section className="py-20 bg-black">
+      <section className="py-20 bg-gray-50">
         <div className="max-w-6xl mx-auto px-6">
           <h2 className="text-3xl font-black text-center mb-12">Merchants ranking with CommerceHub</h2>
           <div className="grid md:grid-cols-3 gap-6">

@@ -62,10 +62,51 @@ exports.addInventoryLocation = async (req, res) => {
   }
 };
 
+// @desc    Get all inventory (paginated, all products/locations)
+exports.getAllInventory = async (req, res) => {
+  try {
+    const page  = parseInt(req.query.page,  10) || 1;
+    const limit = parseInt(req.query.limit, 10) || 25;
+    const skip  = (page - 1) * limit;
+    const query = { tenant: req.tenantId };
+    if (req.query.locationName) query['location.name'] = new RegExp(req.query.locationName, 'i');
+
+    const [inventory, total] = await Promise.all([
+      Inventory.find(query)
+        .sort({ updatedAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .populate('product', 'name sku images category price')
+        .lean(),
+      Inventory.countDocuments(query)
+    ]);
+
+    // Add expiry status helper
+    const now = new Date();
+    const thirtyDays = 30 * 24 * 60 * 60 * 1000;
+    const enriched = inventory.map(inv => ({
+      ...inv,
+      expiryStatus: !inv.expiryDate ? null
+        : inv.expiryDate < now ? 'expired'
+        : inv.expiryDate - now < thirtyDays ? 'expiring_soon'
+        : 'ok'
+    }));
+
+    res.status(200).json({
+      success: true,
+      data: enriched,
+      pagination: { page, limit, total, pages: Math.ceil(total / limit) }
+    });
+  } catch (error) {
+    console.error('GetAllInventory error:', error);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+};
+
 // @desc    Update stock (Adjustment/Restock/Consume)
 exports.updateStock = async (req, res) => {
   try {
-    const { type, quantity, notes } = req.body; // type: 'in' | 'out' | 'adjustment'
+    const { type, quantity, notes, batchNumber, expiryDate, manufactureDate } = req.body;
     const inventory = await Inventory.findOne({ _id: req.params.id, tenant: req.tenantId });
 
     if (!inventory) return res.status(404).json({ success: false, message: 'Inventory record not found' });
@@ -78,6 +119,9 @@ exports.updateStock = async (req, res) => {
     if (newQuantity < 0) return res.status(400).json({ success: false, message: 'Insufficient stock' });
 
     inventory.quantity = newQuantity;
+    if (batchNumber !== undefined) inventory.batchNumber = batchNumber;
+    if (expiryDate !== undefined) inventory.expiryDate = expiryDate ? new Date(expiryDate) : null;
+    if (manufactureDate !== undefined) inventory.manufactureDate = manufactureDate ? new Date(manufactureDate) : null;
     inventory.movements.push({
       type,
       quantity: parseInt(quantity),

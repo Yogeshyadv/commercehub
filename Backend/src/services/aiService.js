@@ -1,15 +1,15 @@
-const OpenAI = require('openai');
+const Groq = require('groq-sdk');
 
-let openai = null;
+let groq = null;
 
 // Only initialize if API key exists
-if (process.env.OPENAI_API_KEY && process.env.OPENAI_API_KEY !== 'sk-xxx') {
-  openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+if (process.env.GROQ_API_KEY) {
+  groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 }
 
 const aiService = {
   generateCatalogTheme: async (prompt) => {
-    if (!openai) {
+    if (!groq) {
         return {
             template: 'minimal',
             design: {
@@ -18,7 +18,7 @@ const aiService = {
                 accentColor: '#3b82f6',
                 fontFamily: 'Inter',
             },
-            message: "Using fallback theme because OpenAI API is not configured."
+            message: "Using fallback theme because AI API is not configured."
         };
     }
     try {
@@ -36,8 +36,8 @@ Return ONLY a valid JSON object describing the design. It must perfectly match t
 }
 Generate colors and fonts that match the vibe of the user's prompt.`;
 
-        const completion = await openai.chat.completions.create({
-            model: "gpt-3.5-turbo",
+        const completion = await groq.chat.completions.create({
+            model: "llama-3.3-70b-versatile",
             messages: [{ role: "user", content: aiPrompt }],
             temperature: 0.7,
             max_tokens: 300,
@@ -47,14 +47,14 @@ Generate colors and fonts that match the vibe of the user's prompt.`;
         const content = completion.choices[0].message.content;
         return JSON.parse(content);
     } catch (error) {
-        console.error('OpenAI Theme Generation Error:', error);
+        console.error('Groq Theme Generation Error:', error);
         throw error;
     }
   },
 
   // Generate complete catalog metadata from a prompt
   generateCatalogDetails: async (prompt) => {
-    if (!openai) {
+    if (!groq) {
       return {
         name: "Auto-Generated Catalog",
         description: "An auto-generated catalog based on: " + prompt,
@@ -127,8 +127,8 @@ Create the ideal catalog metadata. Return ONLY a valid JSON object that matches 
   ]
 }`;
 
-      const completion = await openai.chat.completions.create({
-        model: "gpt-3.5-turbo",
+      const completion = await groq.chat.completions.create({
+        model: "llama-3.3-70b-versatile",
         messages: [{ role: "user", content: aiPrompt }],
         temperature: 0.7,
         max_tokens: 400,
@@ -138,14 +138,14 @@ Create the ideal catalog metadata. Return ONLY a valid JSON object that matches 
       const content = completion.choices[0].message.content;
       return JSON.parse(content);
     } catch (error) {
-      console.error('OpenAI Catalog generation Error:', error);
+      console.error('Groq Catalog generation Error:', error);
       throw error;
     }
   },
 
   // Generate product description
   generateProductDescription: async (productData) => {
-    if (!openai) {
+    if (!groq) {
       // Fallback if no API key
       return generateFallbackDescription(productData);
     }
@@ -165,8 +165,8 @@ Return a JSON object with:
 
 Do not include markdown code blocks for the JSON itself, just raw JSON.`;
 
-      const completion = await openai.chat.completions.create({
-        model: 'gpt-3.5-turbo',
+      const completion = await groq.chat.completions.create({
+        model: 'llama-3.3-70b-versatile',
         messages: [
           { role: 'system', content: 'You are a professional e-commerce copywriter. You always output valid JSON.' },
           { role: 'user', content: prompt }
@@ -180,31 +180,31 @@ Do not include markdown code blocks for the JSON itself, just raw JSON.`;
         return {
             description: result.description,
             shortDescription: result.shortDescription,
-            source: 'openai'
+            source: 'groq'
         };
       } catch (e) {
          // Fallback if JSON parse fails
          return {
             description: completion.choices[0].message.content.trim(),
-            shortDescription: productData.name + ' - ' + productData.category, // Basic fallback
-            source: 'openai-raw'
+            shortDescription: productData.name + ' - ' + productData.category,
+            source: 'groq-raw'
          };
       }
     } catch (error) {
-      console.error('OpenAI error:', error.message);
+      console.error('Groq error:', error.message);
       return generateFallbackDescription(productData);
     }
   },
 
   // Generate SEO tags
   generateProductTags: async (productData) => {
-    if (!openai) {
+    if (!groq) {
       return { tags: [productData.category, productData.brand, 'best price', 'online'].filter(Boolean) };
     }
 
     try {
-      const completion = await openai.chat.completions.create({
-        model: 'gpt-3.5-turbo',
+      const completion = await groq.chat.completions.create({
+        model: 'llama-3.3-70b-versatile',
         messages: [
           { role: 'system', content: 'You generate SEO tags for products. Return only a JSON array of strings.' },
           { role: 'user', content: `Generate 8-10 SEO tags for: ${productData.name} in category ${productData.category}. Return JSON array only.` }
@@ -215,16 +215,16 @@ Do not include markdown code blocks for the JSON itself, just raw JSON.`;
 
       const content = completion.choices[0].message.content.trim();
       const tags = JSON.parse(content);
-      return { tags, source: 'openai' };
+      return { tags, source: 'groq' };
     } catch (error) {
-      console.error('OpenAI tags error:', error.message);
+      console.error('Groq tags error:', error.message);
       return { tags: [productData.category, productData.brand, 'buy online', 'best price'].filter(Boolean) };
     }
   },
 
   // Generate SEO Meta Data
   generateSEOData: async (productData) => {
-    if (!openai) {
+    if (!groq) {
       return {
         metaTitle: `${productData.name} - Buy Online | ${productData.brand || 'Store'}`,
         metaDescription: `Shop for ${productData.name} at the best prices. High quality ${productData.category} available now.`,
@@ -244,8 +244,8 @@ Return valid JSON with:
 2. "metaDescription": Compelling description (150-160 chars)
 3. "metaKeywords": Comma-separated list of 5-8 high-value keywords`;
 
-      const completion = await openai.chat.completions.create({
-        model: 'gpt-3.5-turbo',
+      const completion = await groq.chat.completions.create({
+        model: 'llama-3.3-70b-versatile',
         messages: [
           { role: 'system', content: 'You are an SEO expert. You output only valid JSON.' },
           { role: 'user', content: prompt }
@@ -256,10 +256,10 @@ Return valid JSON with:
 
       const content = completion.choices[0].message.content.trim();
       const result = JSON.parse(content);
-      return { ...result, source: 'openai' };
+      return { ...result, source: 'groq' };
 
     } catch (error) {
-      console.error('OpenAI SEO error:', error.message);
+      console.error('Groq SEO error:', error.message);
       return {
         metaTitle: `${productData.name} | Best Prices`,
         metaDescription: `Buy ${productData.name} online. Top quality ${productData.category}.`,
@@ -267,6 +267,19 @@ Return valid JSON with:
         source: 'fallback-error'
       };
     }
+  },
+
+  chat: async (messages) => {
+    if (!groq) {
+      return 'AI assistant is not configured. Please add your GROQ_API_KEY to enable the chat assistant.';
+    }
+    const completion = await groq.chat.completions.create({
+      model: 'llama-3.3-70b-versatile',
+      messages,
+      temperature: 0.7,
+      max_tokens: 500,
+    });
+    return completion.choices[0].message.content;
   },
 };
 

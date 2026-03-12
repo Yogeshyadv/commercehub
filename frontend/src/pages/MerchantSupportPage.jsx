@@ -111,7 +111,7 @@ export default function MerchantSupportPage() {
   );
 
   return (
-    <div className="bg-black text-white min-h-screen font-sans">
+    <div className="bg-white text-black min-h-screen font-sans">
       <Navbar />
 
       {/* ── HERO ── */}
@@ -168,7 +168,7 @@ export default function MerchantSupportPage() {
       </section>
 
       {/* ── SUPPORT CHANNELS ── */}
-      <section className="py-24 bg-black">
+      <section className="py-24 bg-white">
         <div className="max-w-6xl mx-auto px-6">
           <div className="text-center mb-14">
             <h2 className="text-4xl sm:text-5xl font-black mb-4">Get help your way</h2>
@@ -218,10 +218,10 @@ export default function MerchantSupportPage() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.35, delay: (i % 4) * 0.06 }}
-                className="bg-[#0a0a0a] border border-white/[0.06] rounded-2xl px-5 py-5 hover:border-white/[0.14] cursor-pointer transition-all duration-200 group"
+                className="bg-gray-50 border border-gray-200 rounded-2xl px-5 py-5 hover:border-gray-300 cursor-pointer transition-all duration-200 group"
               >
                 <span className="text-2xl mb-3 block">{t.icon}</span>
-                <p className="text-white font-bold text-sm mb-1 group-hover:text-[#DC2626] transition-colors">{t.label}</p>
+                <p className="text-black font-bold text-sm mb-1 group-hover:text-red-600 transition-colors">{t.label}</p>
                 <p className="text-gray-600 text-xs">{t.count}</p>
               </motion.div>
             ))}
@@ -230,16 +230,16 @@ export default function MerchantSupportPage() {
       </section>
 
       {/* ── PLAN SUPPORT TABLE ── */}
-      <section className="py-20 bg-black">
+      <section className="py-20 bg-gray-50">
         <div className="max-w-5xl mx-auto px-6">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-black mb-3">Support by plan</h2>
             <p className="text-gray-500">Every plan includes 24/7 coverage. Plus unlocks dedicated expertise.</p>
           </div>
-          <div className="overflow-x-auto rounded-2xl border border-white/[0.06]">
+          <div className="overflow-x-auto rounded-2xl border border-gray-200">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-white/[0.06] bg-[#0a0a0a]">
+                <tr className="border-b border-gray-200 bg-gray-50">
                   <th className="text-left px-6 py-4 text-gray-500 font-semibold">Feature</th>
                   {['Basic', 'Grow', 'Advanced', 'Plus'].map((plan, i) => (
                     <th key={plan} className={`px-5 py-4 text-center font-black text-xs uppercase tracking-wide ${i === 3 ? 'text-[#DC2626]' : 'text-gray-500'}`}>
@@ -296,7 +296,7 @@ export default function MerchantSupportPage() {
       </section>
 
       {/* ── FAQ ── */}
-      <section className="py-20 bg-black">
+      <section className="py-20 bg-gray-50">
         <div className="max-w-3xl mx-auto px-6">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-black mb-3">Frequently asked questions</h2>
@@ -304,15 +304,15 @@ export default function MerchantSupportPage() {
           </div>
           <div className="space-y-3">
             {faqs.map((faq, i) => (
-              <div key={i} className="bg-[#0a0a0a] border border-white/[0.06] rounded-2xl overflow-hidden">
+              <div key={i} className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm">
                 <button className="w-full flex items-center justify-between px-6 py-5 text-left" onClick={() => setOpenFaq(openFaq === i ? null : i)}>
-                  <span className="font-semibold text-white text-sm pr-6">{faq.q}</span>
-                  <span className={`shrink-0 w-7 h-7 rounded-full border flex items-center justify-center transition-all duration-200 ${openFaq === i ? 'border-[#DC2626] text-[#DC2626]' : 'border-white/20 text-gray-500'}`}>
+                  <span className="font-semibold text-black text-sm pr-6">{faq.q}</span>
+                  <span className={`shrink-0 w-7 h-7 rounded-full border flex items-center justify-center transition-all duration-200 ${openFaq === i ? 'border-red-500 text-red-500' : 'border-gray-300 text-gray-500'}`}>
                     <span className="text-lg leading-none font-light">{openFaq === i ? '−' : '+'}</span>
                   </span>
                 </button>
                 {openFaq === i && (
-                  <div className="px-6 pb-5 text-gray-400 text-sm leading-relaxed border-t border-white/[0.06]">
+                  <div className="px-6 pb-5 text-gray-600 text-sm leading-relaxed border-t border-gray-200">
                     <p className="pt-4">{faq.a}</p>
                   </div>
                 )}
