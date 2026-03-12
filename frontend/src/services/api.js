@@ -1,12 +1,12 @@
 import axios from 'axios';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://commercehub-backend.onrender.com/api/v1';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
   headers: { 'Content-Type': 'application/json' },
-  withCredentials: true,
-  timeout: 30000,
+  withCredentials: false, // Temporarily disabled for Vercel deployment
+  timeout: 10000, // Reduced timeout
 });
 
 // ─── Request interceptor ────────────────────────────────────────────────────
@@ -61,7 +61,7 @@ api.interceptors.response.use(
         const { data } = await axios.post(
           `${API_BASE_URL}/auth/refresh-token`,
           {},
-          { withCredentials: true }
+          { withCredentials: false } // Disabled for Vercel deployment
         );
         const newToken = data.token;
         localStorage.setItem('token', newToken);
